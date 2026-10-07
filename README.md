@@ -1,5 +1,7 @@
 # Comité des fêtes d'Ons-en-Bray — Front
 
+[![CI](https://github.com/gabigab117/cdf2-front/actions/workflows/ci.yml/badge.svg)](https://github.com/gabigab117/cdf2-front/actions/workflows/ci.yml)
+
 Front de la v2 de l'application du Comité des fêtes d'Ons-en-Bray (Oise), une association qui organise les animations de la commune. L'application regroupe deux parties :
 - un **site public** : agenda des manifestations, fiches événements, souvenirs ;
 - un **espace réservé au bureau** (`/bureau`) : organisation des événements et des bénévoles, documents, trésorerie, stock de la buvette, prêts de matériel aux associations du village.
