@@ -1,0 +1,36 @@
+# Nuxt server (Nitro) of the Comité des fêtes v2, one instance per environment:
+# cdf3-web@preprod.service, cdf3-web@prod.service.
+[Unit]
+Description=Comité des fêtes v2 web (%i)
+Documentation=https://github.com/gabigab117/cdf2-front
+After=network.target
+
+[Service]
+Type=exec
+User=cdf3
+Group=cdf3
+WorkingDirectory=/var/www/cdf3/%i/front/current
+EnvironmentFile=/var/www/cdf3/%i/shared/front.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node /var/www/cdf3/%i/front/current/server/index.mjs
+Restart=on-failure
+RestartSec=5s
+
+# The service only reads its release.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+
+# The server is shared with other production sites.
+MemoryMax=384M
+CPUWeight=20
+
+[Install]
+WantedBy=multi-user.target
