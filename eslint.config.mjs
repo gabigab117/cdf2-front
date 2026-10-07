@@ -1,0 +1,17 @@
+import betterTailwindcss from 'eslint-plugin-better-tailwindcss'
+import withNuxt from './.nuxt/eslint.config.mjs'
+
+export default withNuxt({
+  files: ['**/*.vue'],
+  plugins: { 'better-tailwindcss': betterTailwindcss },
+  settings: {
+    'better-tailwindcss': {
+      // Tailwind v4 is configured in CSS: the rules read the design tokens here.
+      entryPoint: 'app/assets/css/main.css',
+    },
+  },
+  rules: {
+    'better-tailwindcss/enforce-consistent-class-order': 'error',
+    'better-tailwindcss/no-unknown-classes': 'error',
+  },
+})

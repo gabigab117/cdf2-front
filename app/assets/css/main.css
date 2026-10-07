@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens of the mockup (roadmaps/maquette/design/main.css), the single
+ * source of the visual system. Values the mockup uses outside its palette are
+ * tokens too: no arbitrary value is ever written in a class. Near-identical
+ * values (one unit apart on a channel) share one token.
+ */
+@theme {
+  /* Fonts: Bricolage Grotesque (headings), Geist (text), Geist Mono (amounts, short dates) */
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+
+  /* Argent: backgrounds, borders, secondary text */
+  --color-argent-25: #FAFBFC;   /* table headers, row hover */
+  --color-argent-50: #F7F8FA;   /* page background */
+  --color-argent-75: #F3F4F7;   /* "Divers" chips */
+  --color-argent-100: #EEF0F4;  /* separators, bar tracks, neutral chips */
+  --color-argent-150: #F0F2F6;  /* icon backgrounds */
+  --color-argent-175: #E6E8EE;  /* "Jeux" tags */
+  --color-argent-200: #E3E6EC;  /* card borders */
+  --color-argent-250: #D5D9E1;  /* field and secondary button borders */
+  --color-argent-300: #C3C8D2;  /* "expenses" bars, dotted lines */
+  --color-argent-350: #C9CDD6;  /* text on dark surfaces */
+  --color-argent-400: #A3AAB8;  /* disabled text */
+  --color-argent-450: #8A90A0;  /* secondary text on dark surfaces */
+  --color-argent-500: #6B7282;  /* placeholders */
+  --color-argent-600: #5B6272;  /* secondary text */
+  --color-argent-650: #4A5675;  /* secondary text on azur surfaces */
+
+  /* Sable: text and dark surfaces */
+  --color-sable-600: #3A4050;   /* secondary body text */
+  --color-sable-650: #2F3542;   /* borders on dark surfaces */
+  --color-sable-700: #2A2F3B;
+  --color-sable-750: #222733;   /* separators on dark surfaces */
+  --color-sable-800: #1E2330;   /* active sidebar item */
+  --color-sable-850: #171B24;
+  --color-sable-900: #0F1218;   /* sidebar, dark panels */
+  --color-sable-950: #0C0E13;   /* main text, black buttons */
+
+  /* Azur: action, selection, assistant */
+  --color-azur-25: #F7F9FF;     /* selected row (loan form) */
+  --color-azur-50: #F2F5FE;     /* assistant backgrounds, selected rows */
+  --color-azur-100: #E8EDFC;    /* azur chips */
+  --color-azur-150: #DCE4FB;    /* text on the azur KPI card */
+  --color-azur-200: #D6DFFA;    /* assistant block borders */
+  --color-azur-250: #C9D5F8;    /* button borders on azur surfaces */
+  --color-azur-300: #9DB1F5;
+  --color-azur-400: #5B7BEA;    /* accents on dark surfaces (next event, progress) */
+  --color-azur-500: #3A5BDA;    /* coat-of-arms blue, decorative chevron */
+  --color-azur-600: #2D4BC8;    /* primary buttons, links */
+  --color-azur-700: #233BA0;    /* text on light azur, positive amounts */
+  --color-azur-900: #1B2E80;
+  --color-azur-nuit: #1E2A52;   /* azur discs on dark surfaces */
+
+  /* Ambre: alerts (below threshold, conflict, missing receipt) */
+  --color-ambre-25: #FFFBF6;    /* rows below threshold or over the limit */
+  --color-ambre-50: #FDF1E4;
+  --color-ambre-200: #F3D3B3;
+  --color-ambre-300: #E8A86B;   /* error borders */
+  --color-ambre-400: #F2A65A;   /* alerts on dark surfaces */
+  --color-ambre-500: #C9762F;   /* low level, "today", to prepare */
+  --color-ambre-700: #A84B0C;
+  --color-ambre-800: #8A3D0A;
+  --color-ambre-900: #6E3108;   /* text of repair notes */
+  --color-ambre-950: #5E2A06;   /* text of conflict notices */
+  --color-ambre-nuit: #3B2A1E;  /* amber discs on dark surfaces */
+
+  /*
+   * Type scale: the roles the mockup repeats. Tailwind's own sizes cover
+   * 12, 14, 16, 18, 20, 24, 30, 36, 48 and 60 px; sizes used on a single screen
+   * get their token with that screen.
+   */
+  --text-overline: 0.71875rem;               /* 11.5px: uppercase labels, small badges */
+  --text-overline--letter-spacing: 0.08em;
+  --text-caption: 0.78125rem;                /* 12.5px: meta lines */
+  --text-label: 0.8125rem;                   /* 13px: form labels, chips */
+  --text-note: 0.84375rem;                   /* 13.5px: secondary text */
+  --text-ui: 0.90625rem;                     /* 14.5px: navigation, row names, buttons */
+  --text-body: 0.9375rem;                    /* 15px: body text */
+  --text-body--line-height: 1.5;
+  --text-lead: 0.96875rem;                   /* 15.5px: page subtitles */
+  --text-title: 1.0625rem;                   /* 17px: section titles in cards */
+  --text-headline: 1.75rem;                  /* 28px: detail panel titles */
+  --text-headline--line-height: 1.05;
+  --text-headline--letter-spacing: -0.025em;
+  --text-heading: 2rem;                      /* 32px: public section titles */
+  --text-heading--line-height: 1.1;
+  --text-heading--letter-spacing: -0.03em;
+  --text-kpi: 2.125rem;                      /* 34px: KPI values */
+  --text-kpi--line-height: 1;
+  --text-kpi--letter-spacing: -0.03em;
+  --text-page: 2.75rem;                      /* 44px: board page titles */
+  --text-page--line-height: 1;
+  --text-page--letter-spacing: -0.035em;
+
+  /* Radii */
+  --radius-badge: 7px;
+  --radius-segment: 9px;     /* segmented control options */
+  --radius-control: 10px;    /* small controls */
+  --radius-icon: 11px;       /* icon boxes, list actions */
+  --radius-field: 12px;      /* fields, buttons */
+  --radius-search: 14px;     /* assistant and search fields */
+  --radius-banner: 18px;     /* assistant banners */
+  --radius-tile: 20px;
+  --radius-card: 22px;       /* sections, KPI cards */
+}
+
+/* Chevron pattern taken from the coat of arms */
+@utility chevron {
+  clip-path: polygon(0 70%, 50% 0, 100% 70%, 100% 100%, 50% 30%, 0 100%);
+}
