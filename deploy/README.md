@@ -14,6 +14,18 @@ Le front tourne sur le même VPS que l'API, derrière le même nginx, dans les m
 3. **Contrôle de santé** : la page d'accueil doit répondre.
 4. **Retour arrière** : en cas d'échec, retour automatique à la release précédente. Les 3 dernières sont conservées.
 
+## Déploiement continu
+
+Un push sur `main` dont les contrôles passent se déploie seul, par le job `deploy` de [`ci.yml`](../.github/workflows/ci.yml).
+- **Construction** : le job `checks` construit `.output` (ubuntu-24.04, Node 24), l'archive en `tar.gz` et la transmet en artefact au job `deploy`.
+- **Envoi** : le job `deploy` passe l'archive sur l'entrée standard d'un `ssh` dont la clé ne peut lancer que le script de release :
+
+  ```
+  restrict,command="/usr/local/bin/cdf3-release-front <instance>" ssh-ed25519 AAAA… ci cdf2-front <instance>
+  ```
+
+Environnement GitHub, secrets, concurrence et rotation de la clé : mêmes règles que pour l'API, décrites dans [cdf2-back/deploy](https://github.com/gabigab117/cdf2-back/tree/main/deploy#déploiement-continu).
+
 ## Fichiers
 
 | Fichier | Installé en | Rôle |
