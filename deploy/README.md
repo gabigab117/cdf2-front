@@ -12,7 +12,7 @@ Le front tourne sur le même VPS que l'API, derrière le même nginx, dans les m
 1. **Réception de l'archive** : sa taille est plafonnée. Elle doit contenir `server/index.mjs`.
 2. **Bascule atomique** du lien `current`, puis redémarrage du service.
 3. **Contrôle de santé** : la page d'accueil doit répondre.
-4. **Retour arrière** : en cas d'échec, retour automatique à la release précédente. Les 3 dernières sont conservées.
+4. **Retour arrière** : en cas d'échec, retour automatique à la release précédente, dont la santé est vérifiée à son tour. Le statut renvoyé dit si le site est revenu. Les 3 dernières releases sont conservées.
 
 ## Déploiement continu
 
