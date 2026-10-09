@@ -14,6 +14,14 @@ describe('UiButton', () => {
     expect(button.attributes('href')).toBe('/bureau/prets')
   })
 
+  it('leaves a link out of the application to the browser', async () => {
+    const button = await mountSuspended(UiButton, { props: { to: '/api/public/agenda.ics', external: true } })
+
+    expect(button.element.tagName).toBe('A')
+    expect(button.attributes('href')).toBe('/api/public/agenda.ics')
+    expect(button.findComponent({ name: 'RouterLink' }).exists()).toBe(false)
+  })
+
   it('waits, unavailable, while its action is under way', async () => {
     /**
      * Given an action under way
@@ -33,6 +41,22 @@ describe('UiFilterChip', () => {
 
     expect(chip.attributes('aria-pressed')).toBe(String(pressed))
     expect(chip.text()).toBe('Factures21')
+  })
+
+  it.each([
+    ['applies', true, 'page'],
+    ['does not apply', false, undefined],
+  ])('leads to the filtered list, the current page only when its filter %s', async (_case, pressed, current) => {
+    const chip = await mountSuspended(UiFilterChip, {
+      props: { pressed, to: { path: '/', query: { categorie: 'jeux' } } },
+      slots: { default: () => 'Jeux' },
+      route: '/',
+    })
+
+    expect(chip.element.tagName).toBe('A')
+    expect(chip.attributes('href')).toBe('/?categorie=jeux')
+    expect(chip.attributes('aria-current')).toBe(current)
+    expect(chip.attributes('aria-pressed')).toBeUndefined()
   })
 })
 

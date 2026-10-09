@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { ArrowLeft } from '@lucide/vue'
 import type { RouteLocationRaw } from 'vue-router'
 
-const { items } = defineProps<{
+const { items, back = false } = defineProps<{
   /** From the widest section to the current page, the only one without a link. */
   items: ReadonlyArray<{ label: string, to?: RouteLocationRaw }>
+  /** An arrow before the first link, the way back of the public site. */
+  back?: boolean
 }>()
 </script>
 
@@ -22,8 +25,13 @@ const { items } = defineProps<{
         <NuxtLink
           v-if="item.to"
           :to="item.to"
-          class="font-medium whitespace-nowrap text-sable-600 transition-colors hover:text-sable-950"
+          class="inline-flex items-center gap-1.5 font-medium whitespace-nowrap text-sable-600 transition-colors hover:text-sable-950"
         >
+          <ArrowLeft
+            v-if="back && index === 0"
+            :size="16"
+            aria-hidden="true"
+          />
           {{ item.label }}
         </NuxtLink>
         <span

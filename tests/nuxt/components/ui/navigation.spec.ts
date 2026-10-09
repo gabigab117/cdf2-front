@@ -70,6 +70,16 @@ describe('UiBreadcrumb', () => {
     expect(breadcrumb.get('nav').attributes('aria-label')).toBe('Fil d’Ariane')
     expect(breadcrumb.get('a').attributes('href')).toBe('/bureau/evenements')
     expect(breadcrumb.get('[aria-current="page"]').text()).toBe('Halloween des enfants')
+    expect(breadcrumb.find('a svg').exists()).toBe(false)
+  })
+
+  it('shows the way back on the public site', async () => {
+    const breadcrumb = await mountSuspended(UiBreadcrumb, {
+      props: { items: [{ label: 'Agenda', to: '/#agenda' }, { label: 'Halloween des enfants' }], back: true },
+    })
+
+    expect(breadcrumb.get('a').attributes('href')).toBe('/#agenda')
+    expect(breadcrumb.find('a svg').exists()).toBe(true)
   })
 })
 

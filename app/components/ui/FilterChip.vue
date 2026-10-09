@@ -1,11 +1,19 @@
 <script setup lang="ts">
-const { pressed, size = 'md', count } = defineProps<{
+import type { RouteLocationRaw } from 'vue-router'
+import { NuxtLink } from '#components'
+
+const { pressed, size = 'md', count, to } = defineProps<{
   /** Whether the filter applies: the parent decides, the chip shows it. */
   pressed: boolean
   /** 40 or 34 px high. */
   size?: 'sm' | 'md'
   /** How many items the filter keeps. */
   count?: number
+  /**
+   * The address of the filtered list: the chip becomes a link, which filters
+   * without JavaScript. It is the current page when its filter applies.
+   */
+  to?: RouteLocationRaw
 }>()
 
 const classes = {
@@ -19,12 +27,20 @@ const classes = {
 }
 
 const chipClasses = computed(() => [classes.base, classes.size[size], pressed ? classes.pressed : classes.released])
+
+// A button says it is pressed; a link says it is the current page. The router
+// would mark every chip of the page as such, whatever its query: the chip
+// decides alone.
+const state = computed(() =>
+  to ? { 'aria-current': pressed ? 'page' : undefined } : { 'type': 'button', 'aria-pressed': pressed },
+)
 </script>
 
 <template>
-  <button
-    type="button"
-    :aria-pressed="pressed"
+  <component
+    :is="to ? NuxtLink : 'button'"
+    :to
+    v-bind="state"
     :class="chipClasses"
   >
     <slot />
@@ -32,5 +48,5 @@ const chipClasses = computed(() => [classes.base, classes.size[size], pressed ? 
       v-if="count !== undefined"
       class="font-mono text-xs opacity-75"
     >{{ count }}</span>
-  </button>
+  </component>
 </template>

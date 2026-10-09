@@ -3,9 +3,10 @@ const { tone = 'neutral', size = 'md', dot = false } = defineProps<{
   /**
    * Azur for what goes ahead, solid azur for what is under way, amber for what
    * needs attention, black for the committee's own use, an outline for a
-   * category.
+   * category on the board. The public agenda colours its categories with them,
+   * and with steel.
    */
-  tone?: 'azur' | 'accent' | 'ambre' | 'neutral' | 'dark' | 'outline'
+  tone?: 'azur' | 'accent' | 'ambre' | 'neutral' | 'steel' | 'dark' | 'outline'
   /** 22, 26 or 28 px high. */
   size?: 'sm' | 'md' | 'lg'
   /** A dot before the text, as for "Publié sur le site". */
@@ -24,6 +25,7 @@ const classes = {
     accent: 'bg-azur-600 text-white',
     ambre: 'bg-ambre-50 text-ambre-800',
     neutral: 'bg-argent-100 text-sable-600',
+    steel: 'bg-argent-175 text-sable-800',
     dark: 'bg-sable-950 text-white',
     outline: 'border border-argent-200 bg-white font-medium text-sable-600',
   },

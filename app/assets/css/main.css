@@ -95,9 +95,39 @@
   --text-page--line-height: 1;
   --text-page--letter-spacing: -0.035em;
 
+  /* The public site's own sizes (home page and event page) */
+  --text-intro: 1.1875rem;                   /* 19px: the hero's text, an event's summary */
+  --text-intro--line-height: 1.55;
+  --text-row: 1.6875rem;                     /* 27px: titles of the agenda's rows */
+  --text-row--letter-spacing: -0.02em;
+  --text-block: 2.25rem;                     /* 36px: blocks of an event page */
+  --text-block--line-height: 1;
+  --text-block--letter-spacing: -0.03em;
+  --text-day: 3.125rem;                      /* 50px: day of an agenda row */
+  --text-day--line-height: 1;
+  --text-day--letter-spacing: -0.04em;
+  --text-date: 3.5rem;                       /* 56px: date block of an event page */
+  --text-date--line-height: 1;
+  --text-date--letter-spacing: -0.04em;
+  --text-section: clamp(2.375rem, 4.4vw, 3.75rem); /* 38 to 60px: sections of the home page */
+  --text-section--line-height: 1;
+  --text-section--letter-spacing: -0.035em;
+  --text-hero: clamp(2.625rem, 6.4vw, 5.5rem);    /* 42 to 88px: the home page's title */
+  --text-hero--line-height: 0.94;
+  --text-hero--letter-spacing: -0.04em;
+  --text-event: clamp(3rem, 6.6vw, 6.5rem);       /* 48 to 104px: an event page's title */
+  --text-event--line-height: 0.92;
+  --text-event--letter-spacing: -0.045em;
+
+  /* Weights of Bricolage Grotesque between Tailwind's steps */
+  --font-weight-strong: 650;   /* titles of the agenda's rows and of the next events */
+  --font-weight-heavy: 750;    /* the public site's large titles */
+
   /* Letter spacing outside Tailwind's scale */
   --tracking-brand: -0.01em;    /* the committee's name next to the coat of arms */
   --tracking-place: 0.02em;     /* "Ons-en-Bray" under that name */
+  --tracking-eyebrow: 0.06em;   /* the day above the next event's title */
+  --tracking-overline: 0.08em;  /* uppercase labels larger than the overline */
 
   /* Radii */
   --radius-badge: 7px;
@@ -109,12 +139,17 @@
   --radius-banner: 18px;     /* assistant banners, alerts */
   --radius-tile: 20px;
   --radius-card: 22px;       /* sections, KPI cards */
+  --radius-panel: 24px;      /* date block and cards of an event page */
+  --radius-hero: 28px;       /* the next event's card, an event page's facts */
 
   /* Shadows */
   --shadow-segment: 0 1px 3px rgb(12 14 19 / 0.12);              /* selected segment */
   --shadow-selected: inset 3px 0 0 var(--color-azur-600);        /* edge of a selected row */
   --shadow-knob: 0 1px 2px rgb(12 14 19 / 0.25);                 /* knob of a switch */
   --shadow-tabs: inset 0 -1px 0 var(--color-argent-200);         /* rule under a tab bar */
+  --shadow-spotlight: 0 40px 80px -30px rgb(12 14 19 / 0.45), 0 0 0 1px rgb(12 14 19 / 0.06); /* the next event's card */
+  --shadow-float: 0 24px 48px -32px rgb(12 14 19 / 0.35);        /* floating panels, an event's facts */
+  --shadow-pin: 0 10px 20px -8px rgb(45 75 200 / 0.7);           /* pin of a map preview */
 
   /* Widths */
   --container-board: 73.75rem;  /* 1180px: content of a board page */
@@ -158,4 +193,12 @@
 /* Chevron pattern taken from the coat of arms */
 @utility chevron {
   clip-path: polygon(0 70%, 50% 0, 100% 70%, 100% 100%, 50% 30%, 0 100%);
+}
+
+/* The squared paper of a map preview, drawn without loading any map. */
+@utility map-grid {
+  background-image:
+    linear-gradient(var(--color-argent-200) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-argent-200) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
