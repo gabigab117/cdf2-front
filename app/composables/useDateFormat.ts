@@ -47,10 +47,13 @@ function day(iso: string, { weekday = true, year = false }: { weekday?: boolean,
   return written(format, iso)
 }
 
+// The spaces of a time never break: « 1 h » never ends a line before « 00 ».
+const NO_BREAK_SPACE = '\u00A0'
+
 /** « 15 h 00 », « 9 h 05 ». */
 function time(iso: string): string {
   const parts = Object.fromEntries(FORMATS.time.formatToParts(new Date(iso)).map(part => [part.type, part.value]))
-  return `${parts.hour} h ${parts.minute}`
+  return [parts.hour, 'h', parts.minute].join(NO_BREAK_SPACE)
 }
 
 /**

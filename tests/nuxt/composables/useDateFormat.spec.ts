@@ -1,7 +1,18 @@
 import { describe, expect, it } from 'vitest'
 import { useDateFormat } from '~/composables/useDateFormat'
 
-const { dayMonth, day, time, period, schedule, eventWhen } = useDateFormat()
+const formats = useDateFormat()
+const { dayMonth, day, period } = formats
+
+// The texts as they read: the spaces of a time do not break, which a test
+// checks once.
+function readable(text: string): string {
+  return text.replaceAll('\u00A0', ' ')
+}
+
+const time = (iso: string) => readable(formats.time(iso))
+const schedule = (...args: Parameters<typeof formats.schedule>) => readable(formats.schedule(...args))
+const eventWhen = (...args: Parameters<typeof formats.eventWhen>) => readable(formats.eventWhen(...args))
 
 // Saturday 31 October 2026, 15:00 in Paris.
 const HALLOWEEN = '2026-10-31T14:00:00Z'
@@ -19,6 +30,10 @@ describe('useDateFormat', () => {
     ['without its weekday nor its year', HALLOWEEN, { weekday: false }, '31 oct.'],
   ])('writes a day %s', (_case, instant, options, written) => {
     expect(day(instant, options)).toBe(written)
+  })
+
+  it('keeps the parts of a time together on a line', () => {
+    expect(formats.time(HALLOWEEN)).toBe('15\u00A0h\u00A000')
   })
 
   it.each([
