@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Calendar, MapPin, User } from '@lucide/vue'
+import { Calendar, Eye, MapPin, User } from '@lucide/vue'
 import type { components } from '~/types/api'
 
 definePageMeta({ path: '/bureau/evenements/:id(\\d+)' })
@@ -76,9 +76,23 @@ function show(saved: components['schemas']['EventOut']): void {
           </span>
         </div>
       </div>
-      <UiButton :to="eventEditPath(event.id)">
-        Modifier
-      </UiButton>
+      <div class="flex gap-2">
+        <!-- Only a published event has a public page. -->
+        <UiButton
+          v-if="event.published"
+          variant="secondary"
+          :to="publicEventPath(event.slug)"
+        >
+          <Eye
+            :size="16"
+            aria-hidden="true"
+          />
+          Page publique
+        </UiButton>
+        <UiButton :to="eventEditPath(event.id)">
+          Modifier
+        </UiButton>
+      </div>
     </div>
     <UiTabs
       v-model="tab"

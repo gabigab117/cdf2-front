@@ -46,7 +46,7 @@ describe('the board\'s page of an event', () => {
     expect(readable(eventPage.text())).toContain('Publié sur le siteEnfants')
     expect(readable(eventPage.text())).toContain('Sam. 31 oct. 2026 · 15 h 00 – 18 h 30 Salle des fêtes Responsable : Julie R.')
     expect(eventPage.get('a[href="/bureau/evenements/12/modifier"]').text()).toBe('Modifier')
-    expect(eventPage.text()).not.toContain('Page publique')
+    expect(eventPage.get('a[href="/evenements/halloween-des-enfants-2026"]').text()).toBe('Page publique')
   })
 
   it('says an event is not published, and has no lead', async () => {
@@ -56,6 +56,7 @@ describe('the board\'s page of an event', () => {
 
     expect(eventPage.text()).toContain('Non publié')
     expect(eventPage.text()).not.toContain('Responsable')
+    expect(eventPage.text()).not.toContain('Page publique')
   })
 
   it('opens on the public information, edited in its tab', async () => {
