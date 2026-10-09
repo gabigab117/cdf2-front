@@ -18,6 +18,22 @@ export default defineNuxtConfig({
     // relative URL only resolves in a browser. Set by NUXT_API_INTERNAL_URL, with
     // no default: a build must never aim at a port it does not know.
     apiInternalUrl: '',
+    // Written into every page, for the browser: never a personal detail. Each
+    // comes from the environment (NUXT_PUBLIC_…), the repository holds none.
+    public: {
+      // The site's own address, as https://example.org: canonical links, Open
+      // Graph and the agenda's subscription (NUXT_PUBLIC_SITE_URL).
+      siteUrl: '',
+      // The preproduction: never indexed, and says its data is fictitious
+      // (NUXT_PUBLIC_PREPROD).
+      preprod: false,
+      // The association's own e-mail address and phone, never a member's
+      // (NUXT_PUBLIC_CONTACT_EMAIL, NUXT_PUBLIC_CONTACT_PHONE).
+      contact: { email: '', phone: '' },
+      // The village hall: its street, then its postcode and town
+      // (NUXT_PUBLIC_HALL_STREET, NUXT_PUBLIC_HALL_TOWN).
+      hall: { street: '', town: '' },
+    },
   },
 
   // Public pages are rendered on the server (indexable, readable without
@@ -60,7 +76,14 @@ export default defineNuxtConfig({
 
   fonts: {
     families: [
-      { name: 'Bricolage Grotesque', provider: 'google', weights: ['400 800'] },
+      {
+        name: 'Bricolage Grotesque',
+        provider: 'google',
+        weights: ['400 800'],
+        // Its optical sizes, as the mockup loads them: the large titles take the
+        // narrower drawing the font has for them.
+        providerOptions: { google: { experimental: { variableAxis: { opsz: [['12', '96']] } } } },
+      },
       { name: 'Geist', provider: 'google', weights: [400, 500, 600] },
       { name: 'Geist Mono', provider: 'google', weights: [400, 500, 600] },
     ],

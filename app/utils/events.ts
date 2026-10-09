@@ -22,6 +22,11 @@ export function eventEditPath(id: number): string {
   return `${eventPath(id)}/modifier`
 }
 
+/** The public page of a published event, on the site. */
+export function publicEventPath(slug: string): string {
+  return `/evenements/${slug}`
+}
+
 /** How many events a page of the board's list holds. */
 export const EVENTS_PAGE_SIZE = 25
 
@@ -69,6 +74,47 @@ export function parseEventListQuery(query: LocationQuery): EventListQuery {
 export function eventListQuery({ period, page }: EventListQuery): LocationQueryRaw {
   return {
     periode: period === 'past' ? 'passes' : undefined,
+    page: page > 1 ? String(page) : undefined,
+  }
+}
+
+/** How many events a page of the site's agenda holds. */
+export const AGENDA_PAGE_SIZE = 25
+
+/** The categories as the site's addresses write them: `/?categorie=enfants`. */
+export const CATEGORY_SLUGS: Readonly<Record<EventCategory, string>> = {
+  children: 'enfants',
+  meals: 'repas',
+  markets: 'marches',
+  games: 'jeux',
+  festivities: 'fetes',
+}
+
+/** The part of the agenda an address of the home page shows. */
+export interface AgendaQuery {
+  category: EventCategory | null
+  page: number
+}
+
+/**
+ * The part of the agenda an address asks for: `/?categorie=jeux&page=2`. The
+ * whole agenda and its first page need nothing; a value the site does not
+ * know falls back on them.
+ */
+export function parseAgendaQuery(query: LocationQuery): AgendaQuery {
+  const page = Number(query.page)
+  // Object.keys() types its keys as strings: they are those of the record.
+  const categories = Object.keys(CATEGORY_SLUGS) as EventCategory[]
+  return {
+    category: categories.find(category => CATEGORY_SLUGS[category] === query.categorie) ?? null,
+    page: Number.isInteger(page) && page > 1 ? page : 1,
+  }
+}
+
+/** The address of a part of the agenda, in the form parseAgendaQuery() reads. */
+export function agendaQuery({ category, page }: AgendaQuery): LocationQueryRaw {
+  return {
+    categorie: category ? CATEGORY_SLUGS[category] : undefined,
     page: page > 1 ? String(page) : undefined,
   }
 }

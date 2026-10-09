@@ -1,19 +1,35 @@
 <script setup lang="ts">
 definePageMeta({ public: true })
 
-useSeoMeta({
+const route = useRoute()
+const query = computed(() => parseAgendaQuery(route.query))
+
+// The three readings of the API leave together.
+const [{ data: overview }, { data: events, error }, { data: spotlight }] = await Promise.all([
+  useAgendaOverview(),
+  useAgendaEvents(query),
+  useSpotlight(),
+])
+
+// The page answers even when the API does not: only the agenda says so.
+const failed = computed(() => error.value !== undefined)
+
+useSitePage({
   title: 'Accueil',
-  description: 'Les fêtes du village, organisées par ses bénévoles.',
+  description: 'Les fêtes du village, organisées par ses bénévoles : l’agenda des manifestations du Comité des Fêtes d’Ons-en-Bray et leurs infos pratiques.',
 })
 </script>
 
 <template>
-  <section class="flex flex-1 flex-col items-center justify-center gap-3 px-4 py-24 text-center">
-    <h1 class="font-display text-heading text-sable-950">
-      Comité des Fêtes d’Ons-en-Bray
-    </h1>
-    <p class="text-body text-argent-600">
-      Le nouveau site arrive bientôt.
-    </p>
-  </section>
+  <div class="flex flex-col">
+    <SiteHero :spotlight />
+    <SiteAgenda
+      :overview
+      :events
+      :failed
+      :query
+    />
+    <SiteVolunteerCall />
+    <SiteContact />
+  </div>
 </template>
