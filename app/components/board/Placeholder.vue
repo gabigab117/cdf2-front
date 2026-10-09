@@ -16,9 +16,7 @@ useHead({ title })
 
 <template>
   <div class="flex flex-col gap-7">
-    <h1 class="font-display text-headline font-bold md:text-page">
-      {{ title }}
-    </h1>
+    <BoardPageTitle>{{ title }}</BoardPageTitle>
     <UiCallout
       :icon="Construction"
       title="Écran en préparation"

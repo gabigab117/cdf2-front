@@ -9,13 +9,13 @@ const { label, size = 'md', surface = 'light' } = defineProps<{
 }>()
 
 const classes = {
-  base: 'inline-flex shrink-0 items-center justify-center transition-colors',
+  base: 'inline-flex shrink-0 items-center justify-center transition-colors disabled:cursor-not-allowed',
   size: {
     sm: 'size-9 rounded-control',
     md: 'size-11 rounded-field',
   },
   surface: {
-    light: 'border border-argent-200 bg-white text-sable-950 hover:bg-argent-25',
+    light: 'border border-argent-200 bg-white text-sable-950 hover:bg-argent-25 disabled:text-argent-300 disabled:hover:bg-white',
     dark: 'text-argent-450 hover:bg-sable-800 hover:text-white',
   },
 }

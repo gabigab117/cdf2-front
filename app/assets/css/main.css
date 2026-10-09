@@ -113,6 +113,8 @@
   /* Shadows */
   --shadow-segment: 0 1px 3px rgb(12 14 19 / 0.12);              /* selected segment */
   --shadow-selected: inset 3px 0 0 var(--color-azur-600);        /* edge of a selected row */
+  --shadow-knob: 0 1px 2px rgb(12 14 19 / 0.25);                 /* knob of a switch */
+  --shadow-tabs: inset 0 -1px 0 var(--color-argent-200);         /* rule under a tab bar */
 
   /* Widths */
   --container-board: 73.75rem;  /* 1180px: content of a board page */

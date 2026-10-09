@@ -10,8 +10,11 @@ const {
   loading = false,
   disabled = false,
 } = defineProps<{
-  /** Black for the main action, azur for a validation, bordered or plain text for the others. */
-  variant?: 'primary' | 'accent' | 'secondary' | 'link'
+  /**
+   * Black for the main action, azur for a validation, bordered or plain text
+   * for the others, dashed to add a line to a list.
+   */
+  variant?: 'primary' | 'accent' | 'secondary' | 'link' | 'dashed'
   /** 38, 44 or 48 px high. Plain text has no height of its own. */
   size?: 'sm' | 'md' | 'lg'
   type?: 'button' | 'submit'
@@ -31,6 +34,7 @@ const classes = {
     accent: 'bg-azur-600 text-white hover:bg-azur-700 disabled:bg-argent-200 disabled:text-argent-600',
     secondary: 'border border-argent-250 bg-white text-sable-950 hover:bg-argent-25 disabled:text-argent-400',
     link: 'text-sm font-medium text-azur-600 hover:text-azur-700 disabled:text-argent-400',
+    dashed: 'border border-dashed border-argent-300 bg-white text-sable-600 hover:bg-argent-25 disabled:text-argent-400',
   },
   size: {
     sm: 'h-9.5 rounded-control px-3.5 text-note font-medium',
