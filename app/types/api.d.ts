@@ -84,6 +84,61 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the events
+         * @description The events of the board, by page.
+         *
+         *     Upcoming events come the next first; past ones, like the whole list, the
+         *     latest first. An event stays upcoming until the end of its last day.
+         */
+        get: operations["events_api_list_events"];
+        put?: never;
+        /**
+         * Create an event
+         * @description Record an event, with its programme and practical info.
+         */
+        post: operations["events_api_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/events/{event_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get an event
+         * @description An event with all its content.
+         */
+        get: operations["events_api_detail"];
+        /**
+         * Update an event
+         * @description Rewrite an event whole: its programme and practical info are replaced.
+         */
+        put: operations["events_api_update"];
+        post?: never;
+        /**
+         * Delete an event
+         * @description Delete an event, with its programme and practical info.
+         */
+        delete: operations["events_api_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -113,10 +168,156 @@ export interface components {
             /** Access */
             access: string;
         };
+        /**
+         * BoardMemberOut
+         * @description A board member as the board space names them, the lead of an event.
+         */
+        BoardMemberOut: {
+            /** First Name */
+            first_name: string;
+            /** Id */
+            id: number;
+            /** Last Name */
+            last_name: string;
+        };
         /** ErrorOut */
         ErrorOut: {
             /** Detail */
             detail: string;
+        };
+        /**
+         * EventCategory
+         * @enum {string}
+         */
+        EventCategory: "children" | "meals" | "markets" | "games" | "festivities";
+        /** EventFilters */
+        EventFilters: {
+            category?: components["schemas"]["EventCategory"] | null;
+            /** Published */
+            published?: boolean | null;
+        };
+        /**
+         * EventIn
+         * @description An event as the board writes it: whole, every key required.
+         *
+         *     A key left out never erases a value, the programme above all. The lists are
+         *     given in display order and replace the previous ones. The values themselves
+         *     are checked by the model, whose messages are in French.
+         */
+        EventIn: {
+            category: components["schemas"]["EventCategory"];
+            /** Ends At */
+            ends_at: string | null;
+            /** Latitude */
+            latitude: number | null;
+            /** Lead */
+            lead: number | null;
+            /** Longitude */
+            longitude: number | null;
+            /** Practical Infos */
+            practical_infos: components["schemas"]["PracticalInfoIn"][];
+            /** Previous Edition */
+            previous_edition: number | null;
+            /** Price Detail */
+            price_detail: string;
+            /** Price Label */
+            price_label: string;
+            /** Programme */
+            programme: components["schemas"]["ProgrammeItemIn"][];
+            /** Published */
+            published: boolean;
+            /** Slug */
+            slug: string;
+            /** Start Label */
+            start_label: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Summary */
+            summary: string;
+            /** Title */
+            title: string;
+            /** Venue Address */
+            venue_address: string;
+            /** Venue Name */
+            venue_name: string;
+        };
+        /**
+         * EventItemOut
+         * @description An event in a list.
+         */
+        EventItemOut: {
+            category: components["schemas"]["EventCategory"];
+            /** Ends At */
+            ends_at: string | null;
+            /** Id */
+            id: number;
+            /** Published */
+            published: boolean;
+            /** Slug */
+            slug: string;
+            /** Start Label */
+            start_label: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Title */
+            title: string;
+            /** Venue Name */
+            venue_name: string;
+        };
+        /**
+         * EventOut
+         * @description An event with all its content, in display order.
+         */
+        EventOut: {
+            category: components["schemas"]["EventCategory"];
+            /** Ends At */
+            ends_at: string | null;
+            /** Id */
+            id: number;
+            /** Latitude */
+            latitude: number | null;
+            lead: components["schemas"]["BoardMemberOut"] | null;
+            /** Longitude */
+            longitude: number | null;
+            /** Practical Infos */
+            practical_infos: components["schemas"]["PracticalInfoOut"][];
+            previous_edition: components["schemas"]["EventItemOut"] | null;
+            /** Price Detail */
+            price_detail: string;
+            /** Price Label */
+            price_label: string;
+            /** Programme */
+            programme: components["schemas"]["ProgrammeItemOut"][];
+            /** Published */
+            published: boolean;
+            /** Slug */
+            slug: string;
+            /** Start Label */
+            start_label: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Summary */
+            summary: string;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Venue Address */
+            venue_address: string;
+            /** Venue Name */
+            venue_name: string;
         };
         /** HealthOut */
         HealthOut: {
@@ -124,6 +325,16 @@ export interface components {
             database: boolean;
             /** Release */
             release: string;
+        };
+        /** Input */
+        Input: {
+            /**
+             * Page
+             * @default 1
+             */
+            page: number;
+            /** Page Size */
+            page_size?: number | null;
         };
         /** LoginIn */
         LoginIn: {
@@ -142,6 +353,58 @@ export interface components {
             last_name: string;
             /** Position */
             position: string;
+        };
+        /** PagedEventItemOut */
+        PagedEventItemOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["EventItemOut"][];
+        };
+        /**
+         * PracticalInfoIcon
+         * @enum {string}
+         */
+        PracticalInfoIcon: "people" | "home" | "check" | "info" | "warning" | "parking" | "food" | "accessibility";
+        /** PracticalInfoIn */
+        PracticalInfoIn: {
+            icon: components["schemas"]["PracticalInfoIcon"];
+            /** Text */
+            text: string;
+            /** Title */
+            title: string;
+        };
+        /** PracticalInfoOut */
+        PracticalInfoOut: {
+            icon: components["schemas"]["PracticalInfoIcon"];
+            /** Text */
+            text: string;
+            /** Title */
+            title: string;
+        };
+        /** ProgrammeItemIn */
+        ProgrammeItemIn: {
+            /** Description */
+            description: string;
+            /**
+             * Time
+             * Format: time
+             */
+            time: string;
+            /** Title */
+            title: string;
+        };
+        /** ProgrammeItemOut */
+        ProgrammeItemOut: {
+            /** Description */
+            description: string;
+            /**
+             * Time
+             * Format: time
+             */
+            time: string;
+            /** Title */
+            title: string;
         };
         /** ValidationErrorItem */
         ValidationErrorItem: {
@@ -341,6 +604,304 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    events_api_list_events: {
+        parameters: {
+            query?: {
+                category?: components["schemas"]["EventCategory"] | null;
+                published?: boolean | null;
+                period?: ("upcoming" | "past") | null;
+                page?: number;
+                page_size?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedEventItemOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    events_api_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    events_api_detail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    events_api_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EventIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EventOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    events_api_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
                 };
             };
         };
