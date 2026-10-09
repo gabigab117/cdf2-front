@@ -32,12 +32,14 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
   - la normalisation des erreurs : échec du refresh → redirection vers la connexion ; 422 → erreurs de validation de Ninja ramenées champ par champ sur le formulaire.
 
   Pas de `fetch`/`$fetch` éparpillés dans les composants.
-- **Mise en œuvre** : `plugins/api.client.ts` (client du navigateur et middleware de session), `plugins/api.server.ts` (client du rendu serveur), store `session` (`stores/session.ts`), `utils/api-errors.ts`, `utils/files.ts`.
+- **Mise en œuvre** : `plugins/api.client.ts` (client du navigateur et middleware de session), `plugins/api.server.ts` (client du rendu serveur), store `session` (`stores/session.ts`), `middleware/auth.global.ts`, `utils/api-errors.ts`, `utils/sign-in.ts`, `utils/files.ts`.
   - Un 401 ne déclenche un refresh que si la requête portait le jeton courant de la session. Sans jeton envoyé, ou une fois la session close, le refus est rendu tel quel : restaurer une session est le travail du middleware de route.
   - Les opérations de session (`login`, `refresh`, `logout`) ne sont jamais rejouées : un 401 du refresh attendrait sinon sa propre réponse.
   - Le refresh passe sous un verrou partagé par les onglets (`navigator.locks`) : chaque refresh consomme le cookie, que les onglets partagent.
   - `renew()` ne se résout que sur une issue définitive (`'renewed'`, ou `'ended'` sur un 401 ou un 403). Un 429 ou un 5xx lève une `SessionRenewalError` (`retryAfter`), une coupure réseau son erreur : ni l'un ni l'autre ne déconnecte.
   - `toFormErrors()` place les erreurs d'un 422 sur les champs. Il suppose que le corps JSON de chaque opération s'appelle `payload`, convention du back.
+  - `errorMessage()` donne le message à afficher pour une requête qui a échoué : le `detail` d'un refus de l'API, rédigé pour le membre, ou un repli en français (réseau, 5xx, 429). Le corps d'une erreur serveur n'est jamais affiché.
+  - `signIn()` renvoie les erreurs à poser sur le formulaire ; `signOut()` garde la session si le serveur n'a pas pu la fermer, car le cookie de refresh connecterait sinon encore ce navigateur.
 - **Côté serveur (rendu des pages publiques), le composable ne porte aucun credential** : ni header `Authorization`, ni cookie relayé, ni refresh. Il n'y appelle que des endpoints publics, sur l'URL interne de l'API (runtimeConfig privée : une URL relative ne se résout pas côté serveur). Les données d'une page publique passent par `useAsyncData`, qui les transmet au client sans second appel : le handler renvoie `data` seul, car un `Response` ne passe pas dans le payload. L'URL interne vient de `NUXT_API_INTERNAL_URL`, sans valeur par défaut.
 - **L'access token vit en mémoire** (store Pinia), jamais dans `localStorage`/`sessionStorage` ni dans un cookie lisible par JS. La session se restaure par un refresh silencieux, tenté par le middleware à l'entrée de l'espace connecté (cf. Conventions Nuxt) : c'est ce qui la rétablit après un rechargement sans redemander le mot de passe. Jamais sur une page publique : un visiteur anonyme ne déclenche aucun appel d'authentification.
 - **Fichiers protégés** : jamais un simple `<a href>`, car le navigateur n'enverrait pas le header `Authorization`.
@@ -59,10 +61,18 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
   - Nommer explicitement (`api.ts`, `errors.ts`).
   - **Avec le rendu serveur, le suffixe `.client.ts` n'est plus documentaire** : sans lui, un plugin s'exécute aussi pendant le rendu serveur. Tout ce qui touche au navigateur ou à la session le porte.
 - `middleware/` : **privé par défaut**.
-  - Un middleware global garde toute page qui ne s'est pas déclarée publique (`definePageMeta`) : sans access token en mémoire, il tente une fois le refresh silencieux, puis renvoie vers la connexion (`/connexion?redirect=`, chemins internes uniquement).
+  - Un middleware global (`auth.global.ts`) garde toute page qui ne s'est pas déclarée publique (`definePageMeta({ public: true })`, typé dans `types/page-meta.d.ts`) : sans access token en mémoire, il tente une fois le refresh silencieux, puis renvoie vers la connexion (`/connexion?redirect=`, chemins internes uniquement, `safeRedirect()`).
   - Une page publique se déclare, une page privée n'a rien à déclarer : un oubli ferme une page au lieu d'en ouvrir une.
+  - Une adresse inconnue n'est pas une page : elle va au 404, pas à la connexion.
+  - Un renouvellement qui échoue pour l'instant (429, 5xx, réseau) affiche la page d'erreur avec « Réessayer », sans renvoyer à la connexion.
+  - La page de connexion n'est liée nulle part : les membres l'ouvrent depuis leur favori. Une session encore ouverte la traverse donc tout droit, après un refresh silencieux.
   - Un bouton masqué ou une route gardée est de l'UX, jamais de la sécurité.
 - **Espace privé sous `/bureau/**`**, réservé aux membres du bureau.
+- **Layouts** :
+  - `default` : le site public, en-tête et pied de page. Ses liens arrivent avec les pages qu'ils visent. Aucun lien vers l'espace bureau.
+  - `board` : barre latérale, barre supérieure, tiroir sous 820 px. Posé sur `/bureau/**` par `routeRules` (`appLayout`).
+  - `standalone` : une page hors du site public, la connexion et la page d'erreur (`error.vue`).
+- Icônes : `@lucide/vue`, l'équivalent le plus proche de celles de la maquette. Le trait de 1,8 de la maquette est fourni à toute l'application par `plugins/icons.ts`.
 - État global : **Pinia**, stores par domaine (`useSessionStore`, puis par domaine métier au besoin). Pas d'état global improvisé dans des refs partagées : avec le rendu serveur, une ref de module serait partagée entre les requêtes de tous les visiteurs.
 - **Pas de logique dans les templates** : extraire dans des `computed` ou des composables.
 
@@ -99,6 +109,9 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
   - **Aucune valeur arbitraire** (`text-[14.5px]`, `text-[#a33]`).
 - L'échelle d'espacements reste celle de Tailwind (base `0.25rem`).
 - Deux règles ESLint tiennent la discipline : `enforce-consistent-class-order` et `no-unknown-classes`.
+  - Elles lisent aussi les valeurs d'un objet nommé `classes`, où un composant de base range ses variantes (`components/ui/`).
+- **Un seul point de rupture**, celui de la maquette : `md` vaut 820 px. En dessous, la barre latérale devient un tiroir et les colonnes secondaires disparaissent.
+- Les états que la maquette ne dessine pas sont composés : un focus visible global (contour azur, celui de l'interrupteur de Photos) et un survol par composant.
 - Si une suite de classes apparaît 3 fois, c'est un composant Vue, pas une chaîne copiée-collée.
 - `@apply` avec parcimonie (composants de base uniquement). CSS custom isolé et documenté (impression des pages A4, par exemple).
 
@@ -118,7 +131,10 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
 - **Les parcours tournent en mode dev** (`dev: true` dans `playwright.config.ts`).
   - Seul `nuxt dev` applique le proxy `/api` qui place l'API sur l'origine du front. C'est la topologie de production, où nginx tient ce rôle ; le serveur Nitro produit par `nuxt build` n'a, lui, aucun proxy.
   - Les prérequis d'exécution sont dans le README.
-- Ne pas tester ce que le framework garantit déjà. Ce qui mérite un test : les composables, les stores, l'affichage des états renvoyés par l'API.
+  - Playwright démarre le back (`webServer`, dossier `E2E_BACK_DIR`, `../back` par défaut). `e2e/global-setup.ts` y charge un membre du bureau fictif (`e2e/fixtures/board-member.json`), repéré par son e-mail : le recharger met à jour le même compte.
+  - L'API limite les connexions à 5 par minute et par IP, et tous les navigateurs de la suite partagent celle du proxy. Un parcours ne se connecte donc qu'une fois, le refus des identifiants une autre, avec une seule relance en CI.
+  - Le job `e2e` de la CI rejoue les parcours contre la branche `main` du back, et le déploiement l'attend.
+- Ne pas tester ce que le framework garantit déjà. Ce qui mérite un test : les composables, les stores, l'affichage des états renvoyés par l'API, et le comportement des composants de base (bornes, liaisons ARIA, événements), jamais leurs variantes visuelles.
 - Données de test fictives uniquement : le dépôt est public.
 
 ## Definition of Done (chaque feature)

@@ -14,7 +14,7 @@ Ce dépôt contient le front. L'API (Django Ninja) est dans [cdf2-back](https://
 
 - **Nuxt 4**, Vue 3, **TypeScript** strict (5.9, épinglé : la génération des types d'API dépend de la 5.x)
 - **Tailwind CSS 4**, piloté par le CSS : les tokens du système visuel vivent dans le bloc `@theme` de [`app/assets/css/main.css`](app/assets/css/main.css)
-- **Pinia**, **@nuxt/fonts** (polices auto-hébergées, aucun appel à un service tiers côté visiteur)
+- **Pinia**, **@nuxt/fonts** (polices auto-hébergées, aucun appel à un service tiers côté visiteur), **@lucide/vue** (icônes au trait, embarquées une à une dans le build)
 - **openapi-typescript** (types de l'API générés) et **openapi-fetch** (client typé)
 - Qualité : **ESLint** (`@nuxt/eslint` avec règles stylistiques, `eslint-plugin-better-tailwindcss`), **Vitest** et `@nuxt/test-utils`, **Playwright**
 - Node **24 LTS**
@@ -34,10 +34,13 @@ Ce dépôt contient le front. L'API (Django Ninja) est dans [cdf2-back](https://
   - Côté serveur, le client ne porte aucun credential et joint l'API par son adresse interne.
 - **Système visuel par tokens.** Couleurs, tailles et rayons de la maquette sont définis une fois, dans `@theme`. Aucune valeur arbitraire n'apparaît dans les classes, et l'ESLint refuse les classes inconnues.
 - **URL en français, code en anglais.** Une page déclare son chemin public avec `definePageMeta({ path })`.
+- **Privé par défaut.** Un middleware global réserve au bureau toute page qui ne se déclare pas publique (`definePageMeta({ public: true })`).
+  - Il restaure la session par un renouvellement silencieux, puis renvoie à la page de connexion si elle a pris fin.
+  - La page de connexion (`/connexion`) n'est liée nulle part sur le site public : les membres du bureau la reçoivent, et la gardent en favori.
 
 ## Démarrage local
 
-Prérequis : Node 24 (`.nvmrc`) et, pour les appels d'API, le back démarré sur `localhost:8000`.
+Prérequis : Node 24 (`.nvmrc`) et, pour les appels d'API, le back démarré sur `127.0.0.1:8000` (`manage.py runserver`).
 
 ```bash
 npm ci
@@ -50,10 +53,28 @@ npm run dev            # http://localhost:3000, /api relayé vers le back
 | Commande | Rôle |
 |---|---|
 | `npm run lint` | ESLint : code, formatage, ordre et validité des classes Tailwind |
-| `npm run typecheck` | Vérification TypeScript (application et tests) |
+| `npm run typecheck` | Vérification TypeScript (application, tests, parcours E2E) |
 | `npm run test` | Tests unitaires Vitest (environnement Nuxt), dans `tests/nuxt/` |
+| `npm run test:e2e` | Parcours critiques Playwright, dans `e2e/`, contre le vrai back (voir plus bas) |
 | `npm run build` | Build de production (serveur Nitro dans `.output/`) |
 | `npm run api:types` | Types de l'API, générés depuis le schéma du back voisin (`../back/openapi.json`, ou le fichier désigné par `API_SCHEMA`) |
+
+## Parcours de bout en bout
+
+Les parcours critiques tournent dans Chromium, contre le vrai back. Le front y tourne en mode développement : seul `nuxt dev` sert l'API sur sa propre origine, comme nginx en production.
+
+Prérequis :
+- le dépôt du back à côté de celui-ci (`../back`), ou ailleurs, désigné par `E2E_BACK_DIR` ;
+- son environnement installé (`uv sync`) et son `.env` renseigné (PostgreSQL) ;
+- le navigateur de Playwright : `npx playwright install chromium`.
+
+```bash
+npm run test:e2e
+```
+
+- Playwright démarre le back sur `127.0.0.1:8000`, ou réutilise celui qui y tourne déjà.
+- Il applique les migrations, crée la table de cache et charge un membre du bureau fictif (`e2e/fixtures/board-member.json`) dans la base du back : en local, celle de développement.
+- Le compte est repéré par son adresse e-mail : le recharger met à jour le même compte.
 
 ## Licence
 
