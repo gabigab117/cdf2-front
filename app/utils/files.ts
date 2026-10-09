@@ -1,0 +1,75 @@
+/** A file fetched through the API: `api.GET(…, { parseAs: 'blob' })`. */
+interface FileFetch {
+  data?: Blob
+}
+
+// Types the browser shows without running anything in the application's origin.
+const INLINE_TYPES: ReadonlySet<string> = new Set(['application/pdf', 'image/jpeg', 'image/png'])
+
+// Time left to the browser to load an object URL before it is released.
+const REVOKE_DELAY_MS = 60_000
+
+/**
+ * Opens a protected file in a new tab.
+ *
+ * To be called from the click handler, before any `await`: the tab opens at once
+ * and receives the file once it has arrived, since a tab opened later would no
+ * longer follow the click and would be blocked as a pop-up. A file of a type the
+ * browser should not show, or one whose tab could not open, is downloaded
+ * instead.
+ *
+ * @returns The API's answer, for the caller to show its error, if any.
+ */
+export async function openFile<T extends FileFetch>(load: () => Promise<T>, filename: string): Promise<T> {
+  const tab = window.open('', '_blank')
+  let result: T
+  try {
+    result = await load()
+  }
+  catch (error) {
+    tab?.close()
+    throw error
+  }
+  const file = result.data
+  if (file && tab && INLINE_TYPES.has(mediaType(file))) {
+    // The file's page must not reach back into the application.
+    tab.opener = null
+    tab.location.href = objectUrl(file)
+    return result
+  }
+  tab?.close()
+  if (file) save(file, filename)
+  return result
+}
+
+/**
+ * Downloads a protected file under the given name.
+ *
+ * @returns The API's answer, for the caller to show its error, if any.
+ */
+export async function downloadFile<T extends FileFetch>(load: () => Promise<T>, filename: string): Promise<T> {
+  const result = await load()
+  if (result.data) save(result.data, filename)
+  return result
+}
+
+function save(file: Blob, filename: string): void {
+  const link = document.createElement('a')
+  link.href = objectUrl(file)
+  link.download = filename
+  link.click()
+}
+
+// The blob carries the type the server sent with the file, and so does its URL:
+// the type is never guessed on this side.
+function objectUrl(file: Blob): string {
+  const url = URL.createObjectURL(file)
+  setTimeout(() => URL.revokeObjectURL(url), REVOKE_DELAY_MS)
+  return url
+}
+
+// The media type without its parameters ("text/plain;charset=utf-8").
+function mediaType(file: Blob): string {
+  const [type = ''] = file.type.split(';')
+  return type.trim().toLowerCase()
+}

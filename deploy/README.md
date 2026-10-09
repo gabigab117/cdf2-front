@@ -26,6 +26,14 @@ Un push sur `main` dont les contrôles passent se déploie seul, par le job `dep
 
 Environnement GitHub, secrets, concurrence et rotation de la clé : mêmes règles que pour l'API, décrites dans [cdf2-back/deploy](https://github.com/gabigab117/cdf2-back/tree/main/deploy#déploiement-continu).
 
+## Configuration
+
+Le service lit `shared/front.env` (0600), qui reste hors du dépôt. Une variable modifiée prend effet au redémarrage suivant, par exemple à la prochaine release.
+
+| Variable | Rôle |
+|---|---|
+| `NUXT_API_INTERNAL_URL` | Adresse de l'API pour le rendu serveur des pages publiques, sur le réseau local du serveur : `http://127.0.0.1:<port de l'API>`. Sans elle, un rendu serveur qui appelle l'API échoue. |
+
 ## Fichiers
 
 | Fichier | Installé en | Rôle |

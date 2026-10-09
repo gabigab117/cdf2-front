@@ -20,7 +20,9 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
 
 ## Types API
 
-- **Types générés depuis l'OpenAPI de Django Ninja** (`openapi.json` du back → `openapi-typescript`, via `npm run api:types`). Jamais d'interface API écrite à la main : le schéma du back est la source de vérité. La CI vérifie que les types commités correspondent au schéma du back.
+- **Types générés depuis l'OpenAPI de Django Ninja** (`openapi.json` du back → `openapi-typescript`, via `npm run api:types`), dans `app/types/api.d.ts`, commité et exclu d'ESLint. Jamais d'interface API écrite à la main : le schéma du back est la source de vérité.
+  - Le script lit le dépôt du back voisin (`../back/openapi.json`) ; la variable `API_SCHEMA` désigne un autre fichier.
+  - Le job CI `api-types` vérifie que les types commités correspondent au schéma de `main` côté back (`--check` d'openapi-typescript), et le déploiement l'attend. Une évolution de l'API se pousse donc d'abord dans le back.
 - Régénérer les types à chaque évolution de l'API. Une tâche qui change l'API n'est terminée que quand le front compile avec les nouveaux types.
 - **Un composable unique pour les appels API** (`useApi`, basé sur openapi-fetch), qui porte :
   - la base URL ;
@@ -30,12 +32,20 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
   - la normalisation des erreurs : échec du refresh → redirection vers la connexion ; 422 → erreurs de validation de Ninja ramenées champ par champ sur le formulaire.
 
   Pas de `fetch`/`$fetch` éparpillés dans les composants.
-- **Côté serveur (rendu des pages publiques), le composable ne porte aucun credential** : ni header `Authorization`, ni cookie relayé, ni refresh. Il n'y appelle que des endpoints publics, sur l'URL interne de l'API (runtimeConfig privée : une URL relative ne se résout pas côté serveur). Les données d'une page publique passent par `useAsyncData`, qui les transmet au client sans second appel.
+- **Mise en œuvre** : `plugins/api.client.ts` (client du navigateur et middleware de session), `plugins/api.server.ts` (client du rendu serveur), store `session` (`stores/session.ts`), `utils/api-errors.ts`, `utils/files.ts`.
+  - Un 401 ne déclenche un refresh que si la requête portait le jeton courant de la session. Sans jeton envoyé, ou une fois la session close, le refus est rendu tel quel : restaurer une session est le travail du middleware de route.
+  - Les opérations de session (`login`, `refresh`, `logout`) ne sont jamais rejouées : un 401 du refresh attendrait sinon sa propre réponse.
+  - Le refresh passe sous un verrou partagé par les onglets (`navigator.locks`) : chaque refresh consomme le cookie, que les onglets partagent.
+  - `renew()` ne se résout que sur une issue définitive (`'renewed'`, ou `'ended'` sur un 401 ou un 403). Un 429 ou un 5xx lève une `SessionRenewalError` (`retryAfter`), une coupure réseau son erreur : ni l'un ni l'autre ne déconnecte.
+  - `toFormErrors()` place les erreurs d'un 422 sur les champs. Il suppose que le corps JSON de chaque opération s'appelle `payload`, convention du back.
+- **Côté serveur (rendu des pages publiques), le composable ne porte aucun credential** : ni header `Authorization`, ni cookie relayé, ni refresh. Il n'y appelle que des endpoints publics, sur l'URL interne de l'API (runtimeConfig privée : une URL relative ne se résout pas côté serveur). Les données d'une page publique passent par `useAsyncData`, qui les transmet au client sans second appel : le handler renvoie `data` seul, car un `Response` ne passe pas dans le payload. L'URL interne vient de `NUXT_API_INTERNAL_URL`, sans valeur par défaut.
 - **L'access token vit en mémoire** (store Pinia), jamais dans `localStorage`/`sessionStorage` ni dans un cookie lisible par JS. La session se restaure par un refresh silencieux, tenté par le middleware à l'entrée de l'espace connecté (cf. Conventions Nuxt) : c'est ce qui la rétablit après un rechargement sans redemander le mot de passe. Jamais sur une page publique : un visiteur anonyme ne déclenche aucun appel d'authentification.
 - **Fichiers protégés** : jamais un simple `<a href>`, car le navigateur n'enverrait pas le header `Authorization`.
-  - On passe par le composable : `fetch` authentifié → blob.
+  - On passe par le composable : `fetch` authentifié → blob (`parseAs: 'blob'`), confié à `downloadFile()` ou `openFile()` (`utils/files.ts`).
   - Pour un téléchargement, on déclenche ensuite le téléchargement.
   - Pour une ouverture en ligne, l'URL blob est créée avec le **type renvoyé par le serveur**, jamais déduit côté client.
+    - L'onglet s'ouvre dans le clic, avant l'arrivée du fichier : `openFile()` s'appelle avant tout `await` du gestionnaire, sinon le navigateur bloque l'onglet comme pop-up.
+    - Seuls PDF, JPEG et PNG s'ouvrent en ligne ; tout autre type est téléchargé.
   - L'URL blob est libérée après usage.
 - **Aucune logique d'autorisation ou de règle métier côté client** : le front affiche les états renvoyés par l'API, il ne les décide jamais (disponibilités, statuts de prêt, totaux de trésorerie). Le rôle exposé par « qui suis-je » sert à adapter la navigation : c'est de l'UX, pas de la sécurité.
 
@@ -94,7 +104,10 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
 
 ## Tests
 
-- **Vitest + `@nuxt/test-utils`** pour les composables, les stores et les composants (`tests/**/*.spec.ts`, environnement `nuxt`). Les appels API se simulent avec `registerEndpoint`. Jamais de requête vers un vrai back dans un test unitaire.
+- **Vitest + `@nuxt/test-utils`** pour les composables, les stores et les composants (environnement `nuxt`).
+  - Les tests vivent dans `tests/nuxt/`, en miroir de `app/`. C'est le seul dossier de tests que la configuration TypeScript de Nuxt vérifie.
+  - Les appels API se simulent avec `registerEndpoint`, par le helper `mockApi()` (`tests/nuxt/helpers/api.ts`). openapi-fetch passe à `fetch` un `Request`, dont l'URL est absolue : le mock est enregistré sous cette URL.
+  - Jamais de requête vers un vrai back dans un test unitaire.
 - **Playwright** pour les parcours critiques uniquement (`e2e/`), **contre un vrai back Django**. Les parcours critiques sont :
   - connexion, déconnexion et rechargement en cours de session ;
   - **une page publique chargée JavaScript désactivé** : la preuve que son contenu est rendu côté serveur, donc indexable ;

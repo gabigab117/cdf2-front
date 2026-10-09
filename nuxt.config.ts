@@ -13,6 +13,13 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  runtimeConfig: {
+    // Server-side rendering calls the API on the server's own network, as a
+    // relative URL only resolves in a browser. Set by NUXT_API_INTERNAL_URL, with
+    // no default: a build must never aim at a port it does not know.
+    apiInternalUrl: '',
+  },
+
   // Public pages are rendered on the server (indexable, readable without
   // JavaScript); the board's private area is a client-side application whose
   // session only ever exists in the browser.
