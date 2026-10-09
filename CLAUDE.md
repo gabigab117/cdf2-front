@@ -7,6 +7,10 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
 - **Tout le code est en anglais** : fichiers, composants, composables, stores, variables, commentaires, messages de commit. **Seul ce que voit l'utilisateur final est en français** : textes d'UI, messages d'erreur affichés, URL des pages.
 - **URL en français, fichiers en anglais** : le chemin d'une page se déclare par `definePageMeta({ path: '/bureau/prets/nouveau' })`, et son fichier garde un nom anglais (`pages/board/loans/new.vue`). Le vocabulaire suit le glossaire du projet : événement → `event`, prêt → `loan`, poste → `station`…
 - Dates affichées comme dans la maquette (« sam. 31 oct. », « 1er », « 15 h 00 – 18 h 30 ») ou en JJ/MM/AAAA. Montants au format `1 234,50 €`. Les règles de format vivent dans des composables dédiés, jamais dans les templates.
+  - **Dates : toujours à Paris**, quel que soit le fuseau du navigateur, avec `Intl` seul (la stack n'a pas de librairie de dates, et Temporal n'existe pas dans Node 24).
+  - `useDateFormat()` écrit les formats de la maquette. Les espaces d'une heure sont insécables.
+  - `utils/paris-time.ts` passe d'un champ `datetime-local` à un instant ISO avec le décalage de Paris, et retour : l'API refuse une date sans fuseau.
+  - Un formulaire ne renvoie jamais une date qu'il n'édite pas en la relisant dans un champ : elle perdrait ses secondes. Il la renvoie telle que l'API l'a donnée.
 - Conventional commits, directement sur `main`, historique linéaire.
 - **Context7 avant tout code de librairie** : on vérifie l'API dans la documentation à jour (Context7, puis la doc officielle, puis `node_modules/`), jamais de mémoire. La stack bouge vite (Nuxt 4, vue-router 5, Tailwind 4).
 
@@ -38,6 +42,8 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
   - Le refresh passe sous un verrou partagé par les onglets (`navigator.locks`) : chaque refresh consomme le cookie, que les onglets partagent.
   - `renew()` ne se résout que sur une issue définitive (`'renewed'`, ou `'ended'` sur un 401 ou un 403). Un 429 ou un 5xx lève une `SessionRenewalError` (`retryAfter`), une coupure réseau son erreur : ni l'un ni l'autre ne déconnecte.
   - `toFormErrors()` place les erreurs d'un 422 sur les champs. Il suppose que le corps JSON de chaque opération s'appelle `payload`, convention du back.
+  - `placeErrors()` garde sous ses champs les erreurs des champs qu'un formulaire affiche, et passe les autres sur le formulaire, après le nom de leur champ : aucune ne se perd.
+  - `loadData()` est le handler d'un `useAsyncData` : il renvoie `data`, ou lève une erreur qui porte le statut de la réponse (503 sans réponse) et le message à afficher.
   - `errorMessage()` donne le message à afficher pour une requête qui a échoué : le `detail` d'un refus de l'API, rédigé pour le membre, ou un repli en français (réseau, 5xx, 429). Le corps d'une erreur serveur n'est jamais affiché.
   - `signIn()` renvoie les erreurs à poser sur le formulaire ; `signOut()` garde la session si le serveur n'a pas pu la fermer, car le cookie de refresh connecterait sinon encore ce navigateur.
 - **Côté serveur (rendu des pages publiques), le composable ne porte aucun credential** : ni header `Authorization`, ni cookie relayé, ni refresh. Il n'y appelle que des endpoints publics, sur l'URL interne de l'API (runtimeConfig privée : une URL relative ne se résout pas côté serveur). Les données d'une page publique passent par `useAsyncData`, qui les transmet au client sans second appel : le handler renvoie `data` seul, car un `Response` ne passe pas dans le payload. L'URL interne vient de `NUXT_API_INTERNAL_URL`, sans valeur par défaut.
@@ -73,7 +79,14 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
   - `board` : barre latérale, barre supérieure, tiroir sous 820 px. Posé sur `/bureau/**` par `routeRules` (`appLayout`).
   - `standalone` : une page hors du site public, la connexion et la page d'erreur (`error.vue`).
 - Icônes : `@lucide/vue`, l'équivalent le plus proche de celles de la maquette. Le trait de 1,8 de la maquette est fourni à toute l'application par `plugins/icons.ts`.
+- **Option d'invite d'un `UiSelect`** (« Choisir une catégorie ») : une option à valeur vide **statique**. Liée à `null`, Vue retirerait son attribut `value`, et un `required` laisserait passer la liste sans choix.
 - État global : **Pinia**, stores par domaine (`useSessionStore`, puis par domaine métier au besoin). Pas d'état global improvisé dans des refs partagées : avec le rendu serveur, une ref de module serait partagée entre les requêtes de tous les visiteurs.
+- **Données de l'API : `useAsyncData`**, avec une clé explicite.
+  - Des composants partagent une donnée par sa clé, déclarée dans **un seul composable** (`useUpcomingEvents`, `useBoardEvent`). Nuxt garde le handler du premier appelant : deux handlers pour une clé, c'est une donnée fausse.
+  - Quand plusieurs composants montent en même temps, `dedupe: 'defer'` leur fait attendre la requête en cours, au lieu de l'annuler pour la leur.
+  - `data` n'est pas profond : on le remplace, on ne le modifie jamais.
+  - Après une écriture, la donnée qu'elle change se recharge par sa clé (`refreshNuxtData`). Toute écriture d'un événement recharge la barre latérale (`useEventWrites`).
+  - Dans les tests, les composants se démontent avant `clearNuxtData()` : sinon, une réponse en vol réécrit les données vidées.
 - **Pas de logique dans les templates** : extraire dans des `computed` ou des composables.
 
 ## Rendu hybride (décision projet)
