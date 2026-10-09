@@ -1,0 +1,14 @@
+[
+  {
+    "model": "accounts.user",
+    "fields": {
+      "email": "camille.martin@example.test",
+      "first_name": "Camille",
+      "last_name": "Martin",
+      "position": "Trésorière",
+      "password": "pbkdf2_sha256$1500000$816EyiorlJ5qU0aro1jiP6$h8TPZ45hntihqgmFcT5Bfti66NWu2Uv8CXAv9XQMW1I=",
+      "is_active": true,
+      "groups": [["Bureau"]]
+    }
+  }
+]

@@ -45,6 +45,13 @@ export default defineNuxtConfig({
     plugins: [tailwindcss()],
   },
 
+  typescript: {
+    // The end-to-end journeys run in Node, next to the configuration files.
+    nodeTsConfig: {
+      include: ['../playwright.config.ts', '../e2e/**/*'],
+    },
+  },
+
   eslint: {
     config: {
       stylistic: true,
