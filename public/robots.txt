@@ -1,2 +1,5 @@
 User-Agent: *
-Disallow:
+# The API and the board's space have nothing to index. The preproduction is kept
+# out of the index by its noindex tags, which crawlers must be able to read.
+Disallow: /api/
+Disallow: /bureau
