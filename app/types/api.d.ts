@@ -179,6 +179,106 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/agenda": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Agenda overview
+         * @description The categories of the agenda's events, and when the board last changed one.
+         */
+        get: operations["events_api_agenda_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/agenda.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Calendar feed of the agenda
+         * @description Every published event, past ones included: a subscribed calendar keeps them.
+         */
+        get: operations["events_api_agenda_feed"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the agenda
+         * @description The published events to come, the next first, by page.
+         */
+        get: operations["events_api_list_agenda"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/events/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a published event
+         * @description A published event's page, past ones included, with the events that follow it.
+         */
+        get: operations["events_api_public_event"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/events/{slug}.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Calendar file of an event
+         * @description A published event, to add to one's calendar.
+         */
+        get: operations["events_api_event_file"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -187,6 +287,16 @@ export interface components {
         AccessTokenOut: {
             /** Access */
             access: string;
+        };
+        /**
+         * AgendaOut
+         * @description What the site shows around its agenda.
+         */
+        AgendaOut: {
+            /** Categories */
+            categories: components["schemas"]["EventCategory"][];
+            /** Updated At */
+            updated_at: string | null;
         };
         /**
          * BoardMemberOut
@@ -393,6 +503,13 @@ export interface components {
             /** Items */
             items: components["schemas"]["EventItemOut"][];
         };
+        /** PagedPublicEventItemOut */
+        PagedPublicEventItemOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["PublicEventItemOut"][];
+        };
         /**
          * PracticalInfoIcon
          * @enum {string}
@@ -428,6 +545,96 @@ export interface components {
         };
         /** ProgrammeItemOut */
         ProgrammeItemOut: {
+            /** Description */
+            description: string;
+            /**
+             * Time
+             * Format: time
+             */
+            time: string;
+            /** Title */
+            title: string;
+        };
+        /** PublicEventFilters */
+        PublicEventFilters: {
+            category?: components["schemas"]["EventCategory"] | null;
+        };
+        /**
+         * PublicEventItemOut
+         * @description An event of the agenda.
+         */
+        PublicEventItemOut: {
+            category: components["schemas"]["EventCategory"];
+            /** Ends At */
+            ends_at: string | null;
+            /** Price Detail */
+            price_detail: string;
+            /** Price Label */
+            price_label: string;
+            /** Slug */
+            slug: string;
+            /** Start Label */
+            start_label: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Title */
+            title: string;
+            /** Venue Name */
+            venue_name: string;
+        };
+        /**
+         * PublicEventOut
+         * @description An event's page on the site, followed by the next events of the agenda.
+         */
+        PublicEventOut: {
+            category: components["schemas"]["EventCategory"];
+            /** Ends At */
+            ends_at: string | null;
+            /** Latitude */
+            latitude: number | null;
+            /** Longitude */
+            longitude: number | null;
+            /** Next Events */
+            next_events: components["schemas"]["PublicEventItemOut"][];
+            /** Practical Infos */
+            practical_infos: components["schemas"]["PublicPracticalInfoOut"][];
+            /** Price Detail */
+            price_detail: string;
+            /** Price Label */
+            price_label: string;
+            /** Programme */
+            programme: components["schemas"]["PublicProgrammeItemOut"][];
+            /** Slug */
+            slug: string;
+            /** Start Label */
+            start_label: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Summary */
+            summary: string;
+            /** Title */
+            title: string;
+            /** Venue Address */
+            venue_address: string;
+            /** Venue Name */
+            venue_name: string;
+        };
+        /** PublicPracticalInfoOut */
+        PublicPracticalInfoOut: {
+            icon: components["schemas"]["PracticalInfoIcon"];
+            /** Text */
+            text: string;
+            /** Title */
+            title: string;
+        };
+        /** PublicProgrammeItemOut */
+        PublicProgrammeItemOut: {
             /** Description */
             description: string;
             /**
@@ -1013,6 +1220,141 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthOut"];
+                };
+            };
+        };
+    };
+    events_api_agenda_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AgendaOut"];
+                };
+            };
+        };
+    };
+    events_api_agenda_feed: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description iCalendar file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/calendar": string;
+                };
+            };
+        };
+    };
+    events_api_list_agenda: {
+        parameters: {
+            query?: {
+                category?: components["schemas"]["EventCategory"] | null;
+                page?: number;
+                page_size?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedPublicEventItemOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    events_api_public_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicEventOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    events_api_event_file: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description iCalendar file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/calendar": string;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
                 };
             };
         };
