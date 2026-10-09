@@ -25,6 +25,14 @@ export default defineConfig<ConfigOptions>({
     nuxt: {
       rootDir: fileURLToPath(new URL('.', import.meta.url)),
       dev: true,
+      // The server renders the public pages with the back end of the journeys,
+      // as a preproduction would, with fictitious contact details.
+      env: {
+        NUXT_API_INTERNAL_URL: 'http://127.0.0.1:8000',
+        NUXT_PUBLIC_SITE_URL: 'https://site.example',
+        NUXT_PUBLIC_PREPROD: 'true',
+        NUXT_PUBLIC_CONTACT_EMAIL: 'contact@example.test',
+      },
     },
     trace: 'retain-on-failure',
   },
