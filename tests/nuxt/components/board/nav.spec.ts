@@ -1,16 +1,25 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { enableAutoUnmount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import BoardNav from '~/components/board/Nav.vue'
+import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
+import { eventItem, page } from '../../helpers/events'
 
 describe('BoardNav', () => {
   beforeEach(() => {
     useSessionStore().accessToken = 'access-1'
+    mockApi('/api/board/events', { handler: () => apiResponse(200, page([], 0)) })
   })
 
   afterEach(async () => {
+    clearApiMocks()
+    clearNuxtData()
     useSessionStore().clear()
     await useRouter().push('/')
   })
+
+  // Registered last, run first: the components unmount before the data is cleared.
+  enableAutoUnmount(afterEach)
 
   it('leads to a page from every entry', async () => {
     /**
@@ -39,5 +48,18 @@ describe('BoardNav', () => {
 
     const current = nav.findAll('a[aria-current="page"]')
     expect(current.map(link => link.text())).toEqual(['Stock'])
+  })
+
+  it('counts the events to come', async () => {
+    /**
+     * Given five events to come
+     * Then the « Événements » entry shows how many, for screen readers too
+     */
+    clearApiMocks()
+    mockApi('/api/board/events', { handler: () => apiResponse(200, page([eventItem()], 5)) })
+
+    const nav = await mountSuspended(BoardNav, { route: '/bureau' })
+
+    await vi.waitFor(() => expect(nav.get('a[href="/bureau/evenements"]').text()).toBe('Événements5 à venir'))
   })
 })

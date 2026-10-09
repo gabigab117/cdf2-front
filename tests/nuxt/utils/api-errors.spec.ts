@@ -6,9 +6,9 @@ describe('toFormErrors', () => {
      * Given a 422 from Ninja, located under the body's parameter
      * Then the error lands on the field itself
      */
-    const error = { detail: [{ type: 'missing', loc: ['body', 'payload', 'password'], msg: 'Field required' }] }
+    const error = { detail: [{ type: 'missing', loc: ['body', 'payload', 'password'], msg: 'Ce champ est obligatoire.' }] }
 
-    expect(toFormErrors(error)).toEqual({ form: [], fields: { password: ['Field required'] } })
+    expect(toFormErrors(error)).toEqual({ form: [], fields: { password: ['Ce champ est obligatoire.'] } })
   })
 
   it('lays the errors of a service on their field, or on the form', () => {
@@ -36,13 +36,13 @@ describe('toFormErrors', () => {
      */
     const error = {
       detail: [
-        { type: 'greater_than', loc: ['body', 'payload', 'lines', 0, 'quantity'], msg: 'Input should be greater than 0' },
-        { type: 'int_type', loc: ['body', 'payload', 'lines', 0, 'quantity'], msg: 'Input should be a valid integer' },
+        { type: 'int_parsing', loc: ['body', 'payload', 'lines', 0, 'quantity'], msg: 'Saisissez un nombre entier.' },
+        { type: 'validation_error', loc: ['body', 'lines', 0, 'quantity'], msg: 'Il n’en reste que 3.' },
       ],
     }
 
     expect(toFormErrors(error)?.fields).toEqual({
-      'lines.0.quantity': ['Input should be greater than 0', 'Input should be a valid integer'],
+      'lines.0.quantity': ['Saisissez un nombre entier.', 'Il n’en reste que 3.'],
     })
   })
 
@@ -53,13 +53,13 @@ describe('toFormErrors', () => {
      */
     const error = {
       detail: [
-        { type: 'int_parsing', loc: ['query', 'page'], msg: 'Input should be a valid integer' },
-        { type: 'model_attributes_type', loc: ['body', 'payload'], msg: 'Input should be a valid dictionary' },
+        { type: 'int_parsing', loc: ['query', 'page'], msg: 'Saisissez un nombre entier.' },
+        { type: 'missing', loc: ['body', 'payload'], msg: 'Ce champ est obligatoire.' },
       ],
     }
 
     expect(toFormErrors(error)).toEqual({
-      form: ['Input should be a valid integer', 'Input should be a valid dictionary'],
+      form: ['Saisissez un nombre entier.', 'Ce champ est obligatoire.'],
       fields: {},
     })
   })
@@ -131,5 +131,62 @@ describe('SessionRenewalError', () => {
 
     expect(error.status).toBe(429)
     expect(error.retryAfter).toBe(retryAfter)
+  })
+})
+
+describe('placeErrors', () => {
+  it('keeps the errors of the fields shown, and moves the others to the form after their name', () => {
+    /**
+     * Given errors on a field the form shows and on a field it does not
+     * Then the first stays under its field, and the second goes to the form,
+     * so that none is lost
+     */
+    const errors = {
+      form: ['La fin de l’événement ne peut pas précéder son début.'],
+      fields: {
+        title: ['Ce champ ne peut pas être vide.'],
+        slug: ['Un autre événement utilise déjà cette adresse.'],
+      },
+    }
+
+    const placed = placeErrors(errors, new Set(['title']), path => (path === 'slug' ? 'Adresse de la page' : path))
+
+    expect(placed).toEqual({
+      form: [
+        'La fin de l’événement ne peut pas précéder son début.',
+        'Adresse de la page : Un autre événement utilise déjà cette adresse.',
+      ],
+      fields: { title: ['Ce champ ne peut pas être vide.'] },
+    })
+  })
+})
+
+describe('loadData', () => {
+  function answer(status: number, body: { data?: unknown, error?: unknown }) {
+    return Promise.resolve({ ...body, response: new Response(null, { status }) })
+  }
+
+  it('gives the data of a successful answer', async () => {
+    expect(await loadData(answer(200, { data: { count: 0, items: [] } }))).toEqual({ count: 0, items: [] })
+  })
+
+  it.each([
+    ['a refusal, with its reason', 404, { detail: 'Introuvable.' }, 'Introuvable.'],
+    ['a server error, without its body', 502, 'Bad Gateway', 'Le service est momentanément indisponible. Réessayez dans quelques instants.'],
+  ])('throws for %s', async (_case, status, error, message) => {
+    await expect(loadData(answer(status, { error }))).rejects.toMatchObject({ status, message })
+  })
+
+  it.each([
+    ['the network', new TypeError('Failed to fetch'), 503, 'Impossible de joindre le serveur. Vérifiez votre connexion, puis réessayez.'],
+    ['a renewal throttled', new SessionRenewalError(new Response(null, { status: 429 })), 429, 'Trop de requêtes. Réessayez dans quelques instants.'],
+  ])('throws when %s fails the request', async (_case, failure, status, message) => {
+    await expect(loadData(Promise.reject(failure))).rejects.toMatchObject({ status, message })
+  })
+
+  it('lets through a request cancelled by useAsyncData itself', async () => {
+    const cancelled = new DOMException('The operation was aborted.', 'AbortError')
+
+    await expect(loadData(Promise.reject(cancelled))).rejects.toBe(cancelled)
   })
 })

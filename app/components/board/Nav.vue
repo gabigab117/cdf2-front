@@ -13,7 +13,7 @@ const SECTIONS: ReadonlyArray<{ title?: string, entries: readonly Entry[] }> = [
   {
     entries: [
       { label: 'Tableau de bord', path: BOARD_HOME_PATH, icon: LayoutGrid },
-      { label: 'Événements', path: '/bureau/evenements', icon: Calendar },
+      { label: 'Événements', path: EVENTS_PATH, icon: Calendar },
       { label: 'Photos', path: '/bureau/photos', icon: Image },
       { label: 'Documents', path: '/bureau/documents', icon: Folder },
     ],
@@ -31,6 +31,9 @@ const SECTIONS: ReadonlyArray<{ title?: string, entries: readonly Entry[] }> = [
 
 const route = useRoute()
 
+// The number of events to come, from the request the « À venir » block shares.
+const { data: upcoming } = useUpcomingEvents()
+
 // An entry stays current on the pages below it, such as a loan under "Prêts";
 // not the dashboard, which every page of the board is below.
 function isCurrent({ path }: Entry): boolean {
@@ -40,7 +43,11 @@ function isCurrent({ path }: Entry): boolean {
 const sections = computed(() =>
   SECTIONS.map(section => ({
     ...section,
-    entries: section.entries.map(entry => ({ ...entry, current: isCurrent(entry) })),
+    entries: section.entries.map(entry => ({
+      ...entry,
+      current: isCurrent(entry),
+      count: entry.path === EVENTS_PATH && upcoming.value?.count ? upcoming.value.count : null,
+    })),
   })),
 )
 </script>
@@ -69,7 +76,11 @@ const sections = computed(() =>
           :is="entry.icon"
           :size="18"
         />
-        {{ entry.label }}
+        <span class="flex-1">{{ entry.label }}</span>
+        <span
+          v-if="entry.count"
+          class="font-mono text-xs text-argent-450"
+        >{{ entry.count }}<span class="sr-only"> à venir</span></span>
       </NuxtLink>
     </template>
   </nav>

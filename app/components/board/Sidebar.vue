@@ -1,6 +1,5 @@
 <script setup lang="ts">
-// Counts, badges and the coming events join the sidebar with the phases that
-// compute them.
+// The badges join the sidebar with the phases that compute them.
 import { ExternalLink } from '@lucide/vue'
 </script>
 
@@ -20,6 +19,7 @@ import { ExternalLink } from '@lucide/vue'
       </span>
     </NuxtLink>
     <BoardNav />
+    <BoardUpcomingEvents />
     <div class="mt-auto flex flex-col gap-2">
       <NuxtLink
         to="/"

@@ -36,6 +36,25 @@ export function toFormErrors(error: unknown): FormErrors | null {
   return errors
 }
 
+/**
+ * Lays out the errors of a form on the fields it shows. An error about any
+ * other field goes to the form as a whole, after the name of its field, so
+ * that none is lost: « Adresse de la page : Un autre événement utilise déjà
+ * cette adresse. ».
+ */
+export function placeErrors(
+  errors: FormErrors,
+  shown: ReadonlySet<string>,
+  label: (path: string) => string,
+): FormErrors {
+  const placed: FormErrors = { form: [...errors.form], fields: {} }
+  for (const [path, messages] of Object.entries(errors.fields)) {
+    if (shown.has(path)) placed.fields[path] = messages
+    else placed.form.push(...messages.map(message => `${label(path)} : ${message}`))
+  }
+  return placed
+}
+
 function isValidationError(error: unknown): error is ValidationErrorOut {
   return typeof error === 'object' && error !== null && 'detail' in error && Array.isArray(error.detail)
 }
@@ -89,4 +108,33 @@ function isNetworkFailure(error: unknown): boolean {
 
 function hasDetail(error: unknown): error is { detail: string } {
   return typeof error === 'object' && error !== null && 'detail' in error && typeof error.detail === 'string'
+}
+
+/** What a call of the API resolves to (openapi-fetch). */
+interface ApiResult<T> {
+  data?: T
+  error?: unknown
+  response: Response
+}
+
+/**
+ * The data of a successful answer, for the handler of `useAsyncData`.
+ *
+ * Any other outcome throws an error that carries the status of the answer (503
+ * when none came) and the message to show the member, from errorMessage(). A
+ * request cancelled by `useAsyncData` itself is left for it to drop.
+ */
+export async function loadData<T>(request: Promise<ApiResult<T>>): Promise<T> {
+  let result: ApiResult<T>
+  try {
+    result = await request
+  }
+  catch (failure) {
+    if (failure instanceof DOMException && failure.name === 'AbortError') throw failure
+    const status = failure instanceof SessionRenewalError ? failure.status : 503
+    throw createError({ status, message: errorMessage(failure) })
+  }
+  const { data, error, response } = result
+  if (response.ok) return data as T
+  throw createError({ status: response.status, message: errorMessage(error, response) })
 }

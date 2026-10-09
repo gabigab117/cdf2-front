@@ -171,13 +171,13 @@ describe('session store', () => {
       mockApi('/api/auth/login', {
         method: 'POST',
         handler: () => apiResponse(422, {
-          detail: [{ type: 'missing', loc: ['body', 'payload', 'password'], msg: 'Field required' }],
+          detail: [{ type: 'missing', loc: ['body', 'payload', 'password'], msg: 'Ce champ est obligatoire.' }],
         }),
       })
 
       expect(await useSessionStore().signIn(credentials)).toEqual({
         form: [],
-        fields: { password: ['Field required'] },
+        fields: { password: ['Ce champ est obligatoire.'] },
       })
     })
 
