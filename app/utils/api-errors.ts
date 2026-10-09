@@ -57,3 +57,36 @@ export class SessionRenewalError extends Error {
     this.retryAfter = Number.isNaN(seconds) ? null : seconds
   }
 }
+
+const MESSAGES = {
+  network: 'Impossible de joindre le serveur. Vérifiez votre connexion, puis réessayez.',
+  unavailable: 'Le service est momentanément indisponible. Réessayez dans quelques instants.',
+  throttled: 'Trop de requêtes. Réessayez dans quelques instants.',
+  unexpected: 'Une erreur inattendue est survenue. Réessayez dans quelques instants.',
+} as const
+
+/**
+ * The message to show a board member for a request that went wrong: the error an
+ * answer carried, with that answer, or what a request left unanswered threw.
+ *
+ * A refusal keeps the reason the API gave, written for the member. A server
+ * error never shows its body, which may come from the web server rather than
+ * from the API.
+ */
+export function errorMessage(error: unknown, response?: Response): string {
+  const status = error instanceof SessionRenewalError ? error.status : response?.status
+  if (status === undefined) return isNetworkFailure(error) ? MESSAGES.network : MESSAGES.unexpected
+  if (status >= 500) return MESSAGES.unavailable
+  if (hasDetail(error)) return error.detail
+  return status === 429 ? MESSAGES.throttled : MESSAGES.unexpected
+}
+
+// fetch() rejects with a TypeError when no answer comes, and with a DOMException
+// when the request is cut off by its time limit.
+function isNetworkFailure(error: unknown): boolean {
+  return error instanceof TypeError || (error instanceof DOMException && error.name === 'TimeoutError')
+}
+
+function hasDetail(error: unknown): error is { detail: string } {
+  return typeof error === 'object' && error !== null && 'detail' in error && typeof error.detail === 'string'
+}

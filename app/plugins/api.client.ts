@@ -3,9 +3,6 @@ import type { NuxtApp } from '#app'
 import type { ApiClient } from '~/composables/useApi'
 import type { paths } from '~/types/api'
 
-/** Where a board member whose session has ended signs in again. */
-const SIGN_IN_PATH = '/connexion'
-
 // The operations that open, renew and close a session answer 401 for wrong
 // credentials or a spent session: renewing the session and replaying them would
 // make no sense, and the renewal would end up waiting for its own answer.
@@ -79,5 +76,5 @@ function sessionMiddleware(nuxtApp: NuxtApp): Middleware {
 async function signInAgain(nuxtApp: NuxtApp): Promise<void> {
   const { path, fullPath } = nuxtApp.$router.currentRoute.value
   if (path === SIGN_IN_PATH) return
-  await nuxtApp.runWithContext(() => navigateTo({ path: SIGN_IN_PATH, query: { redirect: fullPath } }))
+  await nuxtApp.runWithContext(() => navigateTo(signInLocation(fullPath)))
 }

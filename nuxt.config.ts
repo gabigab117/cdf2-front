@@ -22,9 +22,11 @@ export default defineNuxtConfig({
 
   // Public pages are rendered on the server (indexable, readable without
   // JavaScript); the board's private area is a client-side application whose
-  // session only ever exists in the browser.
+  // session only ever exists in the browser. So is its sign-in page, whose form
+  // cannot then be sent before the application has taken it over.
   routeRules: {
-    '/bureau/**': { ssr: false },
+    '/bureau/**': { ssr: false, appLayout: 'board' },
+    '/connexion': { ssr: false },
   },
 
   compatibilityDate: '2026-10-07',
@@ -32,8 +34,10 @@ export default defineNuxtConfig({
   nitro: {
     // In development the API is reached through the front end's origin, as
     // nginx does in production: no CORS, and the refresh cookie stays first-party.
+    // Django's development server listens on 127.0.0.1, which "localhost" may not
+    // resolve to first.
     devProxy: {
-      '/api': { target: 'http://localhost:8000/api', changeOrigin: true },
+      '/api': { target: 'http://127.0.0.1:8000/api', changeOrigin: true },
     },
   },
 

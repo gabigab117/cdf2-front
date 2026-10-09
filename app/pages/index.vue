@@ -1,17 +1,19 @@
 <script setup lang="ts">
+definePageMeta({ public: true })
+
 useSeoMeta({
-  title: 'Comité des Fêtes d’Ons-en-Bray',
+  title: 'Accueil',
   description: 'Les fêtes du village, organisées par ses bénévoles.',
 })
 </script>
 
 <template>
-  <main class="flex min-h-screen flex-col items-center justify-center gap-3 bg-argent-50 px-4">
-    <p class="font-display text-heading text-sable-950">
+  <section class="flex flex-1 flex-col items-center justify-center gap-3 px-4 py-24 text-center">
+    <h1 class="font-display text-heading text-sable-950">
       Comité des Fêtes d’Ons-en-Bray
-    </p>
+    </h1>
     <p class="text-body text-argent-600">
       Le nouveau site arrive bientôt.
     </p>
-  </main>
+  </section>
 </template>

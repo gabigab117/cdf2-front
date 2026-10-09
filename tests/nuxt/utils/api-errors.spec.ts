@@ -73,6 +73,54 @@ describe('toFormErrors', () => {
   })
 })
 
+describe('errorMessage', () => {
+  it.each([401, 403, 429])('keeps the reason the API gave for a %i', (status) => {
+    /**
+     * Given a refusal whose reason the API wrote for the member
+     * Then that reason is the message
+     */
+    const error = { detail: 'Accès réservé aux membres du bureau.' }
+
+    expect(errorMessage(error, new Response(null, { status }))).toBe('Accès réservé aux membres du bureau.')
+  })
+
+  it.each([
+    ['a server error', 500, { detail: 'Internal Server Error' }],
+    ['a gateway that has no API behind it', 502, '<html>Bad Gateway</html>'],
+  ])('never shows the body of %s', (_case, status, error) => {
+    expect(errorMessage(error, new Response(null, { status }))).toBe(
+      'Le service est momentanément indisponible. Réessayez dans quelques instants.',
+    )
+  })
+
+  it('says to wait when the server throttles without saying why', () => {
+    expect(errorMessage(undefined, new Response(null, { status: 429 }))).toBe(
+      'Trop de requêtes. Réessayez dans quelques instants.',
+    )
+  })
+
+  it.each([
+    ['a network failure', new TypeError('Failed to fetch')],
+    ['a request cut off by its time limit', new DOMException('The operation timed out.', 'TimeoutError')],
+  ])('points at the connection after %s', (_case, error) => {
+    expect(errorMessage(error)).toBe('Impossible de joindre le serveur. Vérifiez votre connexion, puis réessayez.')
+  })
+
+  it.each([
+    ['throttled', 429, 'Trop de requêtes. Réessayez dans quelques instants.'],
+    ['refused by a failing server', 503, 'Le service est momentanément indisponible. Réessayez dans quelques instants.'],
+  ])('explains a renewal %s', (_case, status, message) => {
+    expect(errorMessage(new SessionRenewalError(new Response(null, { status })))).toBe(message)
+  })
+
+  it.each([
+    ['an error of the code itself', new RangeError('Invalid array length'), undefined],
+    ['an answer the API does not explain', undefined, new Response(null, { status: 404 })],
+  ])('falls back to a general message for %s', (_case, error, response) => {
+    expect(errorMessage(error, response)).toBe('Une erreur inattendue est survenue. Réessayez dans quelques instants.')
+  })
+})
+
 describe('SessionRenewalError', () => {
   it.each([
     ['in seconds', { 'Retry-After': '30' }, 30],
