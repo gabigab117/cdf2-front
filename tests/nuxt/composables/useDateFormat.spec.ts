@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { useDateFormat } from '~/composables/useDateFormat'
 
 const formats = useDateFormat()
-const { dayMonth, day, period } = formats
+const { dayMonth, day, longDay, dayParts, clock, period, eventDays, countdown, countdownText, season } = formats
 
 // The texts as they read: the spaces of a time do not break, which a test
 // checks once.
@@ -70,5 +70,82 @@ describe('useDateFormat', () => {
 
     expect(eventWhen(event)).toBe('sam. 31 oct. 2026 · 15 h 00 – 18 h 30')
     expect(eventWhen(event, { sentence: true })).toBe('Sam. 31 oct. 2026 · 15 h 00 – 18 h 30')
+  })
+
+  it.each([
+    ['with its weekday', HALLOWEEN, {}, 'samedi 31 octobre'],
+    ['the first of a month', '2026-11-01T09:00:00Z', {}, 'dimanche 1er novembre'],
+    ['at the start of a sentence, with its year', HALLOWEEN, { year: true, sentence: true }, 'Samedi 31 octobre 2026'],
+    ['with a short weekday', HALLOWEEN, { weekday: 'short' as const, sentence: true }, 'Sam. 31 octobre'],
+    ['without its weekday', '2026-09-30T08:00:00Z', { weekday: 'none' as const }, '30 septembre'],
+  ])('writes a day with its month in full, %s', (_case, instant, options, written) => {
+    expect(longDay(instant, options)).toBe(written)
+  })
+
+  it('gives the parts of a day for a date tile', () => {
+    expect(dayParts(HALLOWEEN)).toEqual({ day: '31', month: 'oct.', weekday: 'sam.', longWeekday: 'samedi' })
+    expect(dayParts('2026-11-01T09:00:00Z').day).toBe('1')
+  })
+
+  it('writes the time of a programme line as the API gives it, without any time zone', () => {
+    expect(clock('15:00:00')).toBe('15:00')
+    expect(clock('09:05:00')).toBe('09:05')
+  })
+
+  it.each([
+    ['a day', { starts_at: HALLOWEEN, ends_at: '2026-10-31T17:30:00Z' }, 'Samedi 31 octobre 2026'],
+    ['a day without an end', { starts_at: HALLOWEEN, ends_at: null }, 'Samedi 31 octobre 2026'],
+    ['an evening past midnight', { starts_at: '2026-06-20T19:00:00Z', ends_at: '2026-06-20T23:00:00Z' }, 'Du sam. 20 au dim. 21 juin 2026'],
+  ])('writes the days of %s on a line of their own', (_case, event, written) => {
+    expect(eventDays(event)).toBe(written)
+  })
+
+  describe('countdown', () => {
+    const halloween = { starts_at: HALLOWEEN, ends_at: '2026-10-31T17:30:00Z' }
+
+    it.each([
+      ['days ahead', '2026-10-09T08:00:00Z', { kind: 'ahead', days: 22 }],
+      ['the day before, at 23:30 in Paris', '2026-10-30T22:30:00Z', { kind: 'ahead', days: 1 }],
+      ['the day itself, from midnight in Paris', '2026-10-30T23:30:00Z', { kind: 'today' }],
+      ['the day itself, once over', '2026-10-31T20:00:00Z', { kind: 'today' }],
+      ['the day after', '2026-11-01T08:00:00Z', { kind: 'past' }],
+    ])('counts the days to an event, %s', (_case, now, expected) => {
+      expect(countdown(halloween, Date.parse(now))).toEqual(expected)
+    })
+
+    it('counts the days of Paris over the night the clocks go back', () => {
+      const event = { starts_at: '2026-10-26T12:00:00Z', ends_at: null }
+
+      expect(countdown(event, Date.parse('2026-10-24T11:00:00Z'))).toEqual({ kind: 'ahead', days: 2 })
+    })
+
+    it('tells an event under way since a day before from one that is over', () => {
+      const evening = { starts_at: '2026-06-20T19:00:00Z', ends_at: '2026-06-21T23:00:00Z' }
+      const withoutEnd = { starts_at: '2026-06-20T19:00:00Z', ends_at: null }
+      const now = Date.parse('2026-06-21T10:00:00Z')
+
+      expect(countdown(evening, now)).toEqual({ kind: 'ongoing' })
+      expect(countdown(withoutEnd, now)).toEqual({ kind: 'past' })
+    })
+
+    it.each([
+      [{ kind: 'ahead', days: 30 } as const, 'J-30', 'Dans 30 jours', 'dans 30 jours'],
+      [{ kind: 'ahead', days: 1 } as const, 'J-1', 'Demain', 'demain'],
+      [{ kind: 'today' } as const, 'Aujourd’hui', 'Aujourd’hui', 'aujourd’hui'],
+      [{ kind: 'ongoing' } as const, 'En cours', 'En cours', 'en cours'],
+      [{ kind: 'past' } as const, 'Passé', 'Événement passé', 'événement passé'],
+    ])('writes %o as %s, %s and %s', (state, short, long, inline) => {
+      expect(countdownText(state, 'short')).toBe(short)
+      expect(countdownText(state, 'long')).toBe(long)
+      expect(countdownText(state, 'inline')).toBe(inline)
+    })
+  })
+
+  it.each([
+    ['the last day of August, at 23:59 in Paris', '2026-08-31T21:59:59Z', '2025 – 2026'],
+    ['the first of September, at midnight in Paris', '2026-08-31T22:00:00Z', '2026 – 2027'],
+    ['in January', '2027-01-17T11:00:00Z', '2026 – 2027'],
+  ])('names the season from September to August, on %s', (_case, now, written) => {
+    expect(season(Date.parse(now))).toBe(written)
   })
 })

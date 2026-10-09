@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fromDateTimeInput, toDateTimeInput } from '~/utils/paris-time'
+import { fromDateTimeInput, parisCalendar, parisDay, toDateTimeInput } from '~/utils/paris-time'
 
 describe('fromDateTimeInput', () => {
   afterEach(() => {
@@ -53,5 +53,21 @@ describe('toDateTimeInput', () => {
 
   it('gives back the instant it was typed for', () => {
     expect(fromDateTimeInput(toDateTimeInput('2026-10-31T15:00:00+01:00'))).toBe('2026-10-31T15:00:00+01:00')
+  })
+})
+
+describe('parisCalendar', () => {
+  it('reads the day an instant falls on in Paris, whatever the time zone', () => {
+    expect(parisCalendar('2026-12-31T23:30:00Z')).toEqual({ year: 2027, month: 1, day: 1 })
+    expect(parisCalendar(Date.parse('2026-10-31T14:00:00Z'))).toEqual({ year: 2026, month: 10, day: 31 })
+  })
+})
+
+describe('parisDay', () => {
+  it('counts the days between two instants by their days in Paris', () => {
+    // 23:30 and 00:30 the next day in Paris, an hour apart.
+    expect(parisDay('2026-10-30T23:30:00Z') - parisDay('2026-10-30T22:30:00Z')).toBe(1)
+    // Over the night the clocks go back: two days, though 49 hours apart.
+    expect(parisDay('2026-10-26T12:00:00Z') - parisDay('2026-10-24T11:00:00Z')).toBe(2)
   })
 })

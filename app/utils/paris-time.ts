@@ -44,6 +44,21 @@ function asUtc({ year, month, day, hour, minute, second }: WallTime): number {
   return Date.UTC(year, month - 1, day, hour, minute, second)
 }
 
+/** The year, month (1 to 12) and day of an instant in Paris. */
+export function parisCalendar(instant: string | number): { year: number, month: number, day: number } {
+  const { year, month, day } = wallTimeAt(typeof instant === 'string' ? Date.parse(instant) : instant)
+  return { year, month, day }
+}
+
+/**
+ * The day an instant falls on in Paris, as a number of days since 1 January
+ * 1970: two days compare, and subtract into a number of days between them.
+ */
+export function parisDay(instant: string | number): number {
+  const { year, month, day } = parisCalendar(instant)
+  return Date.UTC(year, month - 1, day) / DAY_MS
+}
+
 // How far ahead of UTC Paris is at an instant, in milliseconds: one hour in
 // winter, two in summer.
 function offsetAt(instant: number): number {
