@@ -95,6 +95,10 @@
   --text-page--line-height: 1;
   --text-page--letter-spacing: -0.035em;
 
+  /* Letter spacing outside Tailwind's scale */
+  --tracking-brand: -0.01em;    /* the committee's name next to the coat of arms */
+  --tracking-place: 0.02em;     /* "Ons-en-Bray" under that name */
+
   /* Radii */
   --radius-badge: 7px;
   --radius-segment: 9px;     /* segmented control options */
@@ -102,9 +106,51 @@
   --radius-icon: 11px;       /* icon boxes, list actions */
   --radius-field: 12px;      /* fields, buttons */
   --radius-search: 14px;     /* assistant and search fields */
-  --radius-banner: 18px;     /* assistant banners */
+  --radius-banner: 18px;     /* assistant banners, alerts */
   --radius-tile: 20px;
   --radius-card: 22px;       /* sections, KPI cards */
+
+  /* Shadows */
+  --shadow-segment: 0 1px 3px rgb(12 14 19 / 0.12);              /* selected segment */
+  --shadow-selected: inset 3px 0 0 var(--color-azur-600);        /* edge of a selected row */
+
+  /* Widths */
+  --container-board: 73.75rem;  /* 1180px: content of a board page */
+  --container-panel: 27.5rem;   /* 440px: side detail panel */
+
+  /* Blur behind the public site's sticky header */
+  --blur-header: 14px;
+
+  /*
+   * The mockup has a single breakpoint: at 820px and below, the board's sidebar
+   * gives way to a drawer and secondary columns disappear. Tailwind's `md`
+   * (768px by default) becomes that breakpoint.
+   */
+  --breakpoint-md: 51.25rem;
+}
+
+/* The link of the current page, as NuxtLink and the board's navigation mark it. */
+@custom-variant current (&[aria-current="page"]);
+
+@layer base {
+  body {
+    background-color: var(--color-argent-50);
+    color: var(--color-sable-950);
+  }
+
+  /*
+   * The mockup draws no focus state but one, on the switch of the Photos screen:
+   * every control shows it when reached from the keyboard.
+   */
+  :focus-visible {
+    outline: 2px solid var(--color-azur-600);
+    outline-offset: 2px;
+  }
+
+  /* An open modal drawer keeps the page behind it still. */
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
 }
 
 /* Chevron pattern taken from the coat of arms */

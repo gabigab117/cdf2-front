@@ -19,6 +19,7 @@
     "api:types": "openapi-typescript \"${API_SCHEMA:-../back/openapi.json}\" -o app/types/api.d.ts"
   },
   "dependencies": {
+    "@lucide/vue": "^1.54.0",
     "@pinia/nuxt": "^1.0.2",
     "nuxt": "^4.6.0",
     "openapi-fetch": "^0.17.0",
