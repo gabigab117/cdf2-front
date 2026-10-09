@@ -1,6 +1,7 @@
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiResponse, clearApiMocks, mockApi } from '../helpers/api'
+import type { components } from '~/types/api'
 
 const { navigateToMock } = vi.hoisted(() => ({ navigateToMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
@@ -12,6 +13,27 @@ const member = {
   position: 'Secrétaire',
 }
 const unauthenticated = { detail: 'Authentification requise.' }
+
+const halloween: components['schemas']['EventIn'] = {
+  title: 'Halloween des enfants',
+  slug: '',
+  category: 'children',
+  starts_at: '2026-10-31T15:00:00+01:00',
+  ends_at: null,
+  start_label: '',
+  venue_name: 'Salle des fêtes',
+  venue_address: '',
+  latitude: null,
+  longitude: null,
+  price_label: 'Gratuit',
+  price_detail: '',
+  summary: '',
+  published: false,
+  lead: null,
+  previous_edition: null,
+  programme: [{ time: '15:00', title: 'Accueil et maquillage', description: '' }],
+  practical_infos: [{ icon: 'people', title: 'Enfants accompagnés', text: '' }],
+}
 
 // The signed-in member's endpoint, which only knows the given access token.
 function mockMe(validToken: string): ReturnType<typeof vi.fn> {
@@ -69,6 +91,37 @@ describe('useApi', () => {
     expect(data).toEqual(member)
     expect(refresh).toHaveBeenCalledOnce()
     expect(useSessionStore().accessToken).toBe('access-2')
+  })
+
+  it('replays a request with the body it carried', async () => {
+    /**
+     * Given an access token that has expired
+     * When an operation that sends a JSON body is refused with a 401
+     * Then the request is sent again, after the renewal, with the same body
+     */
+    mockApi('/api/board/events', {
+      method: 'POST',
+      handler: (event: { headers: Headers }) =>
+        event.headers.get('Authorization') === 'Bearer access-2'
+          ? apiResponse(201, { id: 1 })
+          : apiResponse(401, unauthenticated),
+    })
+    mockRefresh(() => apiResponse(200, { access: 'access-2' }))
+    const fetch = globalThis.fetch
+    const sent: unknown[] = []
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      if (!(input instanceof Request) || !input.url.endsWith('/api/board/events')) return fetch(input, init)
+      // Sending a request reads its body, which can be read only once: the
+      // mocked endpoint never reads it, so the network is played here.
+      const body = await input.text()
+      sent.push(JSON.parse(body))
+      return fetch(new Request(input, { body }))
+    })
+
+    const { response } = await useApi().POST('/api/board/events', { body: halloween })
+
+    expect(response.status).toBe(201)
+    expect(sent).toEqual([halloween, halloween])
   })
 
   it('replays a request only once', async () => {
