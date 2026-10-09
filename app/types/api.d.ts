@@ -139,6 +139,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the board members
+         * @description The active board members, by name: the accounts that may lead an event.
+         */
+        get: operations["accounts_api_list_members"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -171,8 +191,13 @@ export interface components {
         /**
          * BoardMemberOut
          * @description A board member as the board space names them, the lead of an event.
+         *
+         *     An account created without a name, such as with createsuperuser, is named
+         *     after its email address.
          */
         BoardMemberOut: {
+            /** Email */
+            email: string;
             /** First Name */
             first_name: string;
             /** Id */
@@ -353,6 +378,13 @@ export interface components {
             last_name: string;
             /** Position */
             position: string;
+        };
+        /** PagedBoardMemberOut */
+        PagedBoardMemberOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["BoardMemberOut"][];
         };
         /** PagedEventItemOut */
         PagedEventItemOut: {
@@ -888,6 +920,56 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    accounts_api_list_members: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedBoardMemberOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
