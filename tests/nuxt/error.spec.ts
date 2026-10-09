@@ -10,6 +10,10 @@ function buttons(page: VueWrapper): string[] {
   return page.findAll('button').map(button => button.text())
 }
 
+function links(page: VueWrapper): string[][] {
+  return page.findAll('a').map(link => [link.text(), link.attributes('href') ?? ''])
+}
+
 describe('error page', () => {
   afterEach(() => {
     clearErrorMock.mockReset()
@@ -21,7 +25,9 @@ describe('error page', () => {
 
     expect(page.text()).toContain('Erreur 404')
     expect(page.text()).toContain('Cette page n’existe pas')
-    expect(buttons(page)).toEqual(['Retour à l’accueil'])
+    expect(buttons(page)).toEqual([])
+    // A link, which leads home without JavaScript too.
+    expect(links(page)).toEqual([['Retour à l’accueil', '/']])
   })
 
   it('never shows the message of the error itself', async () => {
@@ -48,7 +54,8 @@ describe('error page', () => {
 
     await page.get('button').trigger('click')
 
-    expect(buttons(page)).toEqual(['Réessayer', 'Retour à l’accueil'])
+    expect(buttons(page)).toEqual(['Réessayer'])
+    expect(links(page)).toEqual([['Retour à l’accueil', '/']])
     expect(clearErrorMock).toHaveBeenCalledWith({ redirect: '/bureau/stock' })
   })
 
@@ -57,6 +64,7 @@ describe('error page', () => {
 
     const page = await mountSuspended(ErrorPage, { props: { error: createError({ status: 404 }) } })
 
-    expect(buttons(page)).toEqual(['Retour à l’accueil', 'Espace bureau'])
+    expect(buttons(page)).toEqual(['Espace bureau'])
+    expect(links(page)).toEqual([['Retour à l’accueil', '/']])
   })
 })

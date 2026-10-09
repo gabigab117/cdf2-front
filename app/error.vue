@@ -3,8 +3,6 @@ import type { NuxtError } from '#app'
 
 const { error } = defineProps<{ error: NuxtError }>()
 
-const SITE_NAME = 'Comité des Fêtes d’Ons-en-Bray'
-
 // The texts of the first version's error pages. The error's own message is never
 // shown: it is written for developers, and may come from anywhere.
 const page = computed(() =>
@@ -67,9 +65,11 @@ function leave(path: string): Promise<void> {
         >
           Réessayer
         </UiButton>
+        <!-- A link, which leads home without JavaScript too: the router clears
+        the error as it leaves. -->
         <UiButton
           :variant="homeVariant"
-          @click="leave('/')"
+          to="/"
         >
           Retour à l’accueil
         </UiButton>
