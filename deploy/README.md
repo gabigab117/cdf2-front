@@ -33,6 +33,14 @@ Le service lit `shared/front.env` (0600), qui reste hors du dépôt. Une variabl
 | Variable | Rôle |
 |---|---|
 | `NUXT_API_INTERNAL_URL` | Adresse de l'API pour le rendu serveur des pages publiques, sur le réseau local du serveur : `http://127.0.0.1:<port de l'API>`. Sans elle, un rendu serveur qui appelle l'API échoue. |
+| `NUXT_PUBLIC_SITE_URL` | Adresse publique de l'instance (`https://…`), pour les adresses canoniques, Open Graph et l'abonnement à l'agenda. |
+| `NUXT_PUBLIC_PREPROD` | `true` pour la préproduction seulement : bandeau « Préproduction — données fictives » et `noindex` sur chaque page. |
+| `NUXT_PUBLIC_CONTACT_EMAIL`, `NUXT_PUBLIC_CONTACT_PHONE` | Coordonnées de l'association, jamais celles d'un membre. |
+| `NUXT_PUBLIC_HALL_STREET`, `NUXT_PUBLIC_HALL_TOWN` | Adresse de la salle des fêtes. |
+
+Les variables `NUXT_PUBLIC_*` sont écrites dans chaque page servie : jamais de donnée personnelle.
+
+Le contrôle de santé ne prouve pas que l'API est jointe : l'accueil répond même quand elle ne répond pas. Après un changement de configuration, on vérifie qu'un titre d'événement figure dans le HTML de l'accueil.
 
 ## Fichiers
 

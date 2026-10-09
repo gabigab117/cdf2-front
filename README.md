@@ -8,7 +8,7 @@ Front de la v2 de l'application du Comité des fêtes d'Ons-en-Bray (Oise), une 
 
 Ce dépôt contient le front. L'API (Django Ninja) est dans [cdf2-back](https://github.com/gabigab117/cdf2-back).
 
-> **État** : projet en cours de construction (octobre 2026). Le socle technique est en place ; les écrans arrivent par étapes.
+> **État** : projet en cours de construction (octobre 2026). Le site public (accueil, agenda, fiches des événements) et la gestion des événements par le bureau sont en place ; les autres écrans arrivent par étapes.
 
 ## Stack
 
@@ -24,6 +24,12 @@ Ce dépôt contient le front. L'API (Django Ninja) est dans [cdf2-back](https://
 - **Rendu hybride.**
   - Les pages publiques sont rendues côté serveur (SSR). Elles sont indexables, lisibles sans JavaScript et ne portent aucune donnée de session ni aucune donnée personnelle.
   - L'espace `/bureau` est une application côté client (`routeRules`). Sa session n'existe que dans le navigateur.
+- **Un site public complet sans JavaScript.**
+  - Les filtres de l'agenda sont des liens.
+  - Le menu du téléphone est un `popover` natif du navigateur.
+  - Ce qui ne peut pas marcher sans script, comme « Partager », n'est rendu que dans le navigateur.
+  - La carte d'OpenStreetMap ne se charge qu'au clic du visiteur : aucun service tiers n'est appelé sans son action.
+  - Si l'API ne répond pas, l'accueil s'affiche quand même, avec un message à la place de l'agenda.
 - **Une seule origine.** L'API est servie sous `/api` par le même domaine : par nginx en production, par le proxy de développement de Nitro en local. Il n'y a donc pas de CORS.
 - **Contrat d'API généré.** Les types TypeScript de l'API sont générés depuis le schéma OpenAPI du back et commités dans `app/types/api.d.ts`. Aucune interface n'est écrite à la main.
   - La CI vérifie que ces types correspondent au schéma de la branche `main` du back.
@@ -44,9 +50,25 @@ Prérequis : Node 24 (`.nvmrc`) et, pour les appels d'API, le back démarré sur
 
 ```bash
 npm ci
-cp .env.example .env   # adresse de l'API pour le rendu serveur
+cp .env.example .env   # adresse de l'API pour le rendu serveur, configuration du site
 npm run dev            # http://localhost:3000, /api relayé vers le back
 ```
+
+Pour remplir l'agenda d'événements fictifs, le back les écrit avec `manage.py seed_demo` (voir son README).
+
+## Configuration
+
+Toute la configuration vient de l'environnement (`.env` en local) : le dépôt ne contient aucune valeur réelle.
+
+| Variable | Rôle |
+|---|---|
+| `NUXT_API_INTERNAL_URL` | Adresse de l'API pour le rendu serveur, sur le réseau du serveur. Obligatoire dès qu'une page publique lit l'API. |
+| `NUXT_PUBLIC_SITE_URL` | Adresse du site (`https://…`) : adresses canoniques, Open Graph, abonnement à l'agenda (`webcal://`). |
+| `NUXT_PUBLIC_PREPROD` | `true` en préproduction : bandeau « Préproduction — données fictives » et pages jamais indexées. |
+| `NUXT_PUBLIC_CONTACT_EMAIL`, `NUXT_PUBLIC_CONTACT_PHONE` | E-mail et téléphone de l'association, jamais ceux d'un membre. |
+| `NUXT_PUBLIC_HALL_STREET`, `NUXT_PUBLIC_HALL_TOWN` | Adresse de la salle des fêtes, puis son code postal et sa commune. |
+
+Les variables `NUXT_PUBLIC_*` sont écrites dans chaque page servie, pour le navigateur : elles ne contiennent jamais de donnée personnelle. Une valeur vide masque la ligne qu'elle remplit.
 
 ## Qualité
 
@@ -73,8 +95,11 @@ npm run test:e2e
 ```
 
 - Playwright démarre le back sur `127.0.0.1:8000`, ou réutilise celui qui y tourne déjà.
-- Il applique les migrations, crée la table de cache et charge un membre du bureau fictif (`e2e/fixtures/board-member.json`) dans la base du back : en local, celle de développement.
-- Le compte est repéré par son adresse e-mail : le recharger met à jour le même compte.
+- Il prépare la base du back, en local celle de développement :
+  - il applique les migrations et crée la table de cache ;
+  - il charge un membre du bureau fictif (`e2e/fixtures/board-member.json`), repéré par son adresse e-mail : le recharger met à jour le même compte ;
+  - il écrit les événements fictifs de la maquette (`manage.py seed_demo`), que les pages publiques montrent.
+- Le front rend ses pages publiques avec ce back, comme une préproduction. Les parcours du site les lisent sans JavaScript : ce que le serveur écrit est tout ce qu'un moteur de recherche lit.
 
 ## Licence
 

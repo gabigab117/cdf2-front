@@ -88,6 +88,8 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
   - Après une écriture, la donnée qu'elle change se recharge par sa clé (`refreshNuxtData`). Toute écriture d'un événement recharge la barre latérale (`useEventWrites`).
   - Dans les tests, les composants se démontent avant `clearNuxtData()` : sinon, une réponse en vol réécrit les données vidées.
 - **Pas de logique dans les templates** : extraire dans des `computed` ou des composables.
+- **Pas de commentaire HTML à la racine d'un template** : il en fait un fragment, et les attributs passés au composant ne tombent plus sur son élément (constaté sur `UiButton`). Le commentaire va dans le script, ou hors du `<template>`.
+- **Un lien vers la page affichée est toujours « actif » pour le routeur**, quelle que soit sa requête ou son ancre : vue-router ignore les deux et lui pose `aria-current="page"`. Un lien vers la même page avec une autre requête (chip de filtre, pagination, ancre du site) lie donc `aria-current` lui-même (`UiFilterChip`, `UiButton`, `SiteNav`). L'environnement de test ne marque aucun lien : seul le HTML rendu le prouve (parcours E2E).
 
 ## Rendu hybride (décision projet)
 
@@ -105,6 +107,16 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
   - Pas de SPA statique (`nuxt generate`) : les pages publiques affichent des données vivantes.
   - En dev, le `devProxy` de Nitro tient le rôle de nginx : le navigateur ne voit qu'une origine, comme en prod.
 - Les coordonnées du comité et le drapeau de préproduction viennent de `runtimeConfig`, alimentée par l'environnement : aucune donnée réelle dans le dépôt, qui est public.
+  - **`runtimeConfig.public` est écrite dans chaque page servie**, pour le navigateur : jamais une donnée personnelle. Ce qu'une seule page doit montrer reste en clé privée, lue par son rendu serveur.
+- **Une page publique se lit sans JavaScript**, son contenu comme sa navigation.
+  - Un filtre est un lien. Un menu est un `popover` natif (`UiPopover`), qui s'ouvre et se ferme sans script.
+  - Ce qui ne peut pas marcher sans script ne s'affiche que dans le navigateur (`<ClientOnly>`) : pas de bouton mort.
+  - Aucun service tiers n'est appelé sans une action du visiteur : la carte d'OpenStreetMap se charge au clic.
+- **« Maintenant » se lit une fois par rendu** (`useNow()`, sur `useState`) : un compte à rebours ou une saison donne le même texte au serveur et à l'hydratation, même à minuit.
+- **Une page publique répond même quand l'API ne répond pas.**
+  - Ses lectures ont un délai (`PUBLIC_API_TIMEOUT`, option `timeout` de `useAsyncData`).
+  - L'accueil remplace l'agenda par un message et répond 200 : le contrôle de santé du déploiement et l'attente des parcours E2E appellent `/`, et un 503 y ferait échouer l'un comme l'autre.
+  - Une fiche introuvable est un 404 ; l'API hors d'atteinte, un 503 qui propose de réessayer.
 
 ## Design : la maquette
 
@@ -134,6 +146,9 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
   - Les tests vivent dans `tests/nuxt/`, en miroir de `app/`. C'est le seul dossier de tests que la configuration TypeScript de Nuxt vérifie.
   - Les appels API se simulent avec `registerEndpoint`, par le helper `mockApi()` (`tests/nuxt/helpers/api.ts`). openapi-fetch passe à `fetch` un `Request`, dont l'URL est absolue : le mock est enregistré sous cette URL.
   - Jamais de requête vers un vrai back dans un test unitaire.
+  - La configuration du test vient de `vitest.config.ts` (`environmentOptions.nuxt.overrides.runtimeConfig`), avec des valeurs fictives. Un test qui la change la rétablit.
+  - `useRuntimeConfig()`, `useNow()` et les autres composables ne s'appellent que dans un test, jamais au niveau du module : l'application n'existe pas encore à l'import.
+  - happy-dom ne connaît pas l'API Popover : un test vérifie le câblage (`popovertarget`, `popovertargetaction`), l'ouverture se vérifie sur capture ou en E2E.
 - **Playwright** pour les parcours critiques uniquement (`e2e/`), **contre un vrai back Django**. Les parcours critiques sont :
   - connexion, déconnexion et rechargement en cours de session ;
   - **une page publique chargée JavaScript désactivé** : la preuve que son contenu est rendu côté serveur, donc indexable ;
@@ -144,7 +159,10 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
 - **Les parcours tournent en mode dev** (`dev: true` dans `playwright.config.ts`).
   - Seul `nuxt dev` applique le proxy `/api` qui place l'API sur l'origine du front. C'est la topologie de production, où nginx tient ce rôle ; le serveur Nitro produit par `nuxt build` n'a, lui, aucun proxy.
   - Les prérequis d'exécution sont dans le README.
-  - Playwright démarre le back (`webServer`, dossier `E2E_BACK_DIR`, `../back` par défaut). `e2e/global-setup.ts` y charge un membre du bureau fictif (`e2e/fixtures/board-member.json`), repéré par son e-mail : le recharger met à jour le même compte.
+  - Playwright démarre le back (`webServer`, dossier `E2E_BACK_DIR`, `../back` par défaut). `e2e/global-setup.ts` y charge un membre du bureau fictif (`e2e/fixtures/board-member.json`), repéré par son e-mail : le recharger met à jour le même compte. Il y écrit aussi les événements fictifs de la maquette (`manage.py seed_demo`, permis pour ce seul appel).
+  - Le serveur de dev reçoit sa configuration de `playwright.config.ts` (`use.nuxt.env`) : l'API des parcours pour le rendu serveur, et une préproduction fictive.
+  - Les dates de la démonstration suivent le jour où elle s'écrit : un parcours retrouve un événement par son nom, jamais par sa place.
+  - Une page lue sans JavaScript se charge par `page.goto` : le `goto` qui attend l'hydratation ne rendrait jamais la main.
   - L'API limite les connexions à 5 par minute et par IP, et tous les navigateurs de la suite partagent celle du proxy. Un parcours ne se connecte donc qu'une fois, le refus des identifiants une autre, avec une seule relance en CI.
   - Le job `e2e` de la CI rejoue les parcours contre la branche `main` du back, et le déploiement l'attend.
 - Ne pas tester ce que le framework garantit déjà. Ce qui mérite un test : les composables, les stores, l'affichage des états renvoyés par l'API, et le comportement des composants de base (bornes, liaisons ARIA, événements), jamais leurs variantes visuelles.
