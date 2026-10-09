@@ -4,11 +4,7 @@ import { LogOut } from '@lucide/vue'
 const session = useSessionStore()
 
 // The name, or the address of an account created without one.
-const name = computed(() => {
-  const member = session.member
-  if (!member) return null
-  return `${member.first_name} ${member.last_name}`.trim() || member.email
-})
+const name = computed(() => (session.member ? memberName(session.member) : null))
 
 const signingOut = ref(false)
 const failure = ref<string | null>(null)
