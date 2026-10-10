@@ -24,7 +24,7 @@ describe('the board\'s page of an event', () => {
     // The sidebar's coming events, which saving the event fetches again.
     mockApi('/api/board/events', { handler: () => apiResponse(200, page([])) })
     // The counts of the tabs, and the notes of the first tab.
-    mockApi('/api/board/events/{event_id}/dashboard', { handler: () => apiResponse(200, { notes_count: 6 }) }, { event_id: 12 })
+    mockApi('/api/board/events/{event_id}/dashboard', { handler: () => apiResponse(200, { notes_count: 6, tasks_done: 9, tasks_total: 14, next_tasks: [], recently_done_tasks: [] }) }, { event_id: 12 })
     mockApi('/api/board/notes', { handler: () => apiResponse(200, page([])) })
   })
 
@@ -70,9 +70,11 @@ describe('the board\'s page of an event', () => {
     await vi.waitFor(() => expect(eventPage.get('[role="tab"]').text()).toBe('Notes du bureau 6'))
     expect(eventPage.findAll('[role="tab"]').map(tab => [tab.text(), tab.attributes('aria-selected')])).toEqual([
       ['Notes du bureau 6', 'true'],
+      ['Tâches 9/14', 'false'],
       ['Infos publiques', 'false'],
     ])
     expect(eventPage.get('[role="tabpanel"] textarea').attributes('placeholder')).toBe('Écrire une note pour le bureau…')
+    expect(eventPage.get('[role="tabpanel"] aside h2').text()).toBe('Tâches')
   })
 
   it('shows the tab its address asks for, and writes the tab chosen in it', async () => {

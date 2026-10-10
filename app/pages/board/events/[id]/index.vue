@@ -30,6 +30,7 @@ const { data: dashboard } = useEventDashboard(id)
 // notes come first, as in the mockup, and the public information last.
 const tabs = computed(() => [
   { value: 'notes' as const, label: 'Notes du bureau', icon: Lock, count: dashboard.value ? String(dashboard.value.notes_count) : undefined },
+  { value: 'tasks' as const, label: 'Tâches', count: dashboard.value ? `${dashboard.value.tasks_done}/${dashboard.value.tasks_total}` : undefined },
   { value: 'public' as const, label: 'Infos publiques' },
 ])
 
@@ -115,8 +116,22 @@ function show(saved: components['schemas']['EventOut']): void {
       :tabs
       label="Sections de l’événement"
     >
-      <NotesTab
+      <!-- The notes have the event's other figures beside them, as in the mockup. -->
+      <div
         v-if="tab === 'notes'"
+        class="flex flex-wrap items-start gap-5"
+      >
+        <NotesTab
+          class="flex-1 basis-150"
+          :event
+          :page="query.page"
+        />
+        <aside class="flex min-w-0 flex-1 basis-80 flex-col gap-4 md:max-w-100">
+          <TasksBlock :event-id="event.id" />
+        </aside>
+      </div>
+      <TasksTab
+        v-else-if="tab === 'tasks'"
         :event
         :page="query.page"
       />

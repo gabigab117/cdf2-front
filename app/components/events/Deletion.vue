@@ -27,7 +27,7 @@ async function remove(): Promise<void> {
       @confirm="remove"
       @cancel="dismiss"
     >
-      <p>Son programme, son « Bon à savoir » et ses notes sont supprimés avec lui. La suppression est définitive.</p>
+      <p>Son programme, son « Bon à savoir », ses notes et ses tâches sont supprimés avec lui. La suppression est définitive.</p>
     </UiConfirmation>
     <UiButton
       v-else

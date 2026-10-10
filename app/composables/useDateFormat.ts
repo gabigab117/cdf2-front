@@ -79,6 +79,15 @@ function writtenDay(iso: string, now: number): string {
 }
 
 /**
+ * A day of the calendar, such as a due date, which the API gives without a
+ * time ("2026-10-08"): « 8 oct. », with its year when it is not the year of
+ * `now`. Read at noon, it never moves to another day, whatever the time zone.
+ */
+function calendarDay(date: string, now: number): string {
+  return writtenDay(`${date}T12:00:00Z`, now)
+}
+
+/**
  * A day with its month in full: « samedi 31 octobre », « sam. 31 octobre »,
  * « 30 septembre », with its year if asked. At the start of a sentence, it
  * takes a capital: « Samedi 31 octobre 2026 ».
@@ -215,5 +224,5 @@ function season(now: number): string {
  * the browser: the formats of the mockup.
  */
 export function useDateFormat() {
-  return { dayMonth, day, writtenDay, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
+  return { dayMonth, day, writtenDay, calendarDay, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
 }

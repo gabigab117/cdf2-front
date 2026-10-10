@@ -12,6 +12,7 @@ describe('BoardTopBar', () => {
     expect(menu.get('nav').attributes('aria-label')).toBe('Nouveau')
     expect(menu.findAll('a').map(link => [link.text(), link.attributes('href')])).toEqual([
       ['Événement', '/bureau/evenements/nouveau'],
+      ['Tâche', '/bureau/taches/nouvelle'],
     ])
   })
 

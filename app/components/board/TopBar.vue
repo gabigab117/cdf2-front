@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDays, Menu, Plus } from '@lucide/vue'
+import { CalendarDays, ListChecks, Menu, Plus } from '@lucide/vue'
 import type { Component } from 'vue'
 
 // On a computer the bar holds the « Nouveau » menu alone for now: the bell
@@ -15,6 +15,7 @@ interface Entry {
 /** What the board creates from any of its pages. Each phase adds its entry. */
 const NEW_ENTRIES: readonly Entry[] = [
   { label: 'Événement', to: NEW_EVENT_PATH, icon: CalendarDays },
+  { label: 'Tâche', to: NEW_TASK_PATH, icon: ListChecks },
 ]
 </script>
 
