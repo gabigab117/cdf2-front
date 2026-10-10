@@ -731,8 +731,10 @@ export interface components {
          * @description What the board's dashboard shows.
          */
         BoardOverviewOut: {
+            /** Latest Notes */
+            latest_notes: components["schemas"]["LatestNoteOut"][];
             /** Upcoming Events */
-            upcoming_events: components["schemas"]["EventItemOut"][];
+            upcoming_events: components["schemas"]["OverviewEventOut"][];
             /** Upcoming Events Count */
             upcoming_events_count: number;
         };
@@ -921,6 +923,23 @@ export interface components {
             /** Page Size */
             page_size?: number | null;
         };
+        /**
+         * LatestNoteOut
+         * @description A note of the board, as the dashboard lists the latest.
+         */
+        LatestNoteOut: {
+            author: components["schemas"]["BoardMemberOut"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            event: components["schemas"]["NoteEventOut"] | null;
+            /** Id */
+            id: number;
+            /** Text */
+            text: string;
+        };
         /** LoginIn */
         LoginIn: {
             /** Email */
@@ -938,6 +957,13 @@ export interface components {
             last_name: string;
             /** Position */
             position: string;
+        };
+        /** NoteEventOut */
+        NoteEventOut: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
         };
         /**
          * NoteIn
@@ -997,6 +1023,39 @@ export interface components {
             tag: components["schemas"]["NoteTag"] | null;
             /** Text */
             text: string;
+        };
+        /**
+         * OverviewEventOut
+         * @description An event of the dashboard's table: a row of the board's list, with how
+         *     far its tasks have gone and how many notes it has.
+         */
+        OverviewEventOut: {
+            category: components["schemas"]["EventCategory"];
+            /** Ends At */
+            ends_at: string | null;
+            /** Id */
+            id: number;
+            /** Notes Count */
+            notes_count: number;
+            /** Published */
+            published: boolean;
+            /** Slug */
+            slug: string;
+            /** Start Label */
+            start_label: string;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Tasks Done */
+            tasks_done: number;
+            /** Tasks Total */
+            tasks_total: number;
+            /** Title */
+            title: string;
+            /** Venue Name */
+            venue_name: string;
         };
         /** PagedBoardMemberOut */
         PagedBoardMemberOut: {
