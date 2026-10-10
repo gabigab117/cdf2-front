@@ -64,6 +64,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Choose a password
+         * @description Record the password chosen from a link, which then holds no more. No
+         *     session opens: the member signs in, their address filled in.
+         */
+        post: operations["accounts_api_choose_password"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/password-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Check a link to choose a password
+         * @description The account a link leads to, while the link holds: the page names it.
+         */
+        post: operations["accounts_api_check_password_link"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/refresh": {
         parameters: {
             query?: never;
@@ -78,6 +119,51 @@ export interface paths {
          * @description Exchange the refresh cookie for a new access token and a new cookie.
          */
         post: operations["accounts_api_refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the accounts
+         * @description Every account, with its state, by name.
+         */
+        get: operations["accounts_api_list_accounts"];
+        put?: never;
+        /**
+         * Invite a board member
+         * @description Make the account of a board member, who chooses their password from the
+         *     link the email gives. The answer tells whether the email went out.
+         */
+        post: operations["accounts_api_invite_member"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/accounts/{account_id}/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send a new link
+         * @description « Envoyer un nouveau lien »: an invitation again, or a password forgotten.
+         */
+        post: operations["accounts_api_send_new_link"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1117,6 +1203,47 @@ export interface components {
             access: string;
         };
         /**
+         * AccountIn
+         * @description The account of a board member the superuser invites.
+         */
+        AccountIn: {
+            /** Email */
+            email: string;
+            /** First Name */
+            first_name: string;
+            /** Last Name */
+            last_name: string;
+            position?: components["schemas"]["BoardPosition"] | null;
+        };
+        /**
+         * AccountOut
+         * @description An account, as the accounts page lists it.
+         */
+        AccountOut: {
+            /** Email */
+            email: string;
+            /** First Name */
+            first_name: string;
+            /** Id */
+            id: number;
+            /** Is Superuser */
+            is_superuser: boolean;
+            /** Last Name */
+            last_name: string;
+            /** Link Sent At */
+            link_sent_at: string | null;
+            /** Position */
+            position: string;
+            state: components["schemas"]["AccountState"];
+        };
+        /**
+         * AccountState
+         * @description Where an account stands, worked out: its invitation awaits a password,
+         *     it signs in, or it is deactivated.
+         * @enum {string}
+         */
+        AccountState: "pending" | "active" | "inactive";
+        /**
          * AgendaOut
          * @description What the site shows around its agenda.
          */
@@ -1214,6 +1341,12 @@ export interface components {
             /** Upcoming Events Count */
             upcoming_events_count: number;
         };
+        /**
+         * BoardPosition
+         * @description The positions of the board (decision of 10/10/2026): a closed list.
+         * @enum {string}
+         */
+        BoardPosition: "president" | "vice_president" | "treasurer" | "assistant_treasurer" | "secretary" | "assistant_secretary";
         /** CapacityIn */
         CapacityIn: {
             /** Capacity */
@@ -1755,6 +1888,15 @@ export interface components {
             taken_today: number;
         };
         /**
+         * InvitationOut
+         * @description An account, and whether the email of its link went out.
+         */
+        InvitationOut: {
+            account: components["schemas"]["AccountOut"];
+            /** Sent */
+            sent: boolean;
+        };
+        /**
          * LatestNoteOut
          * @description A note of the board, as the dashboard lists the latest.
          */
@@ -2118,6 +2260,8 @@ export interface components {
             email: string;
             /** First Name */
             first_name: string;
+            /** Is Superuser */
+            is_superuser: boolean;
             /** Last Name */
             last_name: string;
             /** Position */
@@ -2255,6 +2399,13 @@ export interface components {
             /** Venue Name */
             venue_name: string;
         };
+        /** PagedAccountOut */
+        PagedAccountOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["AccountOut"][];
+        };
         /** PagedBoardMemberOut */
         PagedBoardMemberOut: {
             /** Count */
@@ -2310,6 +2461,38 @@ export interface components {
             count: number;
             /** Items */
             items: components["schemas"]["TaskOut"][];
+        };
+        /**
+         * PasswordIn
+         * @description The password a member chooses from their link, typed twice.
+         */
+        PasswordIn: {
+            /** Confirmation */
+            confirmation: string;
+            /** Password */
+            password: string;
+            /** Token */
+            token: string;
+            /** Uid */
+            uid: string;
+        };
+        /**
+         * PasswordLinkIn
+         * @description The link a member received, as the page read it after its "#".
+         */
+        PasswordLinkIn: {
+            /** Token */
+            token: string;
+            /** Uid */
+            uid: string;
+        };
+        /**
+         * PasswordLinkOut
+         * @description The account a link leads to, by its email address.
+         */
+        PasswordLinkOut: {
+            /** Email */
+            email: string;
         };
         /**
          * PendingDocumentsOut
@@ -2864,6 +3047,108 @@ export interface operations {
             };
         };
     };
+    accounts_api_choose_password: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PasswordLinkOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    accounts_api_check_password_link: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordLinkIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PasswordLinkOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+            /** @description Too Many Requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
     accounts_api_refresh: {
         parameters: {
             query?: never;
@@ -2909,6 +3194,174 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    accounts_api_list_accounts: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedAccountOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    accounts_api_invite_member: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    accounts_api_send_new_link: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                account_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InvitationOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
                 };
             };
         };

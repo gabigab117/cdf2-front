@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ArrowRightLeft, Calendar, Folder, Image, LayoutGrid, Package, Tent, Wallet } from '@lucide/vue'
+import { ArrowRightLeft, Calendar, Folder, Image, LayoutGrid, Package, Tent, Users, Wallet } from '@lucide/vue'
 import type { Component } from 'vue'
 
 interface Entry {
   label: string
   path: string
   icon: Component
+  /** Shown to the superuser alone: the API refuses anyone else. */
+  superuser?: boolean
 }
 
 /** The board's screens, in the mockup's order. */
@@ -25,11 +27,13 @@ const SECTIONS: ReadonlyArray<{ title?: string, entries: readonly Entry[] }> = [
       { label: 'Stock', path: '/bureau/stock', icon: Package },
       { label: 'Matériel', path: EQUIPMENT_PATH, icon: Tent },
       { label: 'Prêts', path: LOANS_PATH, icon: ArrowRightLeft },
+      { label: 'Membres', path: ACCOUNTS_PATH, icon: Users, superuser: true },
     ],
   },
 ]
 
 const route = useRoute()
+const session = useSessionStore()
 
 // The number of events to come, from the request the « À venir » block shares.
 const { data: upcoming } = useUpcomingEvents()
@@ -58,7 +62,7 @@ function isCurrent({ path }: Entry): boolean {
 const sections = computed(() =>
   SECTIONS.map(section => ({
     ...section,
-    entries: section.entries.map(entry => ({
+    entries: section.entries.filter(entry => !entry.superuser || session.member?.is_superuser).map(entry => ({
       ...entry,
       current: isCurrent(entry),
       count: entry.path === EVENTS_PATH && upcoming.value?.count ? upcoming.value.count : null,

@@ -60,6 +60,8 @@ export default defineNuxtConfig({
   routeRules: {
     '/bureau/**': { ssr: false, appLayout: 'board' },
     '/connexion': { ssr: false },
+    // The token of the link follows the « # », which only the browser reads.
+    '/choisir-mot-de-passe': { ssr: false },
     // The legal notice reads private keys: without scripts, only the server
     // renders it, and the browser's router loads it anew rather than render it.
     // Its path is also written in its definePageMeta (pages/legal-notice.vue):

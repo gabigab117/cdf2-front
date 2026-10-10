@@ -5,7 +5,8 @@ const member = {
   email: 'camille.martin@example.test',
   first_name: 'Camille',
   last_name: 'Martin',
-  position: 'Trésorière',
+  position: 'Trésorier·e',
+  is_superuser: false,
 }
 const credentials = { email: 'camille.martin@example.test', password: 'un mot de passe de test' }
 

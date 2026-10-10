@@ -77,6 +77,8 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
   - Un renouvellement qui échoue pour l'instant (429, 5xx, réseau) affiche la page d'erreur avec « Réessayer », sans renvoyer à la connexion.
   - La page de connexion n'est liée nulle part : les membres l'ouvrent depuis leur favori. Une session encore ouverte la traverse donc tout droit, après un refresh silencieux.
   - Un bouton masqué ou une route gardée est de l'UX, jamais de la sécurité.
+  - **L'entrée « Membres »** (`/bureau/membres`, la dernière du groupe « Gestion ») ne paraît que pour le superuser, d'après `is_superuser` de « qui suis-je » : l'API refuse les comptes aux autres (403), et la page montre alors la page d'erreur.
+  - **« Choisir mon mot de passe »** (`/choisir-mot-de-passe`, publique, `standalone`) est rendue dans le navigateur seul (`ssr: false`) : le jeton du lien suit le « # », que le navigateur n'envoie jamais au serveur. Après l'enregistrement, la connexion reçoit l'adresse et son message par l'état de la navigation (`navigateTo({ path, state })`, lu dans `window.history.state`), jamais par l'adresse, qu'un journal garderait.
 - **Espace privé sous `/bureau/**`**, réservé aux membres du bureau.
 - **Layouts** :
   - `default` : le site public, en-tête et pied de page. Ses liens arrivent avec les pages qu'ils visent. Aucun lien vers l'espace bureau.

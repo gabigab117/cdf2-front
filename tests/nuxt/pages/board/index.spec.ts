@@ -12,7 +12,7 @@ import { boardTask } from '../../helpers/tasks'
 type BoardOverviewOut = components['schemas']['BoardOverviewOut']
 
 /** The fictitious member signed in. */
-const camille = { email: 'camille.martin@example.test', first_name: 'Camille', last_name: 'Martin', position: 'Trésorière' }
+const camille = { email: 'camille.martin@example.test', first_name: 'Camille', last_name: 'Martin', position: 'Trésorier·e', is_superuser: false }
 
 /** No general task yet. */
 const NO_GENERAL_TASK: BoardOverviewOut['general_tasks'] = { tasks_done: 0, tasks_total: 0, next_tasks: [], recently_done_tasks: [] }

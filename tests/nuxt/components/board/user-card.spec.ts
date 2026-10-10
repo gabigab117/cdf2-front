@@ -10,7 +10,8 @@ const member = {
   email: 'camille.martin@example.test',
   first_name: 'Camille',
   last_name: 'Martin',
-  position: 'Trésorière',
+  position: 'Trésorier·e',
+  is_superuser: false,
 }
 
 describe('BoardUserCard', () => {
@@ -25,7 +26,7 @@ describe('BoardUserCard', () => {
 
     const card = await mountSuspended(BoardUserCard)
 
-    expect(card.text()).toContain('CMCamille MartinTrésorière')
+    expect(card.text()).toContain('CMCamille MartinTrésorier·e')
   })
 
   it('shows the address of an account created without a name', async () => {

@@ -44,7 +44,8 @@ useSitePage({
       <p>Comme tout serveur web, le nôtre tient un journal technique des requêtes : adresse IP, date et heure, page demandée, navigateur. Il sert à la sécurité et au dépannage.</p>
     </SiteLegalSection>
     <SiteLegalSection title="Membres du bureau">
-      <p>Chaque membre du bureau a un compte : e-mail, prénom, nom et fonction, avec un mot de passe qui n’est jamais conservé en clair. Le compte garde aussi sa date de création et celle de sa dernière connexion à l’administration.</p>
+      <p>Chaque membre du bureau a un compte : e-mail, prénom, nom et fonction, avec un mot de passe qui n’est jamais conservé en clair. Le compte garde aussi sa date de création, celle de sa dernière connexion à l’administration, et celle du dernier lien envoyé pour choisir son mot de passe.</p>
+      <p>L’administrateur des comptes invite chaque membre par un e-mail qui donne un lien pour choisir son mot de passe ; le même geste renvoie un lien à un membre qui a oublié le sien. Ces e-mails passent par Mailo, qui en reçoit le texte et l’adresse du membre. Le site n’en garde aucune copie.</p>
       <p>Les membres voient le nom et l’e-mail des autres membres. Un événement peut nommer son responsable parmi eux : ce lien n’est visible que du bureau, jamais publié sur le site.</p>
       <p>Les notes du bureau portent le nom de leur auteur, les tâches celui de la personne qui les a créées et de celle à qui elles sont assignées. Seul le bureau les lit. Ce sont des textes libres : on n’y écrit que le nécessaire, et aucune donnée sensible, comme une information de santé.</p>
       <p>La connexion à l’espace du bureau pose un cookie technique, indispensable pour rester connecté. L’administration des comptes pose aussi les siens : sa session et la protection de ses formulaires. Les connexions sont comptées par adresse IP, pour bloquer les essais de mots de passe.</p>

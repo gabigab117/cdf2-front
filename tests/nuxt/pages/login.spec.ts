@@ -57,4 +57,21 @@ describe('sign-in page', () => {
     expect((page.get('input[type="email"]').element as HTMLInputElement).value).toBe('camille.martin@example.test')
     expect(navigateToMock).not.toHaveBeenCalled()
   })
+
+  it('fills in the address of a member who just chose their password, and says why', async () => {
+    /**
+     * Given Julie, who just chose her password
+     * When the sign-in page opens, her address and the reason in the state of
+     * the navigation
+     * Then her address is filled in, and the page says her password is recorded
+     */
+    window.history.replaceState({ ...window.history.state, email: 'julie.petit@example.fr', notice: 'Mot de passe enregistré. Vous pouvez vous connecter.' }, '')
+
+    const page = await mountSuspended(LoginPage, { route: '/connexion' })
+
+    expect((page.get('input[type="email"]').element as HTMLInputElement).value).toBe('julie.petit@example.fr')
+    expect(page.get('[role="status"]').text()).toBe('Mot de passe enregistré. Vous pouvez vous connecter.')
+    const { email: _email, notice: _notice, ...state } = window.history.state
+    window.history.replaceState(state, '')
+  })
 })

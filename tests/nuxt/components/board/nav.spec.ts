@@ -98,4 +98,16 @@ describe('BoardNav', () => {
     await vi.waitFor(() => expect(loans.text()).toBe('Prêts3 à préparer ou en retard'))
     expect(nav.get('a[href="/bureau/documents"]').text()).toBe('Documents')
   })
+
+  it('shows « Membres » to the superuser alone', async () => {
+    const session = useSessionStore()
+    session.member = { email: 'gabriel@example.fr', first_name: 'Gabriel', last_name: 'T.', position: '', is_superuser: false }
+
+    const nav = await mountSuspended(BoardNav, { route: '/bureau' })
+    expect(nav.find('a[href="/bureau/membres"]').exists()).toBe(false)
+
+    session.member = { ...session.member, is_superuser: true }
+    await vi.waitFor(() => expect(nav.find('a[href="/bureau/membres"]').exists()).toBe(true))
+    expect(nav.get('a[href="/bureau/membres"]').text()).toBe('Membres')
+  })
 })

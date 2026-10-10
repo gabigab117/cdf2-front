@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleAlert } from '@lucide/vue'
+import { CircleAlert, CircleCheck } from '@lucide/vue'
 import type { FormErrors } from '~/utils/api-errors'
 
 // Linked from nowhere: board members reach it by its address, or on their way
@@ -11,7 +11,13 @@ useSeoMeta({ title: 'Connexion', robots: 'noindex, nofollow' })
 const session = useSessionStore()
 const route = useRoute()
 
-const credentials = reactive({ email: '', password: '' })
+// A member who just chose their password arrives with their address and the
+// reason, in the state of the navigation (pages/set-password.vue): never in
+// the address, which a log would keep.
+const arrival: { email?: unknown, notice?: unknown } = window.history.state ?? {}
+
+const credentials = reactive({ email: typeof arrival.email === 'string' ? arrival.email : '', password: '' })
+const notice = typeof arrival.notice === 'string' ? arrival.notice : ''
 const errors = ref<FormErrors | null>(null)
 const pending = ref(false)
 
@@ -45,6 +51,13 @@ async function signIn(): Promise<void> {
         :icon="CircleAlert"
       >
         <p>{{ errors.form.join(' ') }}</p>
+      </UiCallout>
+      <UiCallout
+        v-else-if="notice"
+        role="status"
+        :icon="CircleCheck"
+      >
+        <p>{{ notice }}</p>
       </UiCallout>
       <form
         class="flex flex-col gap-4"
