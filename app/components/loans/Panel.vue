@@ -125,11 +125,14 @@ async function recordReturn(payload: LoanReturnIn): Promise<FormErrors | null> {
   return null
 }
 
+// From its first day short, and the most the loans take from then on, which
+// may come later.
 const shortageLines = computed(() =>
   shortages.value.map(shortage => ({
     id: shortage.equipment.id,
-    text: `${shortage.equipment.name} : les prêts en prennent ${shortage.taken} le ${calendarWeekday(shortage.day, now.value)}, `
-      + `${shortage.offered} ${shortage.offered > 1 ? 'restent' : 'reste'} (${shortage.loans.map(item => item.number ?? item.display_name).join(', ')}).`,
+    text: `${shortage.equipment.name} : à partir du ${calendarWeekday(shortage.day, now.value)}, les prêts en prennent jusqu’à ${shortage.taken}, `
+      + `${shortage.offered > 0 ? `il n’en reste que ${shortage.offered}` : 'il n’en reste aucun'} `
+      + `(${shortage.loans.map(item => item.number ?? item.display_name).join(', ')}).`,
   })),
 )
 </script>

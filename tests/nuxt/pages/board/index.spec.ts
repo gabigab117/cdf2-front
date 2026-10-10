@@ -283,11 +283,13 @@ describe('the dashboard', () => {
 
   it('lists the checkouts and returns of the fortnight, each leading to its loan', async () => {
     /**
-     * Given the school's return tomorrow, M. Petit's checkout to prepare on
-     * Saturday, and the football club's on 16 October
-     * Then the block lists them by day, with their pills and equipment
+     * Given the tennis club's return, late, the school's tomorrow, M. Petit's
+     * checkout to prepare on Saturday, and the football club's on 16 October
+     * Then the block lists them by day, with their pills and equipment, what
+     * calls for the board first
      */
     const movements: BoardOverviewOut['loan_movements'] = [
+      { kind: 'return', day: '2026-09-29', loan: { ...loanBrief({ id: 17, display_name: 'Tennis', purpose: 'Tournoi', state: 'overdue' }), lines: [LINE] } },
       { kind: 'return', day: '2026-10-02', loan: { ...loanBrief({ id: 18, display_name: 'École du village', purpose: 'Cross', state: 'out' }), lines: [LINE] } },
       { kind: 'checkout', day: '2026-10-03', loan: { ...loanBrief({ id: 19, display_name: 'M. Petit', purpose: 'Anniversaire', state: 'to_prepare' }), lines: [LINE] } },
       { kind: 'checkout', day: '2026-10-16', loan: { ...loanBrief({ id: 20 }), lines: [{ ...LINE, quantity: 4 }] } },
@@ -296,11 +298,12 @@ describe('the dashboard', () => {
 
     const dashboard = await mountDashboard()
 
-    await vi.waitFor(() => expect(block(dashboard, 'Matériel : sorties et retours').findAll('li')).toHaveLength(3))
+    await vi.waitFor(() => expect(block(dashboard, 'Matériel : sorties et retours').findAll('li')).toHaveLength(4))
     const rows = block(dashboard, 'Matériel : sorties et retours').findAll('li a')
     expect(rows.map(row => [readable(row.text()), row.attributes('href')])).toEqual([
+      ['RetourTennis — TournoiEn retard · Barnums 3 × 3 m (2)mar. 29 sept.', '/bureau/prets?pret=17'],
       ['RetourÉcole du village — CrossBarnums 3 × 3 m (2)ven. 2 oct.', '/bureau/prets?pret=18'],
-      ['SortieM. Petit — AnniversaireBarnums 3 × 3 m (2) · à préparersam. 3 oct.', '/bureau/prets?pret=19'],
+      ['SortieM. Petit — AnniversaireÀ préparer · Barnums 3 × 3 m (2)sam. 3 oct.', '/bureau/prets?pret=19'],
       ['SortieClub de football — Tournoi jeunesBarnums 3 × 3 m (4)ven. 16 oct.', '/bureau/prets?pret=20'],
     ])
     expect(block(dashboard, 'Matériel : sorties et retours').findAll('a').find(link => link.text() === 'Nouveau prêt')?.attributes('href')).toBe('/bureau/prets/nouveau')

@@ -232,7 +232,7 @@ describe('the Prêts page', () => {
       lines: [{ line: 41, damaged_quantity: 1, missing_quantity: 0 }],
     }))
     await vi.waitFor(() => expect(view.get('section[aria-label]').text()).toContain('Des prêts à venir manquent désormais de matériel'))
-    expect(readable(view.get('section[aria-label]').text())).toContain('Barnums 3 × 3 m : les prêts en prennent 2 le ven. 16 oct., 1 reste (P-2026-021).')
+    expect(readable(view.get('section[aria-label]').text())).toContain('Barnums 3 × 3 m : à partir du ven. 16 oct., les prêts en prennent jusqu’à 2, il n’en reste que 1 (P-2026-021).')
     expect(view.get('section[aria-label]').text()).toContain('1 abîmé, mis en réparation')
   })
 
