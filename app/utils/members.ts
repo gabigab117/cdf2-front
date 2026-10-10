@@ -14,3 +14,11 @@ export function memberShortName(member: Named): string {
   if (!first_name) return memberName(member)
   return last_name ? `${first_name} ${last_name.charAt(0)}.` : first_name
 }
+
+/**
+ * « Bonjour Julie », or « Bonjour » alone for a member without a first name,
+ * or while the member is not known yet.
+ */
+export function memberGreeting(member: Pick<Named, 'first_name'> | null): string {
+  return member?.first_name ? `Bonjour ${member.first_name}` : 'Bonjour'
+}

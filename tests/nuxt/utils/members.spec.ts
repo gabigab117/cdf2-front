@@ -19,4 +19,12 @@ describe('the names of the board members', () => {
   ])('names a member in passing by %s', (_case, named, name) => {
     expect(memberShortName(named)).toBe(name)
   })
+
+  it.each([
+    ['by their first name', member, 'Bonjour Julie'],
+    ['alone, without a first name', { ...member, first_name: '' }, 'Bonjour'],
+    ['alone, while they are not known yet', null, 'Bonjour'],
+  ])('greets a member %s', (_case, named, greeting) => {
+    expect(memberGreeting(named)).toBe(greeting)
+  })
 })

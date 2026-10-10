@@ -128,6 +128,15 @@
   --tracking-place: 0.02em;     /* "Ons-en-Bray" under that name */
   --tracking-eyebrow: 0.06em;   /* the day above the next event's title */
   --tracking-overline: 0.08em;  /* uppercase labels larger than the overline */
+  --tracking-table: 0.04em;     /* uppercase column headers of a table */
+
+  /*
+   * Grids of the dashboard. The KPI cards fill their row with auto-fill rather
+   * than the mockup's auto-fit: a lone card keeps the width it will have once
+   * the cards of the later phases stand beside it.
+   */
+  --grid-template-columns-kpis: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  --grid-template-columns-upcoming: minmax(0, 2fr) minmax(0, 1fr);  /* « Événements à venir »: event, date */
 
   /* Radii */
   --radius-badge: 7px;
