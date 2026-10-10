@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plus } from '@lucide/vue'
+import { CalendarDays, Plus } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
 import type { EquipmentFields, InventoryQuery } from '~/utils/equipment'
@@ -96,13 +96,22 @@ async function deleted(): Promise<void> {
             {{ figures }}
           </p>
         </div>
-        <UiButton
-          variant="secondary"
-          :to="location({ equipment: 'new' })"
-        >
-          <Plus :size="17" />
-          Ajouter du matériel
-        </UiButton>
+        <div class="flex flex-wrap gap-2">
+          <UiButton
+            variant="secondary"
+            :to="`${LOANS_PATH}#planning`"
+          >
+            <CalendarDays :size="17" />
+            Planning des prêts
+          </UiButton>
+          <UiButton
+            variant="secondary"
+            :to="location({ equipment: 'new' })"
+          >
+            <Plus :size="17" />
+            Ajouter du matériel
+          </UiButton>
+        </div>
       </div>
       <nav
         aria-label="Catégories"

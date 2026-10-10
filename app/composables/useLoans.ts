@@ -12,6 +12,12 @@ export function useLoanList(query: () => LoansQuery) {
   )
 }
 
+/** The loans over the nine weeks of the planning. Lazy. */
+export function useLoanPlanning() {
+  return useLazyAsyncData('board:loans:planning', (_nuxtApp, { signal }) =>
+    loadData(useApi().GET('/api/board/loans/planning', { signal })))
+}
+
 /** How many loans in all, and in each state: the counts of the chips. */
 export function useLoanCounts() {
   return useLazyAsyncData('board:loans:counts', (_nuxtApp, { signal }) =>

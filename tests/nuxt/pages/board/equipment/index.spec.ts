@@ -80,6 +80,7 @@ describe('the Matériel page', () => {
     expect(marquees!.get('[role="img"]').attributes('aria-label')).toBe('Barnums 3 × 3 m : 1 disponible, 2 sortis, 1 en réparation, sur 4')
     expect(page.get('h1').text()).toBe('Matériel')
     expect(page.findAll('a').find(link => link.text() === 'Nouveau prêt')?.attributes('href')).toBe('/bureau/prets/nouveau')
+    expect(page.findAll('a').find(link => link.text() === 'Planning des prêts')?.attributes('href')).toBe('/bureau/prets#planning')
     expect(page.text()).toContain('2 références · 1 en partie prêtée aujourd’hui · 1 pièce en réparation')
   })
 

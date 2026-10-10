@@ -591,6 +591,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/loans/planning": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the planning of the loans
+         * @description The loans over nine weeks, from the Monday of the week before: those of
+         *     the committee and those returned too, the cancelled left out.
+         */
+        get: operations["equipment_api_read_planning"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/loans/{loan_id}": {
         parameters: {
             query?: never;
@@ -1961,6 +1982,25 @@ export interface components {
             start_date: string;
             state: components["schemas"]["LoanState"];
             status: components["schemas"]["LoanStatus"];
+        };
+        /**
+         * LoanPlanningOut
+         * @description The loans over the window of the planning, the first to start first: a
+         *     bounded aggregate (A7).
+         */
+        LoanPlanningOut: {
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /** Loans */
+            loans: components["schemas"]["LoanBriefOut"][];
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
         };
         /**
          * LoanReturnIn
@@ -4773,6 +4813,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoanDepositsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    equipment_api_read_planning: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanPlanningOut"];
                 };
             };
             /** @description Unauthorized */

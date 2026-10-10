@@ -11,6 +11,7 @@ const query = computed(() => parseLoansQuery(route.query))
 
 const { data: page, status, error, refresh } = useLoanList(() => query.value)
 const { data: counts, refresh: refreshCounts } = useLoanCounts()
+const { refresh: refreshPlanning } = useLoanPlanning()
 
 const loans = computed(() => page.value?.items ?? [])
 const pageCount = computed(() => Math.ceil((page.value?.count ?? 0) / LOANS_PAGE_SIZE))
@@ -41,6 +42,7 @@ const chips = computed(() => [
 function changed(): void {
   void refresh()
   void refreshCounts()
+  void refreshPlanning()
 }
 
 async function close(): Promise<void> {
@@ -69,6 +71,10 @@ async function close(): Promise<void> {
         Les réservations des événements du comité apparaissent ici aussi : elles bloquent le matériel comme un prêt.
       </p>
     </div>
+    <LoansPlanning
+      :class="{ 'max-md:hidden': query.loan !== null }"
+      :location="loanLink"
+    />
     <div class="flex flex-wrap items-start gap-5">
       <UiCard
         flush

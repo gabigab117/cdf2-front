@@ -31,9 +31,10 @@ function readable(text: string): string {
   return text.replaceAll(' ', ' ').replaceAll(' ', ' ')
 }
 
-function mockList(items = ITEMS) {
+function mockList(items = ITEMS, planned = ITEMS) {
   mockApi('/api/board/loans', { method: 'GET', handler: () => apiResponse(200, page(items)) })
   mockApi('/api/board/loans/counts', { handler: () => apiResponse(200, COUNTS) })
+  mockApi('/api/board/loans/planning', { handler: () => apiResponse(200, { start: '2026-09-21', end: '2026-11-22', loans: planned }) })
 }
 
 function mockLoan(loan = loanOut()) {
@@ -93,6 +94,40 @@ describe('the Prêts page', () => {
     expect(readable(halloween!.text())).toContain('réservation interne')
     expect(school!.get('a').attributes('href')).toBe('/bureau/prets?pret=18')
     expect(view.findAll('a').find(link => link.text() === 'Nouveau prêt')?.attributes('href')).toBe('/bureau/prets/nouveau')
+  })
+
+  it('draws the planning of nine weeks, a bar a loan leading to its panel', async () => {
+    /**
+     * Given the school's loan out, M. Petit's to prepare, and Halloween's reservation
+     * When the planning shows, on 1 October
+     * Then each has its row and its bar, coloured after its state, cut at the
+     * window, and the line of today crosses them
+     */
+    mockList()
+
+    const view = await mountPage('/bureau/prets?etat=en-cours')
+
+    const planning = view.get('#planning')
+    await vi.waitFor(() => expect(planning.findAll('ul[aria-label="Prêts du planning"] li')).toHaveLength(3))
+    expect(planning.text()).toContain('21 sept.28 sept.5 oct.')
+    const bars = planning.findAll('ul[aria-label="Prêts du planning"] a')
+    expect(bars.map(bar => [bar.text(), bar.attributes('href')])).toEqual([
+      ['Cross', '/bureau/prets?pret=18&etat=en-cours'],
+      ['Anniversaire', '/bureau/prets?pret=19&etat=en-cours'],
+      ['Halloween des enfants', '/bureau/prets?pret=31&etat=en-cours'],
+    ])
+    expect(readable(bars[0]!.attributes('aria-label')!)).toBe('École du village, du mer. 30 sept. au ven. 2 oct., en cours')
+    expect(bars[1]!.classes()).toContain('bg-ambre-500')
+    expect(bars[2]!.classes()).toContain('bg-sable-950')
+    expect(bars[0]!.attributes('style')).toBe('left: 14.29%; width: 4.76%;')
+  })
+
+  it('says when no loan is on the planning', async () => {
+    mockList(ITEMS, [])
+
+    const view = await mountPage()
+
+    await vi.waitFor(() => expect(view.get('#planning').text()).toContain('Aucun prêt sur ces neuf semaines.'))
   })
 
   it('counts each state on its chip, which keeps its loans alone', async () => {

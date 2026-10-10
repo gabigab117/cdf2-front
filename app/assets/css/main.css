@@ -150,6 +150,9 @@
   --grid-template-columns-equipment: minmax(0, 1.7fr) 64px 64px 84px 84px minmax(0, 1fr);
   --grid-template-columns-equipment-narrow: minmax(0, 1fr) auto;
 
+  /* Rows of the loans' planning: whom it lends to, then its track of weeks. */
+  --grid-template-columns-planning: 220px minmax(0, 1fr);
+
   /* Lines of the loan form: equipment, what is free, its quantity. */
   --grid-template-columns-loan-line: minmax(0, 1fr) 140px 132px;
 
@@ -220,6 +223,12 @@
 /* Chevron pattern taken from the coat of arms */
 @utility chevron {
   clip-path: polygon(0 70%, 50% 0, 100% 70%, 100% 100%, 50% 30%, 0 100%);
+}
+
+/* The rule of each week across the track of a planning: its step, a share of
+   the track, comes with the planning (background-size). */
+@utility week-grid {
+  background-image: linear-gradient(90deg, var(--color-argent-100) 1px, transparent 1px);
 }
 
 /* The squared paper of a map preview, drawn without loading any map. */
