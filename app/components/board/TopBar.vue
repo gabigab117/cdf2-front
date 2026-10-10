@@ -79,10 +79,11 @@ const NEW_ENTRIES: readonly Entry[] = [
         placement="board"
       >
         <template #invoker="{ invoker }">
-          <UiButton v-bind="invoker">
-            <Plus :size="18" />
-            Nouveau
-          </UiButton>
+          <BoardTopBarButton
+            v-bind="invoker"
+            :icon="Plus"
+            label="Nouveau"
+          />
         </template>
         <nav aria-label="Nouveau">
           <ul class="flex flex-col gap-1">

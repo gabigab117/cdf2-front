@@ -104,10 +104,11 @@ async function deleted(): Promise<void> {
       defer
       to="#board-top-bar-action"
     >
-      <UiButton @click="upload?.choose()">
-        <Upload :size="18" />
-        Importer
-      </UiButton>
+      <BoardTopBarButton
+        :icon="Upload"
+        label="Importer"
+        @click="upload?.choose()"
+      />
     </Teleport>
     <div
       class="flex min-w-0 flex-1 flex-col gap-5 px-4 pt-6 pb-10 md:px-8 md:pt-8 md:pb-12"
