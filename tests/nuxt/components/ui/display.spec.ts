@@ -44,8 +44,26 @@ describe('UiStackedBar', () => {
       },
     })
 
-    expect(bar.attributes('aria-label')).toBe('Barnums : 9 disponibles, 3 sortis, 0 en réparation, sur 12')
-    expect(bar.findAll('span').map(part => part.attributes('style'))).toEqual(['width: 75%;', 'width: 25%;'])
+    expect(bar.get('[role="img"]').attributes('aria-label')).toBe('Barnums : 9 disponibles, 3 sortis, 0 en réparation, sur 12')
+    expect(bar.get('[role="img"]').findAll('span').map(part => part.attributes('style'))).toEqual(['width: 75%;', 'width: 25%;'])
+    expect(bar.find('ul').exists()).toBe(false)
+  })
+
+  it('names each share under the bar, with its value, for the eye only', async () => {
+    const bar = await mountSuspended(UiStackedBar, {
+      props: {
+        label: 'Places réservées',
+        total: 80,
+        legend: true,
+        segments: [
+          { value: 30, label: 'Menu adulte', tone: 'azur' },
+          { value: 12, label: 'Menu enfant', tone: 'azurLight' },
+        ],
+      },
+    })
+
+    expect(bar.get('ul').attributes('aria-hidden')).toBe('true')
+    expect(bar.findAll('li').map(item => item.text().replace(/\s+/g, ' '))).toEqual(['Menu adulte 30', 'Menu enfant 12'])
   })
 })
 
