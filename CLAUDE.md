@@ -86,6 +86,7 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
   - Quand plusieurs composants montent en même temps, `dedupe: 'defer'` leur fait attendre la requête en cours, au lieu de l'annuler pour la leur.
   - `data` n'est pas profond : on le remplace, on ne le modifie jamais.
   - Après une écriture, la donnée qu'elle change se recharge par sa clé (`refreshNuxtData`). Toute écriture d'un événement recharge la barre latérale (`useEventWrites`).
+  - Une donnée qu'une seule page lit (le tableau de bord) n'a pas de rechargement à prévoir après une écriture faite sur une autre page : Nuxt purge la donnée d'une clé au démontage de son dernier composant, `refreshNuxtData` n'atteint que les clés montées, et la page la relit à sa prochaine visite.
   - Dans les tests, les composants se démontent avant `clearNuxtData()` : sinon, une réponse en vol réécrit les données vidées.
 - **Pas de logique dans les templates** : extraire dans des `computed` ou des composables.
 - **Un lien dans un texte** (`SiteTextLink`) reçoit son texte en propriété, pas dans un slot : le linter met le contenu d'un composant sur ses propres lignes, et le lien finirait par un espace, avant la virgule ou le point qui le suit.
