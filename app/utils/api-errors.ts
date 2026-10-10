@@ -138,3 +138,38 @@ export async function loadData<T>(request: Promise<ApiResult<T>>): Promise<T> {
   if (response.ok) return data as T
   throw createError({ status: response.status, message: errorMessage(error, response) })
 }
+
+/** How a write of a form ends: what the API saved, or the errors to show on the form. */
+export type Written<T> = { data: T, errors: null } | { data: null, errors: FormErrors }
+
+/**
+ * Sends the write of a form. A refusal of its values is laid out for the form
+ * (toFormErrors); any other failure becomes a message about the whole form.
+ */
+export async function formWrite<T>(request: Promise<ApiResult<T>>): Promise<Written<T>> {
+  try {
+    const { data, error, response } = await request
+    if (response.ok) return { data: data as T, errors: null }
+    return { data: null, errors: toFormErrors(error) ?? { form: [errorMessage(error, response)], fields: {} } }
+  }
+  catch (failure) {
+    return { data: null, errors: { form: [errorMessage(failure)], fields: {} } }
+  }
+}
+
+/**
+ * Sends a write that has no form of its own, such as a deletion: null once
+ * done, or the message to show. A refusal of the API's rules, such as a
+ * ticket type still in use, gives its own words.
+ */
+export async function plainWrite(request: Promise<ApiResult<unknown>>): Promise<string | null> {
+  try {
+    const { error, response } = await request
+    if (response.ok) return null
+    const refusal = toFormErrors(error)
+    return refusal ? [...refusal.form, ...Object.values(refusal.fields).flat()].join(' ') : errorMessage(error, response)
+  }
+  catch (failure) {
+    return errorMessage(failure)
+  }
+}

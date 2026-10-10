@@ -16,36 +16,23 @@ export function useEventWrites() {
 
   /** Creates an event, or rewrites the one of `id`, whole. */
   async function saveEvent(payload: EventIn, id?: number): Promise<EventSave> {
-    try {
-      const { data, error, response } = id === undefined
-        ? await api.POST('/api/board/events', { body: payload })
-        : await api.PUT('/api/board/events/{event_id}', { params: { path: { event_id: id } }, body: payload })
-      if (!data) return { event: null, errors: toFormErrors(error) ?? { form: [errorMessage(error, response)], fields: {} } }
-      void refreshUpcomingEvents()
-      return { event: data, errors: null }
-    }
-    catch (failure) {
-      return { event: null, errors: { form: [errorMessage(failure)], fields: {} } }
-    }
+    const saved = await formWrite(id === undefined
+      ? api.POST('/api/board/events', { body: payload })
+      : api.PUT('/api/board/events/{event_id}', { params: { path: { event_id: id } }, body: payload }))
+    if (saved.errors) return { event: null, errors: saved.errors }
+    void refreshUpcomingEvents()
+    return { event: saved.data, errors: null }
   }
 
   /**
-   * Deletes an event, with its programme and « Bon à savoir ».
+   * Deletes an event, with everything attached to it (EventsDeletion says what).
    *
    * @returns null once deleted, or the message to show.
    */
   async function deleteEvent(id: number): Promise<string | null> {
-    try {
-      const { error, response } = await api.DELETE('/api/board/events/{event_id}', {
-        params: { path: { event_id: id } },
-      })
-      if (!response.ok) return errorMessage(error, response)
-    }
-    catch (failure) {
-      return errorMessage(failure)
-    }
-    void refreshUpcomingEvents()
-    return null
+    const failure = await plainWrite(api.DELETE('/api/board/events/{event_id}', { params: { path: { event_id: id } } }))
+    if (failure === null) void refreshUpcomingEvents()
+    return failure
   }
 
   return { saveEvent, deleteEvent }

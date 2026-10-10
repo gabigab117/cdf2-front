@@ -190,3 +190,51 @@ describe('loadData', () => {
     await expect(loadData(Promise.reject(cancelled))).rejects.toBe(cancelled)
   })
 })
+
+describe('formWrite', () => {
+  function answer(status: number, body: { data?: unknown, error?: unknown }) {
+    return Promise.resolve({ ...body, response: new Response(null, { status }) })
+  }
+
+  it('gives what the API saved', async () => {
+    expect(await formWrite(answer(201, { data: { id: 31 } }))).toEqual({ data: { id: 31 }, errors: null })
+  })
+
+  it('lays a refusal of the values out for the form', async () => {
+    const error = { detail: [{ type: 'validation_error', loc: ['body', 'text'], msg: 'Ce champ ne peut pas être vide.' }] }
+
+    expect(await formWrite(answer(422, { error }))).toEqual({
+      data: null,
+      errors: { form: [], fields: { text: ['Ce champ ne peut pas être vide.'] } },
+    })
+  })
+
+  // Each request is made by its test: a rejection made beforehand would go unhandled.
+  it.each([
+    ['a server error', () => answer(502, { error: 'Bad Gateway' }), 'Le service est momentanément indisponible. Réessayez dans quelques instants.'],
+    ['the network', () => Promise.reject(new TypeError('Failed to fetch')), 'Impossible de joindre le serveur. Vérifiez votre connexion, puis réessayez.'],
+  ])('tells the whole form when %s fails the write', async (_case, request, message) => {
+    expect(await formWrite(request())).toEqual({ data: null, errors: { form: [message], fields: {} } })
+  })
+})
+
+describe('plainWrite', () => {
+  function answer(status: number, error?: unknown) {
+    return Promise.resolve({ error, response: new Response(null, { status }) })
+  }
+
+  it('gives nothing once done', async () => {
+    expect(await plainWrite(answer(204))).toBeNull()
+  })
+
+  it.each([
+    ['a refusal of the API\'s rules, in its own words', () => answer(422, { detail: [
+      { type: 'validation_error', loc: ['body'], msg: 'Impossible de supprimer « Menu enfant » :' },
+      { type: 'validation_error', loc: ['body', 'name'], msg: 'des réservations l’utilisent.' },
+    ] }), 'Impossible de supprimer « Menu enfant » : des réservations l’utilisent.'],
+    ['a refusal with its reason', () => answer(404, { detail: 'Introuvable.' }), 'Introuvable.'],
+    ['the network', () => Promise.reject(new TypeError('Failed to fetch')), 'Impossible de joindre le serveur. Vérifiez votre connexion, puis réessayez.'],
+  ])('says why it failed on %s', async (_case, request, message) => {
+    expect(await plainWrite(request())).toBe(message)
+  })
+})
