@@ -1,12 +1,13 @@
 import type { LocationQuery, LocationQueryRaw } from 'vue-router'
 
 /** The sections of an event's page in the board space, each in its tab. */
-export type EventTab = 'notes' | 'tasks' | 'public'
+export type EventTab = 'notes' | 'tasks' | 'stations' | 'public'
 
 // The tabs as the address writes them: `?onglet=infos-publiques`. The notes,
 // first, need nothing.
 const TAB_SLUGS: Readonly<Record<Exclude<EventTab, 'notes'>, string>> = {
   tasks: 'taches',
+  stations: 'postes',
   public: 'infos-publiques',
 }
 
