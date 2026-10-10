@@ -18,6 +18,20 @@ export default defineNuxtConfig({
     // relative URL only resolves in a browser. Set by NUXT_API_INTERNAL_URL, with
     // no default: a build must never aim at a port it does not know.
     apiInternalUrl: '',
+    // The legal notice's own details (NUXT_LEGAL_…), private: only the server's
+    // rendering of that page reads them, the page being served without scripts
+    // (routeRules). It names the publication director, the one person a public
+    // page may name, as the law requires.
+    legal: {
+      // NUXT_LEGAL_PUBLICATION_DIRECTOR
+      publicationDirector: '',
+      // The association's registered office: its street, then its postcode and
+      // town (NUXT_LEGAL_OFFICE_STREET, NUXT_LEGAL_OFFICE_TOWN).
+      office: { street: '', town: '' },
+      // The host of the site: its name, its address and its phone
+      // (NUXT_LEGAL_HOST_NAME, NUXT_LEGAL_HOST_ADDRESS, NUXT_LEGAL_HOST_PHONE).
+      host: { name: '', address: '', phone: '' },
+    },
     // Written into every page, for the browser: never a personal detail. Each
     // comes from the environment (NUXT_PUBLIC_…), the repository holds none.
     public: {
@@ -43,6 +57,11 @@ export default defineNuxtConfig({
   routeRules: {
     '/bureau/**': { ssr: false, appLayout: 'board' },
     '/connexion': { ssr: false },
+    // The legal notice reads private keys: without scripts, only the server
+    // renders it, and the browser's router loads it anew rather than render it.
+    // Its path is also written in its definePageMeta (pages/legal-notice.vue):
+    // apart, the page would reload without end.
+    '/mentions-legales': { noScripts: true },
   },
 
   compatibilityDate: '2026-10-07',
