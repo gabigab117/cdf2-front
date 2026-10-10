@@ -24,6 +24,8 @@ Un push sur `main` dont les contrôles passent se déploie seul, par le job `dep
   restrict,command="/usr/local/bin/cdf3-release-front <instance>" ssh-ed25519 AAAA… ci cdf2-front <instance>
   ```
 
+- **Production** : le job `deploy-production` envoie la même archive, une fois le déploiement en préproduction réussi et l'environnement `production` approuvé. L'artefact est gardé 7 jours, le temps de l'approbation.
+
 Environnement GitHub, secrets, concurrence et rotation de la clé : mêmes règles que pour l'API, décrites dans [cdf2-back/deploy](https://github.com/gabigab117/cdf2-back/tree/main/deploy#déploiement-continu).
 
 ## Configuration

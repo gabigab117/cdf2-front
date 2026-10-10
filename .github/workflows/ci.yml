@@ -53,7 +53,9 @@ jobs:
           path: output.tar.gz
           archive: false
           if-no-files-found: error
-          retention-days: 1
+          # The production deploys this same build once approved: a week
+          # leaves the time to approve it.
+          retention-days: 7
 
   # The API types are generated from the back end's schema, never written by
   # hand: those committed here must match the schema on the back end's main.
@@ -190,6 +192,41 @@ jobs:
       # The key only runs the release script on the server, which takes the
       # commit SHA as its single argument and the build on its input. It
       # answers with one status line, as the logs of this run are public.
+      - name: Deploy the tested build
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ vars.DEPLOY_USER }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes -o UserKnownHostsFile=~/.ssh/known_hosts \
+            "$DEPLOY_USER@$DEPLOY_HOST" "$GITHUB_SHA" < output.tar.gz
+
+  deploy-production:
+    name: Deploy to production
+    # The build the preproduction runs, never another one.
+    needs: deploy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    # Waits for the approval of the environment's reviewer.
+    environment: production
+    # As for the preproduction: one deployment at a time, never cancelled. A
+    # newer deployment waiting for approval replaces an older one.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: output.tar.gz
+
       - name: Deploy the tested build
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
