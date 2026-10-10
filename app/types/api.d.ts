@@ -101,6 +101,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deposit a document
+         * @description Record a file, as the member classifies it: it awaits review.
+         *
+         *     The type is read from the content: a PDF, or an image, converted to WebP.
+         */
+        post: operations["documents_api_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/documents/{document_id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the file of a document
+         * @description The file, of the type recorded for it: shown in the browser, or downloaded.
+         */
+        get: operations["documents_api_read_file"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/events": {
         parameters: {
             query?: never;
@@ -742,6 +784,91 @@ export interface components {
         CapacityIn: {
             /** Capacity */
             capacity: number | null;
+        };
+        /**
+         * DocumentCategory
+         * @enum {string}
+         */
+        DocumentCategory: "invoice" | "order" | "minutes" | "misc";
+        /**
+         * DocumentEventOut
+         * @description The event a document belongs to.
+         */
+        DocumentEventOut: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+        };
+        /**
+         * DocumentOut
+         * @description A document of the board, as its detail panel shows it.
+         */
+        DocumentOut: {
+            /** Amount */
+            amount: string | null;
+            category: components["schemas"]["DocumentCategory"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Document Date */
+            document_date: string | null;
+            /** Due Date */
+            due_date: string | null;
+            event: components["schemas"]["DocumentEventOut"] | null;
+            /** Id */
+            id: number;
+            /** Issuer */
+            issuer: string;
+            /** Mime Type */
+            mime_type: string;
+            /** Note */
+            note: string;
+            /** Original Name */
+            original_name: string;
+            /** Paid On */
+            paid_on: string | null;
+            /** Reference */
+            reference: string;
+            /** Size */
+            size: number;
+            source: components["schemas"]["DocumentSource"];
+            status: components["schemas"]["DocumentStatus"];
+            /** Title */
+            title: string;
+            uploaded_by: components["schemas"]["BoardMemberOut"] | null;
+            /** Validated At */
+            validated_at: string | null;
+            validated_by: components["schemas"]["BoardMemberOut"] | null;
+        };
+        /**
+         * DocumentSource
+         * @enum {string}
+         */
+        DocumentSource: "upload" | "v1_import";
+        /**
+         * DocumentStatus
+         * @enum {string}
+         */
+        DocumentStatus: "to_review" | "validated";
+        /**
+         * DocumentUploadIn
+         * @description How the member who deposits a file classifies it: without the assistant
+         *     (phase 9), the board classifies by hand.
+         */
+        DocumentUploadIn: {
+            category: components["schemas"]["DocumentCategory"];
+            /** Event */
+            event?: number | null;
+            /** Title */
+            title?: string | null;
         };
         /** ErrorOut */
         ErrorOut: {
@@ -1657,6 +1784,142 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    documents_api_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * DocumentCategory
+                     * @enum {string}
+                     */
+                    category: "invoice" | "order" | "minutes" | "misc";
+                    /** Event */
+                    event?: number | null;
+                    /**
+                     * File
+                     * Format: binary
+                     */
+                    file: string;
+                    /** Title */
+                    title?: string | null;
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    documents_api_read_file: {
+        parameters: {
+            query?: {
+                download?: boolean;
+            };
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The document's file */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": string;
+                    "image/webp": string;
+                };
             };
             /** @description Unauthorized */
             401: {
