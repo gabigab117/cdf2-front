@@ -139,6 +139,12 @@
   --grid-template-columns-upcoming: minmax(0, 2fr) minmax(0, 1fr);  /* « Événements à venir »: event, date */
   --grid-template-columns-upcoming-full: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.6fr) 64px;  /* …, tasks, notes, from 820 px */
 
+  /* Grids of the documents' rows: icon, document, event, amount, date; without the
+     event on an event's own tab; icon, document and amount below 820 px. */
+  --grid-template-columns-documents: 40px minmax(0, 1fr) minmax(0, 0.7fr) 110px 84px;
+  --grid-template-columns-documents-event: 40px minmax(0, 1fr) 110px 84px;
+  --grid-template-columns-documents-narrow: 40px minmax(0, 1fr) auto;
+
   /* Radii */
   --radius-badge: 7px;
   --radius-segment: 9px;     /* segmented control options */
@@ -212,4 +218,10 @@
     linear-gradient(var(--color-argent-200) 1px, transparent 1px),
     linear-gradient(90deg, var(--color-argent-200) 1px, transparent 1px);
   background-size: 28px 28px;
+}
+
+/* The height of the window under the board's top bar (h-17): a side panel stays
+   in view, and scrolls on its own, beside a long list. */
+@utility h-below-top-bar {
+  height: calc(100dvh - --spacing(17));
 }

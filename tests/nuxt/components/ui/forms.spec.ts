@@ -1,5 +1,7 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import UiDropZone from '~/components/ui/DropZone.vue'
+import UiSearchInput from '~/components/ui/SearchInput.vue'
 import UiSelect from '~/components/ui/Select.vue'
 import UiSwitch from '~/components/ui/Switch.vue'
 import UiTextarea from '~/components/ui/Textarea.vue'
@@ -89,5 +91,68 @@ describe('UiSwitch', () => {
     expect(input.attributes()).toMatchObject({ 'type': 'checkbox', 'role': 'switch', 'aria-describedby': 'published-help' })
     expect(toggle.text()).toBe('Publié sur le site')
     expect(toggle.emitted('update:modelValue')).toEqual([[true]])
+  })
+})
+
+describe('UiSearchInput', () => {
+  it('is a search field named by its label, which reports what is typed', async () => {
+    const search = await mountSuspended(UiSearchInput, {
+      props: { modelValue: '', label: 'Rechercher dans les documents' },
+      attrs: { placeholder: 'Fournisseur, montant…' },
+    })
+
+    await search.get('input').setValue('sono')
+
+    expect(search.get('input').attributes('type')).toBe('search')
+    expect(search.get('input').attributes('placeholder')).toBe('Fournisseur, montant…')
+    expect(search.get('label').text()).toBe('Rechercher dans les documents')
+    expect(search.emitted('update:modelValue')).toEqual([['sono']])
+  })
+})
+
+describe('UiDropZone', () => {
+  const pdf = new File(['%PDF-1.4'], 'facture.pdf', { type: 'application/pdf' })
+
+  it('gives the file dropped onto it', async () => {
+    /**
+     * Given a file dragged over the zone
+     * Then the zone shows it is ready to take it, and gives it once dropped
+     */
+    const zone = await mountSuspended(UiDropZone, { props: { accept: 'application/pdf' } })
+
+    await zone.trigger('dragover')
+    expect(zone.classes()).toContain('border-azur-600')
+    await zone.trigger('drop', { dataTransfer: { files: [pdf] } })
+
+    expect(zone.emitted('choose')).toEqual([[pdf]])
+    expect(zone.classes()).not.toContain('border-azur-600')
+  })
+
+  it('gives the file chosen with its button, which opens the file picker', async () => {
+    /**
+     * Given the zone's button, which offers the accepted types
+     * When it is pressed and a file chosen
+     * Then the zone gives the file, and the picker takes the same file again
+     */
+    const zone = await mountSuspended(UiDropZone, { props: { accept: 'application/pdf' } })
+    const picker = zone.get<HTMLInputElement>('input[type="file"]')
+    const click = vi.spyOn(picker.element, 'click').mockImplementation(() => {})
+
+    await zone.get('button').trigger('click')
+    Object.defineProperty(picker.element, 'files', { value: [pdf], configurable: true })
+    await picker.trigger('change')
+
+    expect(click).toHaveBeenCalledOnce()
+    expect(picker.attributes('accept')).toBe('application/pdf')
+    expect(zone.emitted('choose')).toEqual([[pdf]])
+  })
+
+  it('gives nothing when no file comes', async () => {
+    const zone = await mountSuspended(UiDropZone, { props: { accept: 'application/pdf' } })
+
+    await zone.trigger('drop', { dataTransfer: { files: [] } })
+    await zone.get('input[type="file"]').trigger('change')
+
+    expect(zone.emitted('choose')).toBeUndefined()
   })
 })

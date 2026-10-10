@@ -9,12 +9,14 @@ const { title, subtitle, closable = false } = defineProps<{
 }>()
 
 const emit = defineEmits<{ close: [] }>()
+
+// Beside its list from 820 px; below, in its place, across the width.
 </script>
 
 <template>
   <aside
     :aria-label="title"
-    class="flex w-panel shrink-0 flex-col border-l border-argent-200 bg-white"
+    class="flex w-full shrink-0 flex-col bg-white md:w-panel md:border-l md:border-argent-200"
   >
     <header class="flex flex-col gap-3 border-b border-argent-100 px-6 pt-6 pb-5">
       <div

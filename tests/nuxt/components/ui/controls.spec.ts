@@ -66,6 +66,25 @@ describe('UiSelectableRow', () => {
 
     expect(row.attributes('aria-pressed')).toBe('true')
   })
+
+  it.each([
+    ['selected', true, 'true'],
+    ['not selected', false, undefined],
+  ])('leads to the detail of its row, the current item only when %s', async (_case, selected, current) => {
+    /**
+     * Given a row whose detail the address keeps
+     * Then the row is a link to it, and tells alone whether its detail shows
+     */
+    const row = await mountSuspended(UiSelectableRow, {
+      props: { selected, to: { path: '/', query: { document: '21' } } },
+      route: '/',
+    })
+
+    expect(row.element.tagName).toBe('A')
+    expect(row.attributes('href')).toBe('/?document=21')
+    expect(row.attributes('aria-current')).toBe(current)
+    expect(row.attributes('aria-pressed')).toBeUndefined()
+  })
 })
 
 describe('UiSegmentedControl', () => {
