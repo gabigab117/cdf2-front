@@ -1242,7 +1242,7 @@ export interface components {
          *     it signs in, or it is deactivated.
          * @enum {string}
          */
-        AccountState: "pending" | "active" | "inactive";
+        AccountState: "pending_invitation" | "active" | "inactive";
         /**
          * AgendaOut
          * @description What the site shows around its agenda.

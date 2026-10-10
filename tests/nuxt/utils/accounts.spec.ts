@@ -13,8 +13,8 @@ describe('the accounts', () => {
   it.each([
     [{ state: 'active', link_sent_at: null }, { label: 'Actif', tone: 'azur' }],
     [{ state: 'inactive', link_sent_at: '2026-10-01T08:00:00Z' }, { label: 'Désactivé', tone: 'neutral' }],
-    [{ state: 'pending', link_sent_at: '2026-10-01T08:00:00Z' }, { label: 'Invitation envoyée le 2026-10-01T08:00:00Z', tone: 'ambre' }],
-    [{ state: 'pending', link_sent_at: null }, { label: 'Lien non envoyé', tone: 'alert' }],
+    [{ state: 'pending_invitation', link_sent_at: '2026-10-01T08:00:00Z' }, { label: 'Invitation envoyée le 2026-10-01T08:00:00Z', tone: 'ambre' }],
+    [{ state: 'pending_invitation', link_sent_at: null }, { label: 'Lien non envoyé', tone: 'alert' }],
   ] as const)('pills an account: %o', (account, pill) => {
     expect(accountPill(account, iso => iso)).toEqual(pill)
   })
