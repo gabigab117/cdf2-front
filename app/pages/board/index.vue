@@ -20,6 +20,7 @@ const classes = {
 
 const events = computed(() => data.value?.upcoming_events ?? [])
 const notes = computed(() => data.value?.latest_notes ?? [])
+const generalTasks = computed(() => data.value?.general_tasks ?? null)
 const count = computed(() => data.value?.upcoming_events_count ?? 0)
 const loading = computed(() => status.value === 'pending')
 const next = computed(() => events.value[0] ?? null)
@@ -91,11 +92,17 @@ const nextPill = computed(() => (nextCountdown.value ? countdownText(nextCountdo
           :count
           :loading
         />
-        <DashboardNotes
-          class="min-w-0 flex-1 basis-80 md:max-w-105"
-          :notes
-          :loading
-        />
+        <div class="flex min-w-0 flex-1 basis-80 flex-col gap-5 md:max-w-105">
+          <DashboardNotes
+            :notes
+            :loading
+          />
+          <DashboardGeneralTasks
+            v-if="generalTasks"
+            :summary="generalTasks"
+            @changed="refresh()"
+          />
+        </div>
       </div>
     </template>
   </div>

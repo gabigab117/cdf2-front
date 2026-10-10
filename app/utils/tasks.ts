@@ -4,8 +4,17 @@ type TaskIn = components['schemas']['TaskIn']
 type TaskOut = components['schemas']['TaskOut']
 type BoardMemberOut = components['schemas']['BoardMemberOut']
 
+/** The general tasks, those without an event (D10). */
+export const GENERAL_TASKS_PATH = '/bureau/taches'
+
 /** Where a task is created from the « Nouveau » menu. */
-export const NEW_TASK_PATH = '/bureau/taches/nouvelle'
+export const NEW_TASK_PATH = `${GENERAL_TASKS_PATH}/nouvelle`
+
+/**
+ * The choice of no event in a task's form, a general task: a value of its own,
+ * the empty one being the select's invitation (UiSelect).
+ */
+export const NO_EVENT = 'general'
 
 /** How many tasks a page of an event's tasks holds. */
 export const TASKS_PAGE_SIZE = 25

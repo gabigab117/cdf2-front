@@ -5,14 +5,23 @@ import DashboardPage from '~/pages/board/index.vue'
 import type { components } from '~/types/api'
 import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
 import { julie, overviewEvent } from '../../helpers/events'
+import { boardTask } from '../../helpers/tasks'
 
 type BoardOverviewOut = components['schemas']['BoardOverviewOut']
 
 /** The fictitious member signed in. */
 const camille = { email: 'camille.martin@example.test', first_name: 'Camille', last_name: 'Martin', position: 'Trésorière' }
 
-function overview(events = [overviewEvent()], count = events.length, notes: BoardOverviewOut['latest_notes'] = []): BoardOverviewOut {
-  return { upcoming_events: events, upcoming_events_count: count, latest_notes: notes }
+/** No general task yet. */
+const NO_GENERAL_TASK: BoardOverviewOut['general_tasks'] = { tasks_done: 0, tasks_total: 0, next_tasks: [], recently_done_tasks: [] }
+
+function overview(
+  events = [overviewEvent()],
+  count = events.length,
+  notes: BoardOverviewOut['latest_notes'] = [],
+  generalTasks = NO_GENERAL_TASK,
+): BoardOverviewOut {
+  return { upcoming_events: events, upcoming_events_count: count, latest_notes: notes, general_tasks: generalTasks }
 }
 
 function mockOverview(body: BoardOverviewOut) {
@@ -21,6 +30,11 @@ function mockOverview(body: BoardOverviewOut) {
 
 function mountDashboard() {
   return mountSuspended(DashboardPage, { route: '/bureau' })
+}
+
+/** The block of the dashboard under the given title. */
+function block(dashboard: Awaited<ReturnType<typeof mountDashboard>>, title: string) {
+  return dashboard.findAll('section').find(section => section.find('h2').exists() && section.get('h2').text() === title)!
 }
 
 describe('the dashboard', () => {
@@ -92,11 +106,10 @@ describe('the dashboard', () => {
 
     const dashboard = await mountDashboard()
 
-    await vi.waitFor(() => expect(dashboard.findAll('section').at(-1)!.findAll('li')).toHaveLength(2))
-    const block = dashboard.findAll('section').at(-1)!
-    expect(block.get('h2').text()).toBe('Notes du bureau')
-    expect(block.find('[aria-label="Privé"]').exists()).toBe(true)
-    const [julieNote, general] = block.findAll('li')
+    await vi.waitFor(() => expect(block(dashboard, 'Notes du bureau').findAll('li')).toHaveLength(2))
+    const notes = block(dashboard, 'Notes du bureau')
+    expect(notes.find('[aria-label="Privé"]').exists()).toBe(true)
+    const [julieNote, general] = notes.findAll('li')
     expect(julieNote!.get('a').attributes('href')).toBe('/bureau/evenements/12')
     expect(julieNote!.text().replaceAll('\u00A0', ' ')).toContain('Julie R.Halloween des enfants · il y a 2 h')
     expect(general!.find('a').exists()).toBe(false)
@@ -156,5 +169,28 @@ describe('the dashboard', () => {
 
     await vi.waitFor(() => expect(dashboard.findAll('li a')).toHaveLength(1))
     expect(dashboard.find('[role="alert"]').exists()).toBe(false)
+  })
+
+  it('sums up the general tasks beside the notes, and leads to them all', async () => {
+    /**
+     * Given two general tasks, the next one open and the other done
+     * When the dashboard shows
+     * Then its block counts one done out of two, lists both, and leads to the page of them all
+     */
+    const open = boardTask({ id: 61, event: null, title: 'Renouveler l’assurance' })
+    const done = boardTask({ id: 62, event: null, title: 'Payer la cotisation', done_at: '2026-09-29T10:00:00+02:00' })
+    mockOverview(overview([], 0, [], { tasks_done: 1, tasks_total: 2, next_tasks: [open], recently_done_tasks: [done] }))
+
+    const dashboard = await mountDashboard()
+
+    await vi.waitFor(() => expect(dashboard.text()).toContain('Tâches générales'))
+    const tasks = block(dashboard, 'Tâches générales')
+    expect(tasks.text()).toContain('1 / 2')
+    expect(tasks.findAll('li').map(item => item.text())).toEqual([
+      expect.stringContaining('Renouveler l’assurance'),
+      expect.stringContaining('Payer la cotisation'),
+    ])
+    expect(tasks.get('a').attributes('href')).toBe('/bureau/taches')
+    expect(tasks.get('a').text()).toBe('Voir les 2 tâches')
   })
 })

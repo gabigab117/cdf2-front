@@ -18,7 +18,10 @@ const {
   initial: TaskFields
   /** Whom the task is assigned to so far: they stay among the choices. */
   assignee?: TaskOut['assignee']
-  /** The events to choose from, when the form does not come from one. */
+  /**
+   * The events to choose from, when the form does not come from one: no event
+   * is a choice too, a general task (D10).
+   */
   events?: readonly Option<number>[]
   /** The button that sends: « Ajouter », « Enregistrer », « Créer la tâche ». */
   action: string
@@ -32,7 +35,11 @@ const emit = defineEmits<{ saved: [], cancel: [] }>()
 const fields = ref<TaskFields>({ ...initial })
 // The event chosen, when the form does not come from one: an empty value shows
 // the select's invitation, and the browser asks for a choice.
-const event = ref<number | ''>(initial.event ?? '')
+const event = ref<number | '' | typeof NO_EVENT>(initial.event ?? '')
+const eventOptions = computed<Option<number | typeof NO_EVENT>[]>(() => [
+  { value: NO_EVENT, label: 'Aucun événement (tâche générale)' },
+  ...(events ?? []),
+])
 const errors = ref<FormErrors | null>(null)
 const pending = ref(false)
 
@@ -47,11 +54,17 @@ function fieldErrors(path: string): readonly string[] | undefined {
   return errors.value?.fields[path]
 }
 
+// No event chosen is a general task; the empty invitation never goes, the
+// browser asking for a choice first.
+function chosenEvent(choice: number | '' | typeof NO_EVENT): number | null {
+  return choice === NO_EVENT || choice === '' ? null : choice
+}
+
 async function submit(): Promise<void> {
   // The browser asks for an event before the form is sent.
   if (events && event.value === '') return
   pending.value = true
-  const result = await save(events ? { ...fields.value, event: event.value || null } : fields.value)
+  const result = await save(events ? { ...fields.value, event: chosenEvent(event.value) } : fields.value)
   pending.value = false
   if (result) {
     errors.value = placeErrors(result, shown.value, taskFieldLabel)
@@ -96,7 +109,7 @@ async function submit(): Promise<void> {
       <UiSelect
         :id
         v-model="event"
-        :options="events"
+        :options="eventOptions"
         placeholder="Choisir un événement"
         required
         :aria-describedby="describedby"

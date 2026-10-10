@@ -44,7 +44,8 @@ describe('TasksBlock', () => {
     const block = await mountBlock()
 
     await vi.waitFor(() => expect(block.find('h2').exists()).toBe(true))
-    expect(block.get('header').text()).toBe('Tâches 9 / 14')
+    expect(block.get('h2').text()).toBe('Tâches')
+    expect(block.get('header span').text()).toBe('9 / 14')
     expect(block.get('[role="progressbar"]').attributes('aria-valuenow')).toBe('9')
     expect(block.findAll('li').map(item => item.get('label > span > span').text())).toEqual([
       'Valider le devis sono', 'Trouver 2 bénévoles', 'Commander bonbons et goûter',

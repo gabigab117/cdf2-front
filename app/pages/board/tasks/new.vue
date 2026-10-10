@@ -8,8 +8,8 @@ useHead({ title: 'Nouvelle tâche' })
 
 const BREADCRUMB = [{ label: 'Tableau de bord', to: BOARD_HOME_PATH }, { label: 'Nouvelle tâche' }]
 
-// The task is created on an event to come: no screen shows a task without one
-// yet. The sidebar's request holds three events only: one page serves here.
+// The task is created on an event to come, or on none, a general task (D10).
+// The sidebar's request holds three events only: one page serves here.
 const { data: upcoming } = useLazyAsyncData('board:task-events', (_nuxtApp, { signal }) =>
   loadData(useApi().GET('/api/board/events', { params: { query: { period: 'upcoming', page_size: 100 } }, signal })),
 )
@@ -28,10 +28,11 @@ function create(fields: TaskFields): Promise<FormErrors | null> {
   return createTask(taskPayload(fields, false))
 }
 
-// The task created shows among the tasks of its event: going back leads here.
+// The task created shows among the tasks of its event, or the general ones:
+// going back leads here.
 async function open(): Promise<void> {
-  if (eventCreatedOn === null) return
-  await navigateTo({ path: eventPath(eventCreatedOn), query: eventPageQuery({ tab: 'tasks', page: 1 }) })
+  if (eventCreatedOn === null) await navigateTo(GENERAL_TASKS_PATH)
+  else await navigateTo({ path: eventPath(eventCreatedOn), query: eventPageQuery({ tab: 'tasks', page: 1 }) })
 }
 </script>
 

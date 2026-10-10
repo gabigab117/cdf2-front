@@ -42,7 +42,10 @@ describe('the page of a new task', () => {
     const sent = recordRequests()
     const newTask = await mountPage()
     await vi.waitFor(() => expect(newTask.findAll('select')[0]!.findAll('option').map(option => option.text())).toEqual([
-      'Choisir un événement', 'Halloween des enfants · sam. 31 oct.', 'Loto d’automne · dim. 15 nov.',
+      'Choisir un événement',
+      'Aucun événement (tâche générale)',
+      'Halloween des enfants · sam. 31 oct.',
+      'Loto d’automne · dim. 15 nov.',
     ]))
 
     await newTask.findAll('select')[0]!.setValue('13')
@@ -53,6 +56,26 @@ describe('the page of a new task', () => {
     expect(sent.find(request => request.method === 'POST')?.body).toEqual({
       event: 13, title: 'Lots du loto', assignee: null, due_date: null, done: false,
     })
+  })
+
+  it('creates a general task, then shows it among the general tasks', async () => {
+    /**
+     * Given the choice of no event
+     * When a member creates a task on none
+     * Then the API receives a task without an event (D10)
+     * And the member lands on the general tasks
+     */
+    mockApi('/api/board/tasks', { method: 'POST', handler: () => apiResponse(201, boardTask({ event: null })) })
+    const sent = recordRequests()
+    const newTask = await mountPage()
+    await vi.waitFor(() => expect(newTask.findAll('select')[0]!.findAll('option')).toHaveLength(4))
+
+    await newTask.findAll('select')[0]!.setValue('general')
+    await newTask.get('input:not([type])').setValue('Renouveler l’assurance')
+    await newTask.get('form').trigger('submit')
+
+    await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith('/bureau/taches'))
+    expect(sent.find(request => request.method === 'POST')?.body).toMatchObject({ event: null, title: 'Renouveler l’assurance' })
   })
 
   it('sends nothing until an event is chosen', async () => {
@@ -71,7 +94,7 @@ describe('the page of a new task', () => {
       detail: [{ type: 'validation_error', loc: ['body', 'event'], msg: 'Choisissez un événement existant.' }],
     }) })
     const newTask = await mountPage()
-    await vi.waitFor(() => expect(newTask.findAll('select')[0]!.findAll('option')).toHaveLength(3))
+    await vi.waitFor(() => expect(newTask.findAll('select')[0]!.findAll('option')).toHaveLength(4))
 
     await newTask.findAll('select')[0]!.setValue('12')
     await newTask.get('input:not([type])').setValue('Lots du loto')
