@@ -634,6 +634,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/loans/{loan_id}/agreement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deposit the signed agreement of a loan
+         * @description « Déposer la convention signée »: a document « Divers », awaiting review,
+         *     which takes the link of the loan. A committee loan has none.
+         */
+        post: operations["equipment_api_deposit_agreement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/loans/{loan_id}/cancel": {
         parameters: {
             query?: never;
@@ -1745,6 +1766,21 @@ export interface components {
             text: string;
         };
         /**
+         * LoanAgreementOut
+         * @description The agreement a borrower signed, a document of its own.
+         */
+        LoanAgreementOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+        };
+        /**
          * LoanBorrowerType
          * @enum {string}
          */
@@ -1942,6 +1978,7 @@ export interface components {
          * @description A loan, as its page shows it and its form edits it.
          */
         LoanOut: {
+            agreement: components["schemas"]["LoanAgreementOut"] | null;
             /** Borrower Name */
             borrower_name: string;
             borrower_type: components["schemas"]["LoanBorrowerType"];
@@ -4943,6 +4980,83 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["LoanIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    equipment_api_deposit_agreement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * File
+                     * Format: binary
+                     */
+                    file: string;
+                };
             };
         };
         responses: {

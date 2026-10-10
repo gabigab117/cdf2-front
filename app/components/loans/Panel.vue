@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRightLeft, CalendarDays, CircleAlert, PencilLine, Phone, RotateCcw, X } from '@lucide/vue'
+import { ArrowRightLeft, CalendarDays, CircleAlert, FileCheck, FileText, FileUp, PencilLine, Phone, RotateCcw, X } from '@lucide/vue'
 import type { ComponentPublicInstance } from 'vue'
 import type { components } from '~/types/api'
 import type { FormErrors, Written } from '~/utils/api-errors'
@@ -19,8 +19,8 @@ const emit = defineEmits<{
 }>()
 
 const { data: loan, error, refresh } = useLoan(id)
-const { checkOut, returnLoan, reopenLoan, cancelLoan } = useLoanWrites()
-const { calendarPeriod, calendarWeekday } = useDateFormat()
+const { checkOut, returnLoan, reopenLoan, cancelLoan, depositAgreement } = useLoanWrites()
+const { calendarPeriod, calendarWeekday, writtenDay } = useDateFormat()
 const { amount } = useMoneyFormat()
 const now = useNow()
 
@@ -53,6 +53,36 @@ const canReturn = computed(() => state.value === 'out' || state.value === 'overd
 const canReopen = computed(() => state.value === 'returned')
 const canCancel = computed(() => canCheckOut.value || state.value === 'committee')
 const canEdit = computed(() => canCancel.value || canReturn.value)
+// A loan to someone is signed for; the committee's is not, nor a loan cancelled.
+const signed = computed(() => state.value !== undefined && state.value !== 'committee' && state.value !== 'cancelled')
+
+// The signed agreement, deposited as a document: the file picked goes at once.
+const picker = useTemplateRef<HTMLInputElement>('picker')
+const depositing = ref(false)
+const depositFailure = ref('')
+const agreementText = computed(() => {
+  const agreement = loan.value?.agreement
+  return agreement ? `Convention signée, déposée le ${writtenDay(agreement.created_at, now.value)}` : ''
+})
+
+async function deposit(event: Event): Promise<void> {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  // Picked again, the same file is sent again.
+  input.value = ''
+  if (!file || depositing.value) return
+  depositing.value = true
+  depositFailure.value = ''
+  const result = await depositAgreement(id, file)
+  depositing.value = false
+  if (result.errors) {
+    const placed = placeErrors(result.errors, new Set(['file']), path => path)
+    depositFailure.value = [...(placed.fields.file ?? []), ...placed.form].join(' ')
+    return
+  }
+  loan.value = result.data
+  emit('changed')
+}
 
 const checkoutTrigger = useTemplateRef<ComponentPublicInstance>('checkoutTrigger')
 const reopenTrigger = useTemplateRef<ComponentPublicInstance>('reopenTrigger')
@@ -245,6 +275,52 @@ const shortageLines = computed(() =>
             Voir l’événement
           </UiButton>
         </div>
+        <div
+          v-if="signed"
+          class="flex flex-wrap gap-2"
+        >
+          <UiButton
+            variant="secondary"
+            class="flex-1"
+            :to="agreementPath(loan.id)"
+          >
+            <FileText :size="16" />
+            Bon de prêt à signer
+          </UiButton>
+          <UiButton
+            variant="secondary"
+            class="flex-1"
+            :loading="depositing"
+            @click="picker?.click()"
+          >
+            <FileUp :size="16" />
+            {{ loan.agreement ? 'Remplacer la convention signée' : 'Déposer la convention signée' }}
+          </UiButton>
+          <input
+            ref="picker"
+            type="file"
+            class="sr-only"
+            tabindex="-1"
+            aria-hidden="true"
+            :accept="DOCUMENT_TYPES"
+            @change="deposit"
+          >
+        </div>
+        <p
+          v-if="depositFailure"
+          role="alert"
+          class="text-sm text-ambre-800"
+        >
+          {{ depositFailure }}
+        </p>
+        <NuxtLink
+          v-if="signed && loan.agreement"
+          :to="documentLocation(loan.agreement.id)"
+          class="flex items-center gap-2 text-sm text-azur-600 hover:text-azur-700"
+        >
+          <FileCheck :size="16" />
+          {{ agreementText }}
+        </NuxtLink>
         <UiButton
           v-if="canCancel"
           ref="cancelTrigger"

@@ -11,13 +11,13 @@ export default defineVitestConfig({
           runtimeConfig: {
             legal: {
               publicationDirector: 'Dominique Exemple',
-              office: { street: '1 place de la Mairie', town: '00000 Commune' },
               host: { name: 'Hébergeur Exemple SARL', address: '1 rue de l’Exemple, 00000 Ville', phone: '01 98 76 54 32', location: 'France' },
             },
             public: {
               siteUrl: 'https://site.example',
               contact: { email: 'contact@example.test', phone: '01 23 45 67 89' },
               hall: { street: '1 place de la Mairie', town: '00000 Commune' },
+              office: { street: '2 rue de l’Église', town: '00000 Commune' },
             },
           },
         },

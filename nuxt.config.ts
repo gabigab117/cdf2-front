@@ -25,9 +25,6 @@ export default defineNuxtConfig({
     legal: {
       // NUXT_LEGAL_PUBLICATION_DIRECTOR
       publicationDirector: '',
-      // The association's registered office: its street, then its postcode and
-      // town (NUXT_LEGAL_OFFICE_STREET, NUXT_LEGAL_OFFICE_TOWN).
-      office: { street: '', town: '' },
       // The host of the site: its name, its address, its phone, and the country
       // its server stands in (NUXT_LEGAL_HOST_NAME, NUXT_LEGAL_HOST_ADDRESS,
       // NUXT_LEGAL_HOST_PHONE, NUXT_LEGAL_HOST_LOCATION).
@@ -48,6 +45,11 @@ export default defineNuxtConfig({
       // The village hall: its street, then its postcode and town
       // (NUXT_PUBLIC_HALL_STREET, NUXT_PUBLIC_HALL_TOWN).
       hall: { street: '', town: '' },
+      // The association's registered office, as the legal notice and the loan
+      // agreement name it: its street, then its postcode and town
+      // (NUXT_PUBLIC_OFFICE_STREET, NUXT_PUBLIC_OFFICE_TOWN). Public: the board
+      // space, rendered in the browser, prints it on the agreement.
+      office: { street: '', town: '' },
     },
   },
 

@@ -120,6 +120,7 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
   - Pas de SPA statique (`nuxt generate`) : les pages publiques affichent des données vivantes.
   - En dev, le `devProxy` de Nitro tient le rôle de nginx : le navigateur ne voit qu'une origine, comme en prod.
 - Les coordonnées du comité et le drapeau de préproduction viennent de `runtimeConfig`, alimentée par l'environnement : aucune donnée réelle dans le dépôt, qui est public.
+  - Le siège de l'association (`public.office`) est public : les mentions légales le citent, et la convention de prêt, imprimée depuis l'espace bureau rendu dans le navigateur, aussi.
   - **`runtimeConfig.public` est écrite dans chaque page servie**, pour le navigateur : jamais une donnée personnelle. Ce qu'une seule page doit montrer reste en clé privée, lue par son rendu serveur.
   - **Une page qui lit une clé privée est servie sans script** (`noScripts` dans `routeRules`, comme `/mentions-legales`). Nuxt n'y écrit ni script ni payload, et le routeur du navigateur remplace toute navigation vers elle par un chargement complet : seul le serveur la rend. Son chemin s'écrit en toutes lettres dans la règle et dans son `definePageMeta`. Écartés, ils feraient monter au navigateur le bouchon de la page, qui la recharge sans fin.
 - **Une page publique se lit sans JavaScript**, son contenu comme sa navigation.
@@ -153,6 +154,11 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
 - Les états que la maquette ne dessine pas sont composés : un focus visible global (contour azur, celui de l'interrupteur de Photos) et un survol par composant.
 - Si une suite de classes apparaît 3 fois, c'est un composant Vue, pas une chaîne copiée-collée.
 - `@apply` avec parcimonie (composants de base uniquement). CSS custom isolé et documenté (impression des pages A4, par exemple).
+- **Pages imprimables** (la convention de prêt) :
+  - la feuille est l'utilitaire `a4-sheet` : un A4 à l'écran, et à l'impression une page nommée (`@page a4-sheet`) sans marges, où le navigateur n'écrit ni adresse ni date. Une page nommée ne change pas l'impression des autres pages ;
+  - le layout du bureau masque sa barre latérale et sa barre supérieure à l'impression (`print:hidden`), comme la page ses boutons ;
+  - le navigateur n'imprime pas les fonds : un bandeau sombre devient deux filets à l'impression (`print:`), sinon son texte blanc disparaît ;
+  - un test remplace `window.print`, absent de happy-dom (`vi.stubGlobal('print', …)`).
 
 ## Tests
 

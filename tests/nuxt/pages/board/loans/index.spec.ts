@@ -259,12 +259,59 @@ describe('the Prêts page', () => {
     const panel = await panelOf(view)
     expect(readable(panel.get('header').text())).toContain('réservation interne · usage interne')
     expect(panel.findAll('a').find(link => link.text() === 'Voir l’événement')?.attributes('href')).toBe('/bureau/evenements/12')
+    expect(panel.text()).not.toContain('Bon de prêt à signer')
 
     await button(panel, 'Annuler la réservation').trigger('click')
     expect(panel.text()).toContain('Annuler cette réservation ? Son matériel redevient libre.')
     await button(panel, 'Confirmer l’annulation').trigger('click')
 
     await vi.waitFor(() => expect(view.get('section[aria-label] header').text()).toContain('Annulé'))
+  })
+
+  it('leads to the agreement to sign, then deposits the one signed', async () => {
+    /**
+     * Given the club's loan, confirmed, without a signed agreement
+     * When the member picks the agreement the club signed
+     * Then it is sent as a file, and the panel leads to its document, which
+     * the next one would replace
+     */
+    mockList()
+    mockLoan()
+    const agreement = { id: 7, title: 'Convention signée P-2026-020 — Club de football', created_at: '2026-10-01T09:00:00Z' }
+    mockApi('/api/board/loans/{loan_id}/agreement', { handler: () => apiResponse(200, loanOut({ agreement })) }, { loan_id: 20 })
+    const sent = recordRequests()
+    const view = await mountPage('/bureau/prets?pret=20')
+    const panel = await panelOf(view)
+    expect(panel.findAll('a').find(link => link.text() === 'Bon de prêt à signer')?.attributes('href')).toBe('/bureau/prets/20/convention')
+
+    const picker = panel.get<HTMLInputElement>('input[type="file"]')
+    Object.defineProperty(picker.element, 'files', { value: [new File(['%PDF-1.4'], 'convention.pdf', { type: 'application/pdf' })], configurable: true })
+    await picker.trigger('change')
+
+    await vi.waitFor(() => expect(sent.find(request => request.url === '/api/board/loans/20/agreement')?.body).toEqual({
+      file: { name: 'convention.pdf', type: 'application/pdf' },
+    }))
+    await vi.waitFor(() => expect(view.find('a[href="/bureau/documents?document=7"]').exists()).toBe(true))
+    expect(view.get('a[href="/bureau/documents?document=7"]').text()).toBe('Convention signée, déposée le 1er oct.')
+    expect(button(view.get('section[aria-label]'), 'Remplacer la convention signée').exists()).toBe(true)
+  })
+
+  it('tells why a signed agreement was refused', async () => {
+    mockList()
+    mockLoan()
+    mockApi('/api/board/loans/{loan_id}/agreement', {
+      handler: () => apiResponse(422, { detail: [{ type: 'validation_error', loc: ['body', 'file'], msg: 'Ce type de fichier n’est pas accepté.' }] }),
+    }, { loan_id: 20 })
+    const view = await mountPage('/bureau/prets?pret=20')
+    const panel = await panelOf(view)
+
+    const picker = panel.get<HTMLInputElement>('input[type="file"]')
+    Object.defineProperty(picker.element, 'files', { value: [new File(['texte'], 'convention.txt', { type: 'text/plain' })], configurable: true })
+    await picker.trigger('change')
+
+    await vi.waitFor(() => expect(panel.find('[role="alert"]').exists()).toBe(true))
+    expect(panel.get('[role="alert"]').text()).toBe('Ce type de fichier n’est pas accepté.')
+    expect(panel.text()).toContain('Déposer la convention signée')
   })
 
   it('closes the panel', async () => {

@@ -37,7 +37,7 @@ describe('legal notice', () => {
     ])
     expect(page.text()).toContain('Ce site est édité par le Comité des Fêtes d’Ons-en-Bray, association régie par la loi du 1er juillet 1901.')
     expect(details(page)).toEqual([
-      ['Siège', '1 place de la Mairie00000 Commune'],
+      ['Siège', '2 rue de l’Église00000 Commune'],
       ['E-mail', 'contact@example.test'],
       ['Téléphone', '01 23 45 67 89'],
       ['Hébergeur', 'Hébergeur Exemple SARL'],

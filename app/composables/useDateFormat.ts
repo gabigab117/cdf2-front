@@ -112,6 +112,13 @@ function calendarDay(date: string, now: number): string {
 }
 
 /**
+ * A day of the calendar in figures, as a form to sign writes it: « 16/10/2026 ».
+ */
+function calendarNumeric(date: string): string {
+  return FORMATS.numericWithYear.format(new Date(`${date}T12:00:00Z`))
+}
+
+/**
  * A day of the calendar with its weekday, such as the return of a loan:
  * « ven. 16 oct. », with its year when it is not the year of `now`.
  */
@@ -274,5 +281,5 @@ function season(now: number): string {
  * the browser: the formats of the mockup.
  */
 export function useDateFormat() {
-  return { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarWeekday, calendarPeriod, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
+  return { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarNumeric, calendarWeekday, calendarPeriod, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
 }

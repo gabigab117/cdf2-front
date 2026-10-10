@@ -178,6 +178,7 @@
   --shadow-tabs: inset 0 -1px 0 var(--color-argent-200);         /* rule under a tab bar */
   --shadow-spotlight: 0 40px 80px -30px rgb(12 14 19 / 0.45), 0 0 0 1px rgb(12 14 19 / 0.06); /* the next event's card */
   --shadow-float: 0 24px 48px -32px rgb(12 14 19 / 0.35);        /* floating panels, an event's facts */
+  --shadow-sheet: 0 4px 15px rgb(12 14 19 / 0.1);                /* a sheet to print, on screen */
   --shadow-pin: 0 10px 20px -8px rgb(45 75 200 / 0.7);           /* pin of a map preview */
   --shadow-composer: 0 1px 2px rgb(12 14 19 / 0.04);             /* input zone of the notes */
 
@@ -229,6 +230,22 @@
    the track, comes with the planning (background-size). */
 @utility week-grid {
   background-image: linear-gradient(90deg, var(--color-argent-100) 1px, transparent 1px);
+}
+
+/* The A4 sheets the board prints, such as the loan agreement (print:hidden
+   takes the sidebar and the top bar away). On screen, a sheet of paper;
+   printed, a page of its own, named so that no other page takes its margins:
+   none, where the browser would write the address and the date. */
+@utility a4-sheet {
+  page: a4-sheet;
+  width: 210mm;
+  min-height: 297mm;
+  padding: 10mm 15mm;
+}
+
+@page a4-sheet {
+  size: A4;
+  margin: 0;
 }
 
 /* The squared paper of a map preview, drawn without loading any map. */

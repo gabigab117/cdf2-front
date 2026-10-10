@@ -68,8 +68,8 @@ Toute la configuration vient de l'environnement (`.env` en local) : le dépôt n
 | `NUXT_PUBLIC_PREPROD` | `true` en préproduction : bandeau « Préproduction — données fictives » et pages jamais indexées. |
 | `NUXT_PUBLIC_CONTACT_EMAIL`, `NUXT_PUBLIC_CONTACT_PHONE` | E-mail et téléphone de l'association, jamais ceux d'un membre. |
 | `NUXT_PUBLIC_HALL_STREET`, `NUXT_PUBLIC_HALL_TOWN` | Adresse de la salle des fêtes, puis son code postal et sa commune. |
+| `NUXT_PUBLIC_OFFICE_STREET`, `NUXT_PUBLIC_OFFICE_TOWN` | Siège de l'association, puis son code postal et sa commune : les mentions légales et la convention de prêt le citent. |
 | `NUXT_LEGAL_PUBLICATION_DIRECTOR` | Nom du directeur ou de la directrice de la publication, cité par les mentions légales. |
-| `NUXT_LEGAL_OFFICE_STREET`, `NUXT_LEGAL_OFFICE_TOWN` | Siège de l'association, puis son code postal et sa commune. |
 | `NUXT_LEGAL_HOST_NAME`, `NUXT_LEGAL_HOST_ADDRESS`, `NUXT_LEGAL_HOST_PHONE` | Raison sociale, adresse et téléphone de l'hébergeur. |
 | `NUXT_LEGAL_HOST_LOCATION` | Pays où se trouve le serveur (« France »). |
 

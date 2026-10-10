@@ -18,6 +18,11 @@ export function editLoanPath(id: number): string {
   return `${LOANS_PATH}/${id}/modifier`
 }
 
+/** The agreement of a loan, to print and sign. */
+export function agreementPath(id: number): string {
+  return `${LOANS_PATH}/${id}/convention`
+}
+
 /** The id an address names, such as `?materiel=12`, or none. */
 export function queryId(value: unknown): number | null {
   const id = Number(value)

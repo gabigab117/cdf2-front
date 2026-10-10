@@ -5,7 +5,7 @@ definePageMeta({ path: '/mentions-legales', public: true })
 
 // Private keys, which only the server's rendering reads: the page is served
 // without scripts, and the browser never renders it.
-const { legal, public: { contact } } = useRuntimeConfig()
+const { legal, public: { contact, office } } = useRuntimeConfig()
 
 const hasHost = Boolean(legal.host.name || legal.host.address || legal.host.phone || legal.host.location)
 
@@ -24,17 +24,17 @@ useSeoMeta({ robots: 'noindex, nofollow' })
       <p>Ce site est édité par le {{ SITE_NAME }}, association régie par la loi du 1er juillet 1901.</p>
       <dl class="flex flex-col gap-4">
         <SiteLegalDetail
-          v-if="legal.office.street || legal.office.town"
+          v-if="office.street || office.town"
           label="Siège"
         >
           <span
-            v-if="legal.office.street"
+            v-if="office.street"
             class="block"
-          >{{ legal.office.street }}</span>
+          >{{ office.street }}</span>
           <span
-            v-if="legal.office.town"
+            v-if="office.town"
             class="block"
-          >{{ legal.office.town }}</span>
+          >{{ office.town }}</span>
         </SiteLegalDetail>
         <SiteLegalDetail
           v-if="contact.email"

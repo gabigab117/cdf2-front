@@ -105,6 +105,7 @@ export function loanOut(changes: Partial<LoanOut> = {}): LoanOut {
     created_by: null,
     created_at: '2026-10-01T08:00:00Z',
     returned_at: null,
+    agreement: null,
     ...changes,
   }
 }
