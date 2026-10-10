@@ -65,3 +65,46 @@ export function inventoryOut(items: EquipmentAvailabilityOut[], day = '2026-10-0
     },
   }
 }
+
+type LoanOut = components['schemas']['LoanOut']
+type AvailabilityOut = components['schemas']['AvailabilityOut']
+
+/** What every equipment offers over some days. */
+export function availabilityOut(items: EquipmentAvailabilityOut[], start = '2026-10-16', end = '2026-10-18'): AvailabilityOut {
+  return { start, end, items }
+}
+
+/** The default deposits of A16. */
+export const DEPOSITS = {
+  deposits: [
+    { borrower_type: 'association', amount: '150.00' },
+    { borrower_type: 'individual', amount: '300.00' },
+    { borrower_type: 'municipality', amount: '0.00' },
+    { borrower_type: 'committee', amount: '0.00' },
+  ],
+} as const
+
+/** A fictitious loan of two marquees to the football club, confirmed. */
+export function loanOut(changes: Partial<LoanOut> = {}): LoanOut {
+  return {
+    id: 20,
+    number: 'P-2026-020',
+    borrower_type: 'association',
+    borrower_name: 'Club de football',
+    display_name: 'Club de football',
+    purpose: 'Tournoi jeunes',
+    phone: '01 23 45 67 89',
+    start_date: '2026-10-16',
+    end_date: '2026-10-18',
+    status: 'confirmed',
+    state: 'confirmed',
+    deposit_amount: '150.00',
+    event: null,
+    notes: '',
+    lines: [{ id: 41, equipment: { id: 5, name: 'Barnums 3 × 3 m', unit_value: '250.00' }, quantity: 2, damaged_quantity: 0, missing_quantity: 0 }],
+    created_by: null,
+    created_at: '2026-10-01T08:00:00Z',
+    returned_at: null,
+    ...changes,
+  }
+}

@@ -32,7 +32,8 @@ function readable(text: string): string {
 }
 
 function mountPage(route = '/bureau/materiel') {
-  return mountSuspended(EquipmentPage, { route, attachTo: document.body })
+  // « Nouveau prêt » goes to the top bar, which the page alone lacks.
+  return mountSuspended(EquipmentPage, { route, attachTo: document.body, global: { stubs: { teleport: true } } })
 }
 
 // The panel shows once the inventory it reads has come.
@@ -78,6 +79,7 @@ describe('the Matériel page', () => {
     expect(marquees!.get('a').attributes('href')).toBe('/bureau/materiel?materiel=5')
     expect(marquees!.get('[role="img"]').attributes('aria-label')).toBe('Barnums 3 × 3 m : 1 disponible, 2 sortis, 1 en réparation, sur 4')
     expect(page.get('h1').text()).toBe('Matériel')
+    expect(page.findAll('a').find(link => link.text() === 'Nouveau prêt')?.attributes('href')).toBe('/bureau/prets/nouveau')
     expect(page.text()).toContain('2 références · 1 en partie prêtée aujourd’hui · 1 pièce en réparation')
   })
 
@@ -132,6 +134,7 @@ describe('the Matériel page', () => {
     expect(readable(panel.findAll('dl')[1]!.text())).toBe('Rangement Garage communal Valeur de remplacement 250,00 € l’unité')
     expect(panel.text()).toContain('Toile déchirée sur un côté.')
     expect(panel.text()).toContain('2 sorties prévues')
+    expect(panel.findAll('a').find(link => link.text() === 'Prêter ce matériel')?.attributes('href')).toBe('/bureau/prets/nouveau?materiel=5')
     const loans = panel.findAll('ul[aria-label="Prêts et réservations"] li')
     expect(loans.map(loan => loan.text())).toEqual([
       'Club de football× 2du ven. 16 au dim. 18 oct.',
@@ -160,7 +163,7 @@ describe('the Matériel page', () => {
     const sent = recordRequests()
     const page = await mountPage('/bureau/materiel?materiel=5')
 
-    await (await panelOf(page)).get('footer button').trigger('click')
+    await (await panelOf(page)).findAll('footer button').find(button => button.text() === 'Modifier')!.trigger('click')
     const fields = page.findAll('aside input')
     await fields[3]!.setValue('0')
     await page.get('aside form').trigger('submit')
@@ -191,7 +194,7 @@ describe('the Matériel page', () => {
     }, { equipment_id: 5 })
     const page = await mountPage('/bureau/materiel?materiel=5')
 
-    await (await panelOf(page)).get('footer button').trigger('click')
+    await (await panelOf(page)).findAll('footer button').find(button => button.text() === 'Modifier')!.trigger('click')
     await page.get('aside form').trigger('submit')
 
     await vi.waitFor(() => expect(page.get('aside form').text()).toContain(refusal))
@@ -205,7 +208,7 @@ describe('the Matériel page', () => {
     const sent = recordRequests()
     const page = await mountPage('/bureau/materiel?materiel=5')
 
-    await (await panelOf(page)).get('footer button').trigger('click')
+    await (await panelOf(page)).findAll('footer button').find(button => button.text() === 'Modifier')!.trigger('click')
     const remove = page.findAll('aside form button').find(button => button.text() === 'Supprimer')!
     await remove.trigger('click')
     expect(page.text()).toContain('Supprimer « Barnums 3 × 3 m » de l’inventaire ?')

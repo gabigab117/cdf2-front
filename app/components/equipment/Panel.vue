@@ -126,14 +126,23 @@ function remove(): Promise<string | null> {
       v-if="!editing"
       #footer
     >
-      <UiButton
-        variant="secondary"
-        size="lg"
-        block
-        @click="editing = true"
-      >
-        Modifier
-      </UiButton>
+      <div class="flex gap-2">
+        <UiButton
+          variant="accent"
+          size="lg"
+          class="flex-1"
+          :to="{ path: NEW_LOAN_PATH, query: { materiel: String(equipment.id) } }"
+        >
+          Prêter ce matériel
+        </UiButton>
+        <UiButton
+          variant="secondary"
+          size="lg"
+          @click="editing = true"
+        >
+          Modifier
+        </UiButton>
+      </div>
     </template>
   </UiSidePanel>
 </template>

@@ -73,13 +73,18 @@ export function useDocument(id: number) {
 }
 
 /**
- * The events a document may belong to, the latest first, for the forms that
- * choose one. A hundred cover the committee's years: one page serves.
+ * The events, the latest first, as the forms that choose one read them. A
+ * hundred cover the committee's years: one page serves.
  */
+export function useEventList() {
+  return useLazyAsyncData('board:event-choices', (_nuxtApp, { signal }) =>
+    loadData(useApi().GET('/api/board/events', { params: { query: { page_size: 100 } }, signal })), { dedupe: 'defer' })
+}
+
+/** The events a document or a loan may belong to, for the forms that choose one. */
 export function useEventChoices() {
   const { day } = useDateFormat()
-  const { data } = useLazyAsyncData('board:event-choices', (_nuxtApp, { signal }) =>
-    loadData(useApi().GET('/api/board/events', { params: { query: { page_size: 100 } }, signal })), { dedupe: 'defer' })
+  const { data } = useEventList()
   return computed(() =>
     (data.value?.items ?? []).map(event => ({ value: event.id, label: `${event.title} · ${day(event.starts_at, { year: true })}` })),
   )

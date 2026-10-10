@@ -150,6 +150,9 @@
   --grid-template-columns-equipment: minmax(0, 1.7fr) 64px 64px 84px 84px minmax(0, 1fr);
   --grid-template-columns-equipment-narrow: minmax(0, 1fr) auto;
 
+  /* Lines of the loan form: equipment, what is free, its quantity. */
+  --grid-template-columns-loan-line: minmax(0, 1fr) 140px 132px;
+
   /* Radii */
   --radius-swatch: 3px;     /* colour swatches of a legend */
   --radius-badge: 7px;
@@ -167,6 +170,7 @@
   /* Shadows */
   --shadow-segment: 0 1px 3px rgb(12 14 19 / 0.12);              /* selected segment */
   --shadow-selected: inset 3px 0 0 var(--color-azur-600);        /* edge of a selected row */
+  --shadow-over: inset 3px 0 0 var(--color-ambre-500);           /* edge of a line beyond what is free */
   --shadow-knob: 0 1px 2px rgb(12 14 19 / 0.25);                 /* knob of a switch */
   --shadow-tabs: inset 0 -1px 0 var(--color-argent-200);         /* rule under a tab bar */
   --shadow-spotlight: 0 40px 80px -30px rgb(12 14 19 / 0.45), 0 0 0 1px rgb(12 14 19 / 0.06); /* the next event's card */

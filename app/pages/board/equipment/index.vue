@@ -6,7 +6,7 @@ import type { EquipmentFields, InventoryQuery } from '~/utils/equipment'
 
 type EquipmentCategory = components['schemas']['EquipmentCategory']
 
-definePageMeta({ path: '/bureau/materiel', fullWidth: true })
+definePageMeta({ path: '/bureau/materiel', fullWidth: true, topBarAction: true })
 
 useHead({ title: 'Matériel' })
 
@@ -75,6 +75,16 @@ async function deleted(): Promise<void> {
 
 <template>
   <div class="flex min-w-0 flex-1">
+    <Teleport
+      defer
+      to="#board-top-bar-action"
+    >
+      <BoardTopBarButton
+        :icon="Plus"
+        label="Nouveau prêt"
+        :to="NEW_LOAN_PATH"
+      />
+    </Teleport>
     <div
       class="flex min-w-0 flex-1 flex-col gap-5.5 px-4 pt-6 pb-10 md:px-8 md:pt-8 md:pb-12"
       :class="{ 'max-md:hidden': panelShown }"
