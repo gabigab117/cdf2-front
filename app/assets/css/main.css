@@ -233,19 +233,13 @@
 }
 
 /* The A4 sheets the board prints, such as the loan agreement (print:hidden
-   takes the sidebar and the top bar away). On screen, a sheet of paper;
-   printed, a page of its own, named so that no other page takes its margins:
-   none, where the browser would write the address and the date. */
+   takes the sidebar and the top bar away): a sheet of paper on screen. The
+   page that prints one sets its own @page, without margins, as long as it
+   shows: a named page would force a break, and a blank page, after it. */
 @utility a4-sheet {
-  page: a4-sheet;
   width: 210mm;
   min-height: 297mm;
   padding: 10mm 15mm;
-}
-
-@page a4-sheet {
-  size: A4;
-  margin: 0;
 }
 
 /* The squared paper of a map preview, drawn without loading any map. */

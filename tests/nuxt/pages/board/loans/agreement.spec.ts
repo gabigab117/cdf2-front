@@ -64,10 +64,8 @@ describe('the agreement of a loan', () => {
     const sheet = view.get('article')
     expect(sheet.get('header').findAll('h1, p').map(line => readable(line.text()))).toEqual([
       'Comité des Fêtes d’Ons-en-Bray',
-      'Convention de prêt de matériel',
-      '2 rue de l’Église – 00000 Commune',
-      '01 23 45 67 89 · contact@example.test',
-      'Prêt P-2026-020',
+      'Convention de prêt de matériel n° P-2026-020',
+      '2 rue de l’Église – 00000 Commune · 01 23 45 67 89 · contact@example.test',
     ])
     const cheque = (number: number) => [[`Chèque n° ${number} – objet`, ''], ['Montant (€)', '']]
     expect(fields(sheet)).toEqual([

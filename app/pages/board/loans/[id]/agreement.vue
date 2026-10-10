@@ -6,7 +6,9 @@ type LoanBorrowerType = components['schemas']['LoanBorrowerType']
 
 definePageMeta({ path: '/bureau/prets/:id(\\d+)/convention', topBarAction: true })
 
-useHead({ title: 'Convention de prêt' })
+// Printed, the sheet fills an A4 page, without the margins where the browser
+// writes the address and the date: a rule of this page alone, gone with it.
+useHead({ title: 'Convention de prêt', style: [{ textContent: '@page { size: A4; margin: 0; }' }] })
 
 const id = Number(useRoute().params.id)
 
@@ -57,8 +59,8 @@ const agreement = computed(() => {
     deposit: Number(shown.deposit_amount) > 0 ? amount(shown.deposit_amount) : null,
   }
 })
-const officeLine = [office.street, office.town].filter(Boolean).join(' – ')
-const contactLine = [contact.phone, contact.email].filter(Boolean).join(' · ')
+// The committee's office and contact on one line: the sheet keeps to one page.
+const officeLine = [[office.street, office.town].filter(Boolean).join(' – '), contact.phone, contact.email].filter(Boolean).join(' · ')
 
 function print(): void {
   window.print()
@@ -90,29 +92,20 @@ function print(): void {
       >
         <article
           aria-label="Convention de prêt"
-          class="mx-auto flex a4-sheet flex-col gap-2 bg-white text-sable-950 shadow-sheet print:min-h-0 print:shadow-none"
+          class="mx-auto flex a4-sheet flex-col gap-1 bg-white leading-tight text-sable-950 shadow-sheet print:min-h-0 print:shadow-none"
         >
           <header class="flex flex-col gap-0.5 border-b-2 border-sable-950 pb-1.5 text-center">
             <p class="text-sm font-semibold uppercase">
               {{ SITE_NAME }}
             </p>
             <h1 class="text-lg font-bold uppercase">
-              Convention de prêt de matériel
+              Convention de prêt de matériel n° {{ loan.number }}
             </h1>
             <p
               v-if="officeLine"
               class="text-xs"
             >
               {{ officeLine }}
-            </p>
-            <p
-              v-if="contactLine"
-              class="text-xs"
-            >
-              {{ contactLine }}
-            </p>
-            <p class="text-xs font-semibold">
-              Prêt {{ loan.number }}
             </p>
           </header>
           <p class="text-center text-xs text-sable-600 italic">
@@ -123,43 +116,47 @@ function print(): void {
               label="L’association"
               :value="`Le ${SITE_NAME}`"
             />
-            <LoansAgreementField label="Représentée par" />
-            <LoansAgreementField label="Agissant en qualité de" />
+            <div class="flex flex-wrap gap-x-4 gap-y-1">
+              <LoansAgreementField label="Représentée par" />
+              <LoansAgreementField label="Agissant en qualité de" />
+            </div>
           </LoansAgreementSection>
           <LoansAgreementSection title="L’emprunteur">
             <LoansAgreementField
               :label="agreement.borrower"
               :value="loan.borrower_name"
             />
-            <div class="flex flex-wrap gap-x-4 gap-y-1.5">
+            <div class="flex flex-wrap gap-x-4 gap-y-1">
               <LoansAgreementField label="Représenté par" />
               <LoansAgreementField label="Agissant en qualité de" />
             </div>
             <LoansAgreementField label="Adresse" />
-            <div class="flex flex-wrap gap-x-4 gap-y-1.5">
+            <div class="flex flex-wrap gap-x-4 gap-y-1">
               <LoansAgreementField
                 label="Code postal"
                 short
               />
               <LoansAgreementField label="Ville" />
             </div>
-            <LoansAgreementField
-              label="Téléphone / e-mail"
-              :value="loan.phone"
-            />
-            <LoansAgreementField
-              label="Objet du prêt"
-              :value="loan.purpose"
-            />
+            <div class="flex flex-wrap gap-x-4 gap-y-1">
+              <LoansAgreementField
+                label="Téléphone / e-mail"
+                :value="loan.phone"
+              />
+              <LoansAgreementField
+                label="Objet du prêt"
+                :value="loan.purpose"
+              />
+            </div>
           </LoansAgreementSection>
           <LoansAgreementSection title="Matériel prêté">
             <table class="w-full border-collapse text-caption">
               <thead>
                 <tr class="text-overline uppercase">
-                  <th class="border border-argent-400 px-2 py-1 text-left">
+                  <th class="border border-argent-400 px-2 py-0.5 text-left">
                     Désignation
                   </th>
-                  <th class="w-24 border border-argent-400 px-2 py-1 text-right">
+                  <th class="w-24 border border-argent-400 px-2 py-0.5 text-right">
                     Quantité
                   </th>
                 </tr>
@@ -169,10 +166,10 @@ function print(): void {
                   v-for="line in loan.lines"
                   :key="line.id"
                 >
-                  <td class="border border-argent-400 px-2 py-1">
+                  <td class="border border-argent-400 px-2 py-0.5">
                     {{ line.equipment.name }}
                   </td>
-                  <td class="border border-argent-400 px-2 py-1 text-right tabular-nums">
+                  <td class="border border-argent-400 px-2 py-0.5 text-right tabular-nums">
                     {{ line.quantity }}
                   </td>
                 </tr>
@@ -184,7 +181,7 @@ function print(): void {
             </table>
           </LoansAgreementSection>
           <LoansAgreementSection title="Durée du prêt">
-            <div class="flex flex-wrap gap-x-4 gap-y-1.5">
+            <div class="flex flex-wrap gap-x-4 gap-y-1">
               <LoansAgreementField
                 label="Date de prise en charge"
                 :value="agreement.start"
@@ -208,7 +205,7 @@ function print(): void {
               <div
                 v-for="cheque in CHEQUES"
                 :key="cheque"
-                class="flex flex-wrap gap-x-4 gap-y-1.5"
+                class="flex flex-wrap gap-x-4 gap-y-1"
               >
                 <LoansAgreementField :label="`Chèque n° ${cheque} – objet`" />
                 <LoansAgreementField
@@ -234,8 +231,8 @@ function print(): void {
               </li>
             </ul>
           </LoansAgreementSection>
-          <div class="mt-4 flex flex-col gap-3">
-            <div class="flex flex-wrap gap-x-4 gap-y-1.5">
+          <div class="mt-3 flex flex-col gap-3">
+            <div class="flex flex-wrap gap-x-4 gap-y-1">
               <LoansAgreementField label="Fait le" />
               <LoansAgreementField label="à" />
             </div>
@@ -243,7 +240,7 @@ function print(): void {
               <div
                 v-for="signatory in ['du prêteur', 'de l’emprunteur']"
                 :key="signatory"
-                class="flex min-h-24 flex-col gap-1 rounded-lg border border-argent-300 p-2 text-center"
+                class="flex min-h-20 flex-col gap-1 rounded-lg border border-argent-300 p-2 text-center"
               >
                 <p class="text-caption font-bold">
                   Signature {{ signatory }}

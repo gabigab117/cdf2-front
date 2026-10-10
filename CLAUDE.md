@@ -158,7 +158,7 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
 - Si une suite de classes apparaît 3 fois, c'est un composant Vue, pas une chaîne copiée-collée.
 - `@apply` avec parcimonie (composants de base uniquement). CSS custom isolé et documenté (impression des pages A4, par exemple).
 - **Pages imprimables** (la convention de prêt) :
-  - la feuille est l'utilitaire `a4-sheet` : un A4 à l'écran, et à l'impression une page nommée (`@page a4-sheet`) sans marges, où le navigateur n'écrit ni adresse ni date. Une page nommée ne change pas l'impression des autres pages ;
+  - la feuille est l'utilitaire `a4-sheet`, un A4 à l'écran. La page qui l'imprime pose sa propre règle `@page` (A4, sans marges, où le navigateur écrirait l'adresse et la date) par `useHead({ style })` : elle n'existe que tant que la page est montée. Pas de page nommée (`page: …`) : elle force un saut, et une page blanche, après elle (constaté) ;
   - le layout du bureau masque sa barre latérale et sa barre supérieure à l'impression (`print:hidden`), comme la page ses boutons ;
   - le navigateur n'imprime pas les fonds : un bandeau sombre devient deux filets à l'impression (`print:`), sinon son texte blanc disparaît ;
   - un test remplace `window.print`, absent de happy-dom (`vi.stubGlobal('print', …)`).

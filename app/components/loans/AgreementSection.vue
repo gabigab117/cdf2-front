@@ -6,8 +6,8 @@ defineProps<{ title: string }>()
 </script>
 
 <template>
-  <section class="flex flex-col gap-1.5">
-    <h2 class="mt-2.5 bg-sable-950 px-2 py-0.5 text-label font-bold text-white uppercase print:border-y-2 print:border-sable-950 print:bg-transparent print:px-0 print:text-sable-950">
+  <section class="flex flex-col gap-1">
+    <h2 class="mt-1 bg-sable-950 px-2 py-0.5 text-label font-bold text-white uppercase print:border-y-2 print:border-sable-950 print:bg-transparent print:px-0 print:text-sable-950">
       <span aria-hidden="true">■ </span>{{ title }}
     </h2>
     <slot />
