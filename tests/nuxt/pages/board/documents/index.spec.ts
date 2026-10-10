@@ -60,8 +60,9 @@ describe('the Documents page', () => {
 
     await vi.waitFor(() => expect(documents.findAll('ul li')).toHaveLength(2))
     const [invoice, order] = documents.findAll('ul li')
-    expect(readable(invoice!.text())).toBe('Facture — Location sonoFacture À vérifier · 28 sept.Halloween des enfants380,00 €28 sept.')
-    expect(readable(order!.text())).toBe('Bon de commande — BonbonsCommande· 25 sept.Fonctionnement214,60 €25 sept.')
+    // The date shows twice: under the amount on a phone, in its column on a computer.
+    expect(readable(invoice!.text())).toBe('Facture — Location sonoFacture À vérifier Halloween des enfants380,00 €28 sept.28 sept.')
+    expect(readable(order!.text())).toBe('Bon de commande — BonbonsCommandeFonctionnement214,60 €25 sept.25 sept.')
     expect(invoice!.get('a').attributes('href')).toBe('/bureau/documents?document=21')
     expect(documents.get('h1').text()).toBe('Documents')
   })

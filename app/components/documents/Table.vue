@@ -58,7 +58,7 @@ const columns = computed(() => (eventColumn ? 'grid-cols-documents-narrow md:gri
                 <span>{{ DOCUMENT_CATEGORIES[document.category].label }}</span>
                 <span
                   v-if="document.status === 'to_review'"
-                  class="inline-flex items-center gap-1.5 font-medium text-azur-600"
+                  class="inline-flex items-center gap-1.5 font-medium whitespace-nowrap text-azur-600"
                 >
                   <span
                     class="size-1.5 rounded-full bg-azur-600"
@@ -66,14 +66,16 @@ const columns = computed(() => (eventColumn ? 'grid-cols-documents-narrow md:gri
                   />
                   À vérifier
                 </span>
-                <span class="md:hidden">· {{ calendarDay(document.date, now) }}</span>
               </span>
             </span>
             <span
               v-if="eventColumn"
               class="truncate text-sm text-sable-600 max-md:hidden"
             >{{ document.event?.title ?? NO_EVENT_LABEL }}</span>
-            <span class="text-right font-mono text-sm font-medium text-sable-950">{{ amount(document.amount) }}</span>
+            <span class="flex flex-col items-end gap-0.5">
+              <span class="font-mono text-sm font-medium text-sable-950">{{ amount(document.amount) }}</span>
+              <span class="text-label text-argent-600 md:hidden">{{ calendarDay(document.date, now) }}</span>
+            </span>
             <span class="text-right text-note text-argent-600 max-md:hidden">{{ calendarDay(document.date, now) }}</span>
           </span>
         </UiSelectableRow>

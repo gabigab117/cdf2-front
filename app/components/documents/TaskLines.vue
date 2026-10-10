@@ -3,7 +3,8 @@ import { Plus, X } from '@lucide/vue'
 import type { ListedTask } from '~/utils/documents'
 
 // The tasks minutes list, each with its title and whom it is for: validating
-// the minutes creates them (D10).
+// the minutes creates them (D10). A line holds in the panel of a computer; on
+// a phone, whom a task is for goes under its title, with its cross.
 const tasks = defineModel<ListedTask[]>({ required: true })
 
 const { errors } = defineProps<{
@@ -41,7 +42,7 @@ function lineErrors(index: number, field: string): readonly string[] | undefined
         v-slot="{ id, describedby, invalid }"
         :label="`Tâche ${index + 1}`"
         hidden-label
-        class="min-w-48 flex-1"
+        class="min-w-40 flex-1"
         :errors="lineErrors(index, 'title')"
       >
         <UiInput
@@ -52,27 +53,29 @@ function lineErrors(index: number, field: string): readonly string[] | undefined
           :invalid
         />
       </UiField>
-      <UiField
-        v-slot="{ id, describedby, invalid }"
-        :label="`Assignée à (tâche ${index + 1})`"
-        hidden-label
-        class="w-40"
-        :errors="lineErrors(index, 'assignee')"
-      >
-        <UiSelect
-          :id
-          v-model="task.assignee"
-          :options="assignees"
-          :aria-describedby="describedby"
-          :invalid
-        />
-      </UiField>
-      <UiIconButton
-        :label="`Retirer la tâche ${index + 1}`"
-        @click="remove(index)"
-      >
-        <X :size="16" />
-      </UiIconButton>
+      <div class="flex items-start gap-2">
+        <UiField
+          v-slot="{ id, describedby, invalid }"
+          :label="`Assignée à (tâche ${index + 1})`"
+          hidden-label
+          class="w-40"
+          :errors="lineErrors(index, 'assignee')"
+        >
+          <UiSelect
+            :id
+            v-model="task.assignee"
+            :options="assignees"
+            :aria-describedby="describedby"
+            :invalid
+          />
+        </UiField>
+        <UiIconButton
+          :label="`Retirer la tâche ${index + 1}`"
+          @click="remove(index)"
+        >
+          <X :size="16" />
+        </UiIconButton>
+      </div>
     </div>
     <UiButton
       variant="dashed"
