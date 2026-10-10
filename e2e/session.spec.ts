@@ -28,6 +28,23 @@ test('a board member signs in, keeps their session over a reload, then signs out
     await expect(page.getByText(MEMBER.name)).toBeVisible()
   })
 
+  await test.step('the dashboard greets the member, and its menu leads to a new event', async () => {
+    await page.getByRole('navigation', { name: 'Espace bureau' }).getByRole('link', { name: 'Tableau de bord' }).click()
+
+    await expect(page).toHaveURL('/bureau')
+    await expect(page.getByRole('heading', { level: 1, name: 'Bonjour Camille' })).toBeVisible()
+    // The events of the demonstration follow the day they were written: an
+    // event is found by its name, never by its place.
+    const upcoming = page.locator('section', { hasText: 'Événements à venir' })
+    await expect(upcoming.getByRole('link', { name: /Halloween des enfants/ })).toBeVisible()
+
+    // The browser's own popover: a test environment has none, this one does.
+    await page.getByRole('button', { name: 'Nouveau' }).click()
+    await page.getByRole('navigation', { name: 'Nouveau' }).getByRole('link', { name: 'Événement' }).click()
+
+    await expect(page).toHaveURL('/bureau/evenements/nouveau')
+  })
+
   await test.step('signing out closes the session for good', async () => {
     await page.getByRole('button', { name: 'Se déconnecter' }).click()
     await expect(page).toHaveURL('/connexion')
