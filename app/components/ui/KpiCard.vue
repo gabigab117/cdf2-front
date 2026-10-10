@@ -60,12 +60,13 @@ const root = computed(() => (to ? NuxtLink : 'div'))
       <slot name="aside" />
     </span>
     <span class="font-display text-kpi font-bold">{{ value }}</span>
-    <span
+    <!-- A block: a progress bar may stand in it. -->
+    <div
       v-if="$slots.default"
       class="text-note"
       :class="classes.muted[tone]"
     >
       <slot />
-    </span>
+    </div>
   </component>
 </template>
