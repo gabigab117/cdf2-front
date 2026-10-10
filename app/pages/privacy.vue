@@ -8,8 +8,9 @@ const { contact } = useRuntimeConfig().public
 const RETENTION_PERIODS: ReadonlyArray<{ data: string, period: string }> = [
   {
     data: 'Compte d’un membre du bureau',
-    period: 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés. Il est supprimé si elle le demande.',
+    period: 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés et sur ses notes. Il est supprimé si elle le demande : ses notes restent, sans son nom.',
   },
+  { data: 'Notes du bureau', period: 'Supprimées avec leur événement, ou par leur auteur' },
   { data: 'Session de l’espace du bureau', period: '7 jours, puis effacée la nuit suivante' },
   { data: 'Session de l’administration des comptes', period: '2 semaines, puis effacée la nuit suivante' },
   { data: 'Compteurs de connexion', period: 'Effacés chaque nuit' },
@@ -40,6 +41,7 @@ useSitePage({
     <SiteLegalSection title="Membres du bureau">
       <p>Chaque membre du bureau a un compte : e-mail, prénom, nom et fonction, avec un mot de passe qui n’est jamais conservé en clair. Le compte garde aussi sa date de création et celle de sa dernière connexion à l’administration.</p>
       <p>Les membres voient le nom et l’e-mail des autres membres. Un événement peut nommer son responsable parmi eux : ce lien n’est visible que du bureau, jamais publié sur le site.</p>
+      <p>Les notes du bureau portent le nom de leur auteur, et seul le bureau les lit. Ce sont des textes libres : on n’y écrit que le nécessaire, et aucune donnée sensible, comme une information de santé.</p>
       <p>La connexion à l’espace du bureau pose un cookie technique, indispensable pour rester connecté. L’administration des comptes pose aussi les siens : sa session et la protection de ses formulaires. Les connexions sont comptées par adresse IP, pour bloquer les essais de mots de passe.</p>
     </SiteLegalSection>
     <SiteLegalSection title="Durées de conservation">

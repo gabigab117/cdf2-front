@@ -29,8 +29,10 @@ describe('privacy page', () => {
       'Visiteurs du site', 'Membres du bureau', 'Durées de conservation', 'Vos droits',
     ])
     expect(page.text()).toContain('Le site ne dépose aucun cookie, ne mesure pas son audience et ne vous demande rien.')
+    expect(page.text()).toContain('Les notes du bureau portent le nom de leur auteur, et seul le bureau les lit.')
     expect(page.findAll('tbody tr').map(row => [row.get('th').text(), row.get('td').text()])).toEqual([
-      ['Compte d’un membre du bureau', 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés. Il est supprimé si elle le demande.'],
+      ['Compte d’un membre du bureau', 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés et sur ses notes. Il est supprimé si elle le demande : ses notes restent, sans son nom.'],
+      ['Notes du bureau', 'Supprimées avec leur événement, ou par leur auteur'],
       ['Session de l’espace du bureau', '7 jours, puis effacée la nuit suivante'],
       ['Session de l’administration des comptes', '2 semaines, puis effacée la nuit suivante'],
       ['Compteurs de connexion', 'Effacés chaque nuit'],
