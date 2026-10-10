@@ -14,8 +14,8 @@ function readable(text: string): string {
   return text.replaceAll(' ', ' ')
 }
 
-function mountEvent() {
-  return mountSuspended(EventPage, { route: '/bureau/evenements/12' })
+function mountEvent(route = '/bureau/evenements/12') {
+  return mountSuspended(EventPage, { route })
 }
 
 describe('the board\'s page of an event', () => {
@@ -23,6 +23,9 @@ describe('the board\'s page of an event', () => {
     useSessionStore().accessToken = 'access-1'
     // The sidebar's coming events, which saving the event fetches again.
     mockApi('/api/board/events', { handler: () => apiResponse(200, page([])) })
+    // The counts of the tabs, and the notes of the first tab.
+    mockApi('/api/board/events/{event_id}/dashboard', { handler: () => apiResponse(200, { notes_count: 6 }) }, { event_id: 12 })
+    mockApi('/api/board/notes', { handler: () => apiResponse(200, page([])) })
   })
 
   afterEach(async () => {
@@ -59,21 +62,36 @@ describe('the board\'s page of an event', () => {
     expect(eventPage.text()).not.toContain('Page publique')
   })
 
-  it('opens on the public information, edited in its tab', async () => {
+  it('opens on the board\'s notes, counted in their tab, the public information last', async () => {
     mockApi(EVENT, { handler: () => apiResponse(200, boardEvent()) }, { event_id: 12 })
 
     const eventPage = await mountEvent()
 
-    const tab = eventPage.get('[role="tab"]')
-    expect(tab.text()).toBe('Infos publiques')
-    expect(tab.attributes('aria-selected')).toBe('true')
-    expect(eventPage.find('[role="tabpanel"] form').exists()).toBe(true)
+    await vi.waitFor(() => expect(eventPage.get('[role="tab"]').text()).toBe('Notes du bureau 6'))
+    expect(eventPage.findAll('[role="tab"]').map(tab => [tab.text(), tab.attributes('aria-selected')])).toEqual([
+      ['Notes du bureau 6', 'true'],
+      ['Infos publiques', 'false'],
+    ])
+    expect(eventPage.get('[role="tabpanel"] textarea').attributes('placeholder')).toBe('Écrire une note pour le bureau…')
+  })
+
+  it('shows the tab its address asks for, and writes the tab chosen in it', async () => {
+    mockApi(EVENT, { handler: () => apiResponse(200, boardEvent()) }, { event_id: 12 })
+    const eventPage = await mountEvent('/bureau/evenements/12?onglet=infos-publiques')
+
+    expect(eventPage.get('[role="tab"][aria-selected="true"]').text()).toBe('Infos publiques')
+    expect(eventPage.find('[role="tabpanel"] input[type="checkbox"]').exists()).toBe(true)
+
+    await eventPage.get('[role="tab"]').trigger('click')
+
+    await vi.waitFor(() => expect(useRoute().query.onglet).toBeUndefined())
+    expect(eventPage.get('[role="tab"][aria-selected="true"]').text()).toContain('Notes du bureau')
   })
 
   it('shows the event as saved from its tab', async () => {
     mockApi(EVENT, { handler: () => apiResponse(200, boardEvent()) }, { event_id: 12 })
     mockApi(EVENT, { method: 'PUT', handler: () => apiResponse(200, boardEvent({ published: false })) }, { event_id: 12 })
-    const eventPage = await mountEvent()
+    const eventPage = await mountEvent('/bureau/evenements/12?onglet=infos-publiques')
 
     await eventPage.get('form').trigger('submit')
 

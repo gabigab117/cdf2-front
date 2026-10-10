@@ -6,21 +6,27 @@ defineOptions({ inheritAttrs: false })
 
 const selected = defineModel<T>({ required: true })
 
-const { options, placeholder, invalid = false } = defineProps<{
+const { options, placeholder, invalid = false, size = 'md' } = defineProps<{
   options: ReadonlyArray<{ value: T, label: string }>
   /** Shown while nothing is chosen: a required select is not sent so. */
   placeholder?: string
   /** A value the API refused: the field shows it. */
   invalid?: boolean
+  /** 46 px high, or 38 px beside the small buttons of a toolbar. */
+  size?: 'sm' | 'md'
 }>()
 
 const classes = {
-  base: 'h-11.5 w-full appearance-none rounded-field border bg-white pr-10 pl-3.5 text-ui text-sable-950',
+  base: 'w-full appearance-none border bg-white pr-10 pl-3.5 text-sable-950',
+  size: {
+    sm: 'h-9.5 rounded-control text-note',
+    md: 'h-11.5 rounded-field text-ui',
+  },
   valid: 'border-argent-250',
   invalid: 'border-ambre-300',
 }
 
-const selectClasses = computed(() => [classes.base, invalid ? classes.invalid : classes.valid])
+const selectClasses = computed(() => [classes.base, classes.size[size], invalid ? classes.invalid : classes.valid])
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Calendar, Eye, MapPin, User } from '@lucide/vue'
+import { Calendar, Eye, Lock, MapPin, User } from '@lucide/vue'
 import type { components } from '~/types/api'
 
 definePageMeta({ path: '/bureau/evenements/:id(\\d+)' })
@@ -13,9 +13,25 @@ useHead({ title: () => event.value?.title ?? 'Événement' })
 
 const { eventWhen } = useDateFormat()
 
-// The tabs of the other sections join with the phases that fill them.
-const TABS = [{ value: 'public', label: 'Infos publiques' }] as const
-const tab = ref<typeof TABS[number]['value']>('public')
+const route = useRoute()
+
+// The tab shown and the page of its list live in the address: « Voir les N
+// tâches » leads there, and a page of a list can be kept as a link.
+const query = computed(() => parseEventPageQuery(route.query))
+
+const tab = computed({
+  get: () => query.value.tab,
+  set: tab => navigateTo({ query: eventPageQuery({ tab, page: 1 }) }, { replace: true }),
+})
+
+const { data: dashboard } = useEventDashboard(id)
+
+// The tabs of the other sections join with the phases that fill them; the
+// notes come first, as in the mockup, and the public information last.
+const tabs = computed(() => [
+  { value: 'notes' as const, label: 'Notes du bureau', icon: Lock, count: dashboard.value ? String(dashboard.value.notes_count) : undefined },
+  { value: 'public' as const, label: 'Infos publiques' },
+])
 
 const breadcrumb = computed(() => [{ label: 'Événements', to: EVENTS_PATH }, { label: event.value?.title ?? '' }])
 const when = computed(() => (event.value ? eventWhen(event.value, { sentence: true }) : ''))
@@ -96,10 +112,16 @@ function show(saved: components['schemas']['EventOut']): void {
     </div>
     <UiTabs
       v-model="tab"
-      :tabs="TABS"
+      :tabs
       label="Sections de l’événement"
     >
+      <NotesTab
+        v-if="tab === 'notes'"
+        :event
+        :page="query.page"
+      />
       <EventsPublicInfoForm
+        v-else
         :event
         @saved="show"
       />

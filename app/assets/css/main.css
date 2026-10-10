@@ -159,6 +159,7 @@
   --shadow-spotlight: 0 40px 80px -30px rgb(12 14 19 / 0.45), 0 0 0 1px rgb(12 14 19 / 0.06); /* the next event's card */
   --shadow-float: 0 24px 48px -32px rgb(12 14 19 / 0.35);        /* floating panels, an event's facts */
   --shadow-pin: 0 10px 20px -8px rgb(45 75 200 / 0.7);           /* pin of a map preview */
+  --shadow-composer: 0 1px 2px rgb(12 14 19 / 0.04);             /* input zone of the notes */
 
   /* Widths */
   --container-board: 73.75rem;  /* 1180px: content of a board page */

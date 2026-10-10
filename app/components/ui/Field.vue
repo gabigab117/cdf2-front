@@ -1,6 +1,8 @@
 <script setup lang="ts">
-const { label, optional = false, help, errors = [] } = defineProps<{
+const { label, optional = false, help, errors = [], hiddenLabel = false } = defineProps<{
   label: string
+  /** Read by screen readers only: the field says what it is, as the input zone of the notes does. */
+  hiddenLabel?: boolean
   /** A field that may stay empty says so. */
   optional?: boolean
   help?: string
@@ -25,6 +27,7 @@ const describedby = computed(() =>
     <label
       :for="id"
       class="text-label font-semibold text-sable-600"
+      :class="{ 'sr-only': hiddenLabel }"
     >
       {{ label }}<span
         v-if="optional"

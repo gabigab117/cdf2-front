@@ -71,6 +71,14 @@ function day(iso: string, { weekday = true, year = false }: { weekday?: boolean,
 }
 
 /**
+ * The day something was written, in passing: « 24 sept. », with its year when
+ * it is not the year of `now`: « 24 sept. 2025 ».
+ */
+function writtenDay(iso: string, now: number): string {
+  return day(iso, { weekday: false, year: parisCalendar(iso).year !== parisCalendar(now).year })
+}
+
+/**
  * A day with its month in full: « samedi 31 octobre », « sam. 31 octobre »,
  * « 30 septembre », with its year if asked. At the start of a sentence, it
  * takes a capital: « Samedi 31 octobre 2026 ».
@@ -207,5 +215,5 @@ function season(now: number): string {
  * the browser: the formats of the mockup.
  */
 export function useDateFormat() {
-  return { dayMonth, day, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
+  return { dayMonth, day, writtenDay, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
 }
