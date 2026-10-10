@@ -867,6 +867,9 @@ export interface components {
             general_tasks: components["schemas"]["GeneralTasksOut"];
             /** Latest Notes */
             latest_notes: components["schemas"]["LatestNoteOut"][];
+            pending: components["schemas"]["PendingOut"];
+            /** Recent Documents */
+            recent_documents: components["schemas"]["DocumentItemOut"][];
             /** Upcoming Events */
             upcoming_events: components["schemas"]["OverviewEventOut"][];
             /** Upcoming Events Count */
@@ -1107,6 +1110,10 @@ export interface components {
             assigned_count: number;
             /** Capacity */
             capacity: number | null;
+            /** Documents */
+            documents: components["schemas"]["DocumentItemOut"][];
+            /** Documents Count */
+            documents_count: number;
             /** Next Tasks */
             next_tasks: components["schemas"]["TaskOut"][];
             /** Notes Count */
@@ -1334,6 +1341,18 @@ export interface components {
             /** Position */
             position: string;
         };
+        /**
+         * NoteDocumentOut
+         * @description The document a note joins, as its chip names it.
+         */
+        NoteDocumentOut: {
+            /** Id */
+            id: number;
+            /** Original Name */
+            original_name: string;
+            /** Title */
+            title: string;
+        };
         /** NoteEventOut */
         NoteEventOut: {
             /** Id */
@@ -1346,6 +1365,8 @@ export interface components {
          * @description A note as a member writes it. Its values are checked by the model.
          */
         NoteIn: {
+            /** Document */
+            document?: number | null;
             /** Event */
             event: number | null;
             /** Pinned */
@@ -1356,7 +1377,7 @@ export interface components {
         };
         /**
          * NoteOut
-         * @description A note of the board, with its replies.
+         * @description A note of the board, with its attachment and its replies.
          */
         NoteOut: {
             author: components["schemas"]["BoardMemberOut"] | null;
@@ -1365,6 +1386,7 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            document: components["schemas"]["NoteDocumentOut"] | null;
             /** Editable */
             editable: boolean;
             /** Id */
@@ -1481,6 +1503,24 @@ export interface components {
             count: number;
             /** Items */
             items: components["schemas"]["TaskOut"][];
+        };
+        /**
+         * PendingDocumentsOut
+         * @description The documents awaiting review: how many, by category, and the latest.
+         */
+        PendingDocumentsOut: {
+            counts: components["schemas"]["DocumentCountsOut"];
+            /** Items */
+            items: components["schemas"]["DocumentItemOut"][];
+        };
+        /**
+         * PendingOut
+         * @description What awaits the board (A6): the bell's panel, the sidebar's badges.
+         */
+        PendingOut: {
+            documents: components["schemas"]["PendingDocumentsOut"];
+            /** Total */
+            total: number;
         };
         /**
          * PracticalInfoIcon
