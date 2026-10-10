@@ -53,12 +53,21 @@ describe('SiteHeader', () => {
 })
 
 describe('SiteFooter', () => {
-  it('leads to the committee\'s contact details from any page but the home page', async () => {
-    const onEvent = await mountSuspended(SiteFooter, { route: '/evenements/halloween-des-enfants-2026' })
-    expect(onEvent.get('a').attributes('href')).toBe('/#contact')
+  it('leads to the legal pages from every page, and to the contact details from any but the home page', async () => {
+    const links = async (route: string) =>
+      (await mountSuspended(SiteFooter, { route })).findAll('a').map(link => [link.text(), link.attributes('href')])
 
-    const onHome = await mountSuspended(SiteFooter, { route: '/' })
-    expect(onHome.find('a').exists()).toBe(false)
+    expect(await links('/evenements/halloween-des-enfants-2026')).toEqual([
+      ['Contact', '/#contact'],
+      ['Mentions légales', '/mentions-legales'],
+      ['Données personnelles', '/donnees-personnelles'],
+    ])
+
+    // The home page shows the contact details just above its footer.
+    expect(await links('/')).toEqual([
+      ['Mentions légales', '/mentions-legales'],
+      ['Données personnelles', '/donnees-personnelles'],
+    ])
   })
 
   it('dates its copyright with the year of the render, in Paris', async () => {
