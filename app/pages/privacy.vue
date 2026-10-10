@@ -12,6 +12,7 @@ const RETENTION_PERIODS: ReadonlyArray<{ data: string, period: string }> = [
   },
   { data: 'Notes et tâches du bureau', period: 'Supprimées avec leur événement, ou à la main : une note par son auteur' },
   { data: 'Noms des bénévoles affectés aux postes', period: 'Effacés 2 ans après l’événement' },
+  { data: 'Noms et remarques des réservations', period: 'Effacés 3 mois après l’événement, les totaux conservés' },
   { data: 'Session de l’espace du bureau', period: '7 jours, puis effacée la nuit suivante' },
   { data: 'Session de l’administration des comptes', period: '2 semaines, puis effacée la nuit suivante' },
   { data: 'Compteurs de connexion', period: 'Effacés chaque nuit' },
@@ -45,8 +46,9 @@ useSitePage({
       <p>Les notes du bureau portent le nom de leur auteur, les tâches celui de la personne qui les a créées et de celle à qui elles sont assignées. Seul le bureau les lit. Ce sont des textes libres : on n’y écrit que le nécessaire, et aucune donnée sensible, comme une information de santé.</p>
       <p>La connexion à l’espace du bureau pose un cookie technique, indispensable pour rester connecté. L’administration des comptes pose aussi les siens : sa session et la protection de ses formulaires. Les connexions sont comptées par adresse IP, pour bloquer les essais de mots de passe.</p>
     </SiteLegalSection>
-    <SiteLegalSection title="Bénévoles des événements">
+    <SiteLegalSection title="Bénévoles et réservations">
       <p>Le bureau répartit les bénévoles sur les postes d’un événement : il note leur nom, et parfois leur rôle. Ces noms ne sont visibles que du bureau, jamais publiés sur le site, et ils sont effacés deux ans après l’événement.</p>
+      <p>Le bureau saisit aussi les réservations d’un repas ou d’une sortie : un nom, le nombre de places et, au besoin, une remarque sur la table ou le placement, jamais une information de santé. Noms et remarques sont effacés trois mois après l’événement ; seuls les totaux restent.</p>
     </SiteLegalSection>
     <SiteLegalSection title="Durées de conservation">
       <table class="w-full text-left">
