@@ -21,6 +21,7 @@ function paris(options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat {
 // the first of the month, the hours and the capital are written here.
 const FORMATS = {
   numeric: paris({ day: '2-digit', month: '2-digit' }),
+  numericWithYear: paris({ day: '2-digit', month: '2-digit', year: 'numeric' }),
   time: paris({ hour: 'numeric', minute: '2-digit', hourCycle: 'h23' }),
   weekdayAndDay: paris({ weekday: 'short', day: 'numeric' }),
   day: paris({ day: 'numeric', month: 'short' }),
@@ -60,6 +61,11 @@ function capitalized(text: string): string {
 /** « 31/10 ». */
 function dayMonth(iso: string): string {
   return FORMATS.numeric.format(new Date(iso))
+}
+
+/** « 03/10/2026 · 9 h 30 », when something was recorded, as a table lists it. */
+function recordedAt(iso: string): string {
+  return `${FORMATS.numericWithYear.format(new Date(iso))} · ${time(iso)}`
 }
 
 /** « sam. 31 oct. », « dim. 1er nov. 2026 », « 31 oct. 2025 ». */
@@ -224,5 +230,5 @@ function season(now: number): string {
  * the browser: the formats of the mockup.
  */
 export function useDateFormat() {
-  return { dayMonth, day, writtenDay, calendarDay, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
+  return { dayMonth, recordedAt, day, writtenDay, calendarDay, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
 }

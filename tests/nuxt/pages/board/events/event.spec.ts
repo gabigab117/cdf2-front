@@ -24,7 +24,7 @@ describe('the board\'s page of an event', () => {
     // The sidebar's coming events, which saving the event fetches again.
     mockApi('/api/board/events', { handler: () => apiResponse(200, page([])) })
     // The counts of the tabs, and the notes of the first tab.
-    mockApi('/api/board/events/{event_id}/dashboard', { handler: () => apiResponse(200, { notes_count: 6, tasks_done: 9, tasks_total: 14, next_tasks: [], recently_done_tasks: [], assigned_count: 4, required_count: 7 }) }, { event_id: 12 })
+    mockApi('/api/board/events/{event_id}/dashboard', { handler: () => apiResponse(200, { notes_count: 6, tasks_done: 9, tasks_total: 14, next_tasks: [], recently_done_tasks: [], assigned_count: 4, required_count: 7, reserved_seats: 42, capacity: 80 }) }, { event_id: 12 })
     mockApi('/api/board/notes', { handler: () => apiResponse(200, page([])) })
   })
 
@@ -72,6 +72,7 @@ describe('the board\'s page of an event', () => {
       ['Notes du bureau 6', 'true'],
       ['Tâches 9/14', 'false'],
       ['Postes 4/7', 'false'],
+      ['Réservations 42/80', 'false'],
       ['Infos publiques', 'false'],
     ])
     expect(eventPage.get('[role="tabpanel"] textarea').attributes('placeholder')).toBe('Écrire une note pour le bureau…')

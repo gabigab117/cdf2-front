@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { useDateFormat } from '~/composables/useDateFormat'
 
 const formats = useDateFormat()
-const { dayMonth, day, writtenDay, calendarDay, longDay, dayParts, clock, period, eventDays, countdown, countdownText, season } = formats
+const { dayMonth, recordedAt, day, writtenDay, calendarDay, longDay, dayParts, clock, period, eventDays, countdown, countdownText, season } = formats
 
 // The texts as they read: the spaces of a time do not break, which a test
 // checks once.
@@ -20,6 +20,10 @@ const HALLOWEEN = '2026-10-31T14:00:00Z'
 describe('useDateFormat', () => {
   it('writes a day as numbers', () => {
     expect(dayMonth(HALLOWEEN)).toBe('31/10')
+  })
+
+  it('writes when something was recorded, as a table lists it', () => {
+    expect(readable(recordedAt('2026-10-03T07:30:00Z'))).toBe('03/10/2026 · 9 h 30')
   })
 
   it.each([

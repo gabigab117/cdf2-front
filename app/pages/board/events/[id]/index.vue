@@ -32,6 +32,7 @@ const tabs = computed(() => [
   { value: 'notes' as const, label: 'Notes du bureau', icon: Lock, count: dashboard.value ? String(dashboard.value.notes_count) : undefined },
   { value: 'tasks' as const, label: 'Tâches', count: dashboard.value ? `${dashboard.value.tasks_done}/${dashboard.value.tasks_total}` : undefined },
   { value: 'stations' as const, label: 'Postes', count: dashboard.value ? `${dashboard.value.assigned_count}/${dashboard.value.required_count}` : undefined },
+  { value: 'reservations' as const, label: 'Réservations', count: dashboard.value ? seatsCount(dashboard.value) : undefined },
   { value: 'public' as const, label: 'Infos publiques' },
 ])
 
@@ -139,6 +140,11 @@ function show(saved: components['schemas']['EventOut']): void {
       <StationsTab
         v-else-if="tab === 'stations'"
         :event
+      />
+      <ReservationsTab
+        v-else-if="tab === 'reservations'"
+        :event
+        :page="query.page"
       />
       <EventsPublicInfoForm
         v-else
