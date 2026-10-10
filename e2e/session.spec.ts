@@ -153,7 +153,10 @@ test('a board member signs in, keeps their session over a reload, staffs a stati
   })
 
   await test.step('a loan in conflict is blocked, then brought back to what is free', async () => {
-    const rows = page.getByRole('listitem').filter({ hasText: BORROWER })
+    // The loans of the journey not yet cancelled, in the list of all the
+    // loans: the planning above it lists them too.
+    const loans = page.getByRole('list', { name: 'Prêts', exact: true })
+    const confirmed = loans.getByRole('listitem').filter({ hasText: BORROWER }).filter({ hasText: 'Confirmé' })
     const panel = page.getByRole('region', { name: BORROWER })
     const summary = page.getByRole('complementary', { name: 'Récapitulatif' })
     const save = summary.getByRole('button', { name: 'Enregistrer le prêt' })
@@ -165,16 +168,15 @@ test('a board member signs in, keeps their session over a reload, staffs a stati
     }
 
     // A journey cut short leaves its loans behind, holding the refrigerator:
-    // a new try cancels them first.
+    // a new try cancels them first, once the loans have come. It stays on all
+    // the loans: a chip would show the rows of the list it leaves until its
+    // own came.
     await page.getByRole('navigation', { name: 'Espace bureau' }).getByRole('link', { name: /^Prêts/ }).click()
-    await page.getByRole('navigation', { name: 'États' }).getByRole('link', { name: /^Confirmés/ }).click()
-    await expect(page).toHaveURL(/etat=confirmes/)
-    await expect(page.getByText(/Aucun prêt dans cet état|Prêts de matériel/).first()).toBeVisible()
-    for (let left = await rows.count(); left > 0; left -= 1) {
-      await rows.first().getByRole('link').click()
+    await expect(loans).toBeVisible()
+    for (let left = await confirmed.count(); left > 0; left -= 1) {
+      await confirmed.first().getByRole('link').click()
       await cancelShown()
-      await panel.getByRole('button', { name: 'Fermer la fiche' }).click()
-      await expect(rows).toHaveCount(left - 1)
+      await expect(confirmed).toHaveCount(left - 1)
     }
 
     // A first loan takes the only refrigerator, far ahead.
@@ -212,13 +214,13 @@ test('a board member signs in, keeps their session over a reload, staffs a stati
     await expect(panel.getByText('Mange-debout')).toBeVisible()
     await expect(panel.getByText('Réfrigérateur vitrine')).toHaveCount(0)
 
-    // Both loans are cancelled: the next try starts afresh.
+    // Both loans are cancelled, the first once the list has followed the
+    // second: the next try starts afresh.
     await cancelShown()
-    await page.getByRole('navigation', { name: 'États' }).getByRole('link', { name: /^Confirmés/ }).click()
-    await rows.first().getByRole('link').click()
+    await expect(confirmed).toHaveCount(1)
+    await confirmed.first().getByRole('link').click()
     await cancelShown()
-    await panel.getByRole('button', { name: 'Fermer la fiche' }).click()
-    await expect(rows).toHaveCount(0)
+    await expect(confirmed).toHaveCount(0)
   })
 
   await test.step('signing out closes the session for good', async () => {

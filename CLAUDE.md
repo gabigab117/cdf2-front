@@ -89,6 +89,7 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
   - Des composants partagent une donnée par sa clé, déclarée dans **un seul composable** (`useUpcomingEvents`, `useBoardEvent`). Nuxt garde le handler du premier appelant : deux handlers pour une clé, c'est une donnée fausse.
   - Quand plusieurs composants montent en même temps, `dedupe: 'defer'` leur fait attendre la requête en cours, au lieu de l'annuler pour la leur.
   - `data` n'est pas profond : on le remplace, on ne le modifie jamais.
+  - **Une clé réactive garde la donnée de la clé qu'elle quitte** jusqu'à l'arrivée de la sienne (constaté sur Nuxt 4.6) : après un changement de filtre, une liste montre encore les lignes du filtre précédent, sous `aria-busy`. Un parcours E2E ne compte donc ni ne clique une ligne juste après un changement de filtre.
   - Après une écriture, la donnée qu'elle change se recharge par sa clé (`refreshNuxtData`). Toute écriture d'un événement recharge la barre latérale (`useEventWrites`).
   - Une donnée qu'une seule page lit n'a pas de rechargement à prévoir après une écriture faite sur une autre page : Nuxt purge la donnée d'une clé au démontage de son dernier composant, `refreshNuxtData` n'atteint que les clés montées, et la page la relit à sa prochaine visite.
   - **L'agrégat du tableau de bord (`useBoardOverview`, clé `board:overview`) est partagé avec le layout**, qui en montre ce qui attend le bureau (la cloche, les badges de la barre latérale, A6) sur toutes les pages : sa clé reste donc montée.

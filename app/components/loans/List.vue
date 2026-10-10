@@ -56,7 +56,10 @@ const rows = computed(() =>
 </script>
 
 <template>
-  <ul class="divide-y divide-argent-100">
+  <ul
+    aria-label="Prêts"
+    class="divide-y divide-argent-100"
+  >
     <li
       v-for="row in rows"
       :key="row.id"
