@@ -268,6 +268,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/tasks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the tasks of an event
+         * @description The tasks of an event, by page: open first by due date, then those done.
+         */
+        get: operations["tasks_api_list_tasks"];
+        put?: never;
+        /**
+         * Create a task
+         * @description Record a task of the signed-in member.
+         */
+        post: operations["tasks_api_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/tasks/{task_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update a task
+         * @description Rewrite a task whole: ticking it done records when.
+         */
+        put: operations["tasks_api_update"];
+        post?: never;
+        /** Delete a task */
+        delete: operations["tasks_api_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -446,11 +491,19 @@ export interface components {
         EventCategory: "children" | "meals" | "markets" | "games" | "festivities";
         /**
          * EventDashboardOut
-         * @description What an event's page shows of its tabs: their counts.
+         * @description What an event's page shows of its tabs: their counts, and its tasks block.
          */
         EventDashboardOut: {
+            /** Next Tasks */
+            next_tasks: components["schemas"]["TaskOut"][];
             /** Notes Count */
             notes_count: number;
+            /** Recently Done Tasks */
+            recently_done_tasks: components["schemas"]["TaskOut"][];
+            /** Tasks Done */
+            tasks_done: number;
+            /** Tasks Total */
+            tasks_total: number;
         };
         /** EventFilters */
         EventFilters: {
@@ -703,6 +756,13 @@ export interface components {
             /** Items */
             items: components["schemas"]["PublicEventItemOut"][];
         };
+        /** PagedTaskOut */
+        PagedTaskOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["TaskOut"][];
+        };
         /**
          * PracticalInfoIcon
          * @enum {string}
@@ -865,6 +925,43 @@ export interface components {
              * Format: date-time
              */
             updated_at: string;
+        };
+        /**
+         * TaskIn
+         * @description A task as the board writes it: whole, every key required.
+         *
+         *     A key left out never erases a value. The values themselves are checked by
+         *     the model, whose messages are in French.
+         */
+        TaskIn: {
+            /** Assignee */
+            assignee: number | null;
+            /** Done */
+            done: boolean;
+            /** Due Date */
+            due_date: string | null;
+            /** Event */
+            event: number | null;
+            /** Title */
+            title: string;
+        };
+        /**
+         * TaskOut
+         * @description A task, with whom it is assigned to and when it was done.
+         */
+        TaskOut: {
+            assignee: components["schemas"]["BoardMemberOut"] | null;
+            created_by: components["schemas"]["BoardMemberOut"] | null;
+            /** Done At */
+            done_at: string | null;
+            /** Due Date */
+            due_date: string | null;
+            /** Event */
+            event: number | null;
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
         };
         /** ValidationErrorItem */
         ValidationErrorItem: {
@@ -1817,6 +1914,244 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    tasks_api_list_tasks: {
+        parameters: {
+            query: {
+                event: number;
+                page?: number;
+                page_size?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedTaskOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    tasks_api_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    tasks_api_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TaskIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TaskOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    tasks_api_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
                 };
             };
         };
