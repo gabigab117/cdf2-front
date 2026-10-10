@@ -159,6 +159,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Board overview
+         * @description The dashboard's figures, whole: a bounded aggregate, never paginated.
+         */
+        get: operations["dashboard_api_overview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -314,6 +334,16 @@ export interface components {
             id: number;
             /** Last Name */
             last_name: string;
+        };
+        /**
+         * BoardOverviewOut
+         * @description What the board's dashboard shows.
+         */
+        BoardOverviewOut: {
+            /** Upcoming Events */
+            upcoming_events: components["schemas"]["EventItemOut"][];
+            /** Upcoming Events Count */
+            upcoming_events_count: number;
         };
         /** ErrorOut */
         ErrorOut: {
@@ -1191,6 +1221,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    dashboard_api_overview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BoardOverviewOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
                 };
             };
         };
