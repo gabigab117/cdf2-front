@@ -23,8 +23,8 @@ const SECTIONS: ReadonlyArray<{ title?: string, entries: readonly Entry[] }> = [
     entries: [
       { label: 'Trésorerie', path: '/bureau/tresorerie', icon: Wallet },
       { label: 'Stock', path: '/bureau/stock', icon: Package },
-      { label: 'Matériel', path: '/bureau/materiel', icon: Tent },
-      { label: 'Prêts', path: '/bureau/prets', icon: ArrowRightLeft },
+      { label: 'Matériel', path: EQUIPMENT_PATH, icon: Tent },
+      { label: 'Prêts', path: LOANS_PATH, icon: ArrowRightLeft },
     ],
   },
 ]
@@ -34,8 +34,20 @@ const route = useRoute()
 // The number of events to come, from the request the « À venir » block shares.
 const { data: upcoming } = useUpcomingEvents()
 
-// What awaits the board, from its overview (A6): the documents to review.
+// What awaits the board, from its overview (A6): the documents to review, the
+// loans to prepare or late.
 const { data: overview } = useBoardOverview()
+
+// An entry's badge: how many items await, and what they await, for screen
+// readers. The label keeps the space that parts it from the count: Vue drops a
+// space alone before an interpolation.
+function badge(path: string): { count: number, label: string } | null {
+  const pending = overview.value?.pending
+  if (!pending) return null
+  if (path === DOCUMENTS_PATH) return { count: pending.documents.counts.total, label: ' à vérifier' }
+  if (path === LOANS_PATH) return { count: pending.loans.to_prepare + pending.loans.overdue, label: ' à préparer ou en retard' }
+  return null
+}
 
 // An entry stays current on the pages below it, such as a loan under "Prêts";
 // not the dashboard, which every page of the board is below.
@@ -50,7 +62,7 @@ const sections = computed(() =>
       ...entry,
       current: isCurrent(entry),
       count: entry.path === EVENTS_PATH && upcoming.value?.count ? upcoming.value.count : null,
-      badge: entry.path === DOCUMENTS_PATH ? overview.value?.pending.documents.counts.total || null : null,
+      badge: badge(entry.path),
     })),
   })),
 )
@@ -86,9 +98,9 @@ const sections = computed(() =>
           class="font-mono text-xs text-argent-450"
         >{{ entry.count }}<span class="sr-only"> à venir</span></span>
         <span
-          v-if="entry.badge"
+          v-if="entry.badge?.count"
           class="inline-flex h-5.5 min-w-5.5 items-center justify-center rounded-full bg-azur-600 px-1.5 text-xs font-semibold text-white"
-        >{{ entry.badge }}<span class="sr-only"> à vérifier</span></span>
+        >{{ entry.badge.count }}<span class="sr-only">{{ entry.badge.label }}</span></span>
       </NuxtLink>
     </template>
   </nav>

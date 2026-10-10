@@ -1203,6 +1203,9 @@ export interface components {
             general_tasks: components["schemas"]["GeneralTasksOut"];
             /** Latest Notes */
             latest_notes: components["schemas"]["LatestNoteOut"][];
+            /** Loan Movements */
+            loan_movements: components["schemas"]["LoanMovementOut"][];
+            loans: components["schemas"]["LoanedEquipmentOut"];
             pending: components["schemas"]["PendingOut"];
             /** Recent Documents */
             recent_documents: components["schemas"]["DocumentItemOut"][];
@@ -1524,10 +1527,13 @@ export interface components {
             assigned_count: number;
             /** Capacity */
             capacity: number | null;
+            committee_loan: components["schemas"]["LoanItemOut"] | null;
             /** Documents */
             documents: components["schemas"]["DocumentItemOut"][];
             /** Documents Count */
             documents_count: number;
+            /** Equipment Count */
+            equipment_count: number;
             /** Next Tasks */
             next_tasks: components["schemas"]["TaskOut"][];
             /** Notes Count */
@@ -1974,6 +1980,24 @@ export interface components {
             quantity: number;
         };
         /**
+         * LoanMovementOut
+         * @description The next step of a loan within the fortnight: the checkout of a loan
+         *     confirmed, or the return of a loan out.
+         */
+        LoanMovementOut: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "checkout" | "return";
+            loan: components["schemas"]["LoanItemOut"];
+        };
+        /**
          * LoanOut
          * @description A loan, as its page shows it and its form edits it.
          */
@@ -2070,6 +2094,17 @@ export interface components {
          * @enum {string}
          */
         LoanStatus: "confirmed" | "out" | "returned" | "cancelled";
+        /**
+         * LoanedEquipmentOut
+         * @description The KPI « Matériel prêté ».
+         */
+        LoanedEquipmentOut: {
+            next_return: components["schemas"]["LoanBriefOut"] | null;
+            /** Out Count */
+            out_count: number;
+            /** To Prepare Count */
+            to_prepare_count: number;
+        };
         /** LoginIn */
         LoginIn: {
             /** Email */
@@ -2286,11 +2321,24 @@ export interface components {
             items: components["schemas"]["DocumentItemOut"][];
         };
         /**
+         * PendingLoansOut
+         * @description The loans that call for the board: late, then to prepare.
+         */
+        PendingLoansOut: {
+            /** Items */
+            items: components["schemas"]["LoanBriefOut"][];
+            /** Overdue */
+            overdue: number;
+            /** To Prepare */
+            to_prepare: number;
+        };
+        /**
          * PendingOut
          * @description What awaits the board (A6): the bell's panel, the sidebar's badges.
          */
         PendingOut: {
             documents: components["schemas"]["PendingDocumentsOut"];
+            loans: components["schemas"]["PendingLoansOut"];
             /** Total */
             total: number;
         };

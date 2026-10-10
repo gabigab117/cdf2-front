@@ -3,10 +3,13 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import BoardTopBar from '~/components/board/TopBar.vue'
 import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
 import { documentItem } from '../../helpers/documents'
+import { loanBrief } from '../../helpers/equipment'
 
-function mockPending(total: number, items = [documentItem()], counted = total) {
+const NO_LOAN = { overdue: 0, to_prepare: 0, items: [] }
+
+function mockPending(total: number, items = [documentItem()], counted = total, loans: object = NO_LOAN) {
   mockApi('/api/board/overview', { handler: () => apiResponse(200, {
-    pending: { total, documents: { counts: { total: counted, invoice: counted, order: 0, minutes: 0, misc: 0 }, items } },
+    pending: { total, documents: { counts: { total: counted, invoice: counted, order: 0, minutes: 0, misc: 0 }, items }, loans },
   }) })
 }
 
@@ -74,6 +77,42 @@ describe('BoardTopBar', () => {
       [expect.stringContaining('Bon de commande — Bonbons'), '/bureau/documents?document=22'],
       ['Voir les 12 documents à vérifier', '/bureau/documents?statut=a-verifier'],
     ])
+  })
+
+  it('lists the loans late, then those to prepare, and leads to them all', async () => {
+    /**
+     * Given, on 1 October, a loan late and eleven to prepare, of which the
+     * overview lists the first ten
+     * Then the panel lists the late one, then those to prepare, each leading to
+     * its panel and saying when, then leads to all the loans
+     */
+    useSessionStore().accessToken = 'access-1'
+    useNow().value = Date.parse('2026-10-01T10:00:00+02:00')
+    const toPrepare = Array.from({ length: 9 }, (_, index) => loanBrief({ id: 30 + index, display_name: `Club ${index}`, purpose: '', state: 'to_prepare', start_date: '2026-10-05' }))
+    mockPending(12, [], 0, {
+      overdue: 1,
+      to_prepare: 11,
+      items: [
+        loanBrief({ id: 18, display_name: 'Tennis', purpose: 'Tournoi', state: 'overdue', start_date: '2026-09-25', end_date: '2026-09-29' }),
+        loanBrief({ id: 19, display_name: 'M. Petit', purpose: 'Anniversaire', state: 'to_prepare', start_date: '2026-10-02', end_date: '2026-10-04' }),
+        ...toPrepare,
+      ],
+    })
+
+    const bar = await mountSuspended(BoardTopBar, { route: '/bureau' })
+
+    const bell = bar.findAll('button').find(candidate => candidate.attributes('aria-label')?.startsWith('À traiter'))!
+    await vi.waitFor(() => expect(bell.attributes('aria-label')).toBe('À traiter (12)'))
+    const panel = bar.get(`[popover][id="${bell.attributes('popovertarget')}"]`)
+    expect(panel.findAll('h3').map(title => title.text())).toEqual(['Prêts en retard', 'Prêts à préparer'])
+    const links = panel.findAll('a')
+    expect(links.slice(0, 2).map(link => [link.text(), link.attributes('href')])).toEqual([
+      ['Tennis — TournoiEn retard depuis le mer. 30 sept.', '/bureau/prets?pret=18'],
+      ['M. Petit — AnniversaireSortie demain', '/bureau/prets?pret=19'],
+    ])
+    expect(links.at(-1)!.text()).toBe('Voir les 12 prêts à traiter')
+    expect(links.at(-1)!.attributes('href')).toBe('/bureau/prets')
+    clearNuxtState('now')
   })
 
   it('says nothing awaits the board, without a dot', async () => {

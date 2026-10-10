@@ -3,6 +3,7 @@ import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import EventPage from '~/pages/board/events/[id]/index.vue'
 import { apiResponse, clearApiMocks, mockApi } from '../../../helpers/api'
+import { loanBrief } from '../../../helpers/equipment'
 import { boardEvent, page } from '../../../helpers/events'
 
 const { showErrorMock } = vi.hoisted(() => ({ showErrorMock: vi.fn() }))
@@ -24,7 +25,7 @@ describe('the board\'s page of an event', () => {
     // The sidebar's coming events, which saving the event fetches again.
     mockApi('/api/board/events', { handler: () => apiResponse(200, page([])) })
     // The counts of the tabs, and the notes of the first tab.
-    mockApi('/api/board/events/{event_id}/dashboard', { handler: () => apiResponse(200, { notes_count: 6, tasks_done: 9, tasks_total: 14, next_tasks: [], recently_done_tasks: [], assigned_count: 4, required_count: 7, reserved_seats: 42, capacity: 80, documents_count: 4, documents: [] }) }, { event_id: 12 })
+    mockApi('/api/board/events/{event_id}/dashboard', { handler: () => apiResponse(200, { notes_count: 6, tasks_done: 9, tasks_total: 14, next_tasks: [], recently_done_tasks: [], assigned_count: 4, required_count: 7, reserved_seats: 42, capacity: 80, documents_count: 4, documents: [], equipment_count: 0, committee_loan: null }) }, { event_id: 12 })
     mockApi('/api/board/notes', { handler: () => apiResponse(200, page([])) })
   })
 
@@ -73,6 +74,7 @@ describe('the board\'s page of an event', () => {
       ['Tâches 9/14', 'false'],
       ['Postes 4/7', 'false'],
       ['Réservations 42/80', 'false'],
+      ['Matériel 0', 'false'],
       ['Documents 4', 'false'],
       ['Infos publiques', 'false'],
     ])
@@ -101,6 +103,42 @@ describe('the board\'s page of an event', () => {
     await eventPage.get('form').trigger('submit')
 
     await vi.waitFor(() => expect(eventPage.text()).toContain('Non publié'))
+  })
+
+  it('shows the equipment the event keeps, in its tab and beside its notes', async () => {
+    /**
+     * Given Halloween, which keeps two marquees from the day before to the day after
+     * Then its tab counts one line, and shows the block, as the notes do beside them
+     */
+    useNow().value = Date.parse('2026-10-01T10:00:00+02:00')
+    const reservation = {
+      ...loanBrief({ id: 31, number: null, display_name: 'Halloween des enfants', purpose: '', borrower_type: 'committee', state: 'committee', start_date: '2026-10-30', end_date: '2026-11-01' }),
+      lines: [{ id: 41, equipment: { id: 5, name: 'Barnums 3 × 3 m', unit_value: '250.00' }, quantity: 2, damaged_quantity: 0, missing_quantity: 0 }],
+    }
+    mockApi(EVENT, { handler: () => apiResponse(200, boardEvent()) }, { event_id: 12 })
+    mockApi('/api/board/events/{event_id}/dashboard', { handler: () => apiResponse(200, { notes_count: 6, tasks_done: 9, tasks_total: 14, next_tasks: [], recently_done_tasks: [], assigned_count: 4, required_count: 7, reserved_seats: 42, capacity: 80, documents_count: 4, documents: [], equipment_count: 1, committee_loan: reservation }) }, { event_id: 12 })
+
+    const eventPage = await mountEvent()
+
+    await vi.waitFor(() => expect(eventPage.find('#reserved-equipment').exists()).toBe(true))
+    expect(eventPage.findAll('[role="tabpanel"] aside h2').map(title => title.text())).toEqual(['Tâches', 'Matériel réservé', 'Documents liés'])
+    await eventPage.findAll('[role="tab"]').find(tab => tab.text() === 'Matériel 1')!.trigger('click')
+    await vi.waitFor(() => expect(useRoute().query.onglet).toBe('materiel'))
+    const block = eventPage.get('[role="tabpanel"] section[aria-labelledby="reserved-equipment"]')
+    expect(readable(block.get('header').text())).toBe('Matériel réservé Usage comitéDu ven. 30 oct. au dim. 1er nov. · bloqué pour les prêts')
+    expect(block.findAll('li').map(line => line.text())).toEqual(['Barnums 3 × 3 m× 2'])
+    expect(block.get('a').attributes('href')).toBe('/bureau/prets/31/modifier')
+    clearNuxtState('now')
+  })
+
+  it('offers to keep equipment for an event that keeps none', async () => {
+    mockApi(EVENT, { handler: () => apiResponse(200, boardEvent()) }, { event_id: 12 })
+
+    const eventPage = await mountEvent('/bureau/evenements/12?onglet=materiel')
+
+    await vi.waitFor(() => expect(eventPage.text()).toContain('Aucun matériel n’est réservé pour cet événement.'))
+    expect(eventPage.findAll('a').find(link => link.text() === 'Réserver du matériel')?.attributes('href')).toBe('/bureau/prets/nouveau?evenement=12')
+    expect(eventPage.find('#reserved-equipment').exists()).toBe(false)
   })
 
   it('is the page not found of an event that does not exist', async () => {

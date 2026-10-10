@@ -14,6 +14,8 @@ const RETENTION_PERIODS: ReadonlyArray<{ data: string, period: string }> = [
   { data: 'Documents du bureau', period: 'Gardés pour la gestion de l’association, factures comprises ; un membre du bureau peut en supprimer un' },
   { data: 'Noms des bénévoles affectés aux postes', period: 'Effacés 2 ans après l’événement' },
   { data: 'Noms et remarques des réservations', period: 'Effacés 3 mois après l’événement, les totaux conservés' },
+  { data: 'Téléphone d’un emprunteur', period: 'Effacé 3 mois après le retour du matériel, ou après la date de retour prévue d’un prêt annulé' },
+  { data: 'Nom d’un emprunteur particulier, et remarques de son prêt', period: 'Effacés 1 an après le retour du matériel, ou après la date de retour prévue d’un prêt annulé' },
   { data: 'Session de l’espace du bureau', period: '7 jours, puis effacée la nuit suivante' },
   { data: 'Session de l’administration des comptes', period: '2 semaines, puis effacée la nuit suivante' },
   { data: 'Compteurs de connexion', period: 'Effacés chaque nuit' },
@@ -55,6 +57,11 @@ useSitePage({
     <SiteLegalSection title="Bénévoles et réservations">
       <p>Le bureau répartit les bénévoles sur les postes d’un événement : il note leur nom, et parfois leur rôle. Ces noms ne sont visibles que du bureau, jamais publiés sur le site, et ils sont effacés deux ans après l’événement.</p>
       <p>Le bureau saisit aussi les réservations d’un repas ou d’une sortie : un nom, le nombre de places et, au besoin, une remarque sur la table ou le placement, jamais une information de santé. Noms et remarques sont effacés trois mois après l’événement ; seuls les totaux restent.</p>
+    </SiteLegalSection>
+    <SiteLegalSection title="Prêts de matériel">
+      <p>Le comité prête son matériel à des associations, à des particuliers et à la commune. Pour chaque prêt, le bureau note le nom de l’emprunteur, son téléphone, l’objet du prêt et, au besoin, une remarque. Seul le bureau les lit : aucun n’est publié sur le site.</p>
+      <p>La convention de prêt, imprimée depuis l’espace du bureau, reprend ce nom, ce téléphone et cet objet ; les remarques n’y figurent pas. Une fois signée, elle est déposée parmi les documents du bureau, et gardée comme eux.</p>
+      <p>Le téléphone est effacé trois mois après le retour du matériel. Le nom d’un particulier, et les remarques de son prêt, sont effacés un an après. Pour un prêt annulé, ces délais courent depuis sa date de retour prévue.</p>
     </SiteLegalSection>
     <SiteLegalSection title="Durées de conservation">
       <table class="w-full text-left">

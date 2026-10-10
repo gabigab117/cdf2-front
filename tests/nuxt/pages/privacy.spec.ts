@@ -26,19 +26,22 @@ describe('privacy page', () => {
 
     expect(page.get('h1').text()).toBe('Données personnelles')
     expect(page.findAll('h2').map(title => title.text())).toEqual([
-      'Visiteurs du site', 'Membres du bureau', 'Documents du bureau', 'Bénévoles et réservations', 'Durées de conservation', 'Vos droits',
+      'Visiteurs du site', 'Membres du bureau', 'Documents du bureau', 'Bénévoles et réservations', 'Prêts de matériel', 'Durées de conservation', 'Vos droits',
     ])
     expect(page.text()).toContain('Le site ne dépose aucun cookie, ne mesure pas son audience et ne vous demande rien.')
     expect(page.text()).toContain('Les notes du bureau portent le nom de leur auteur, les tâches celui de la personne qui les a créées et de celle à qui elles sont assignées. Seul le bureau les lit.')
     expect(page.text()).toContain('Une photo déposée perd ses métadonnées, la position où elle a été prise comprise.')
     expect(page.text()).toContain('Un document déposé est annoncé par e-mail aux membres du bureau que l’administrateur du site a choisis, sauf à celui qui l’a déposé.')
     expect(page.text()).toContain('Il passe par Mailo, qui en reçoit le texte et l’adresse de chaque destinataire. Le site n’en garde aucune copie.')
+    expect(page.text()).toContain('La convention de prêt, imprimée depuis l’espace du bureau, reprend ce nom, ce téléphone et cet objet ; les remarques n’y figurent pas.')
     expect(page.findAll('tbody tr').map(row => [row.get('th').text(), row.get('td').text()])).toEqual([
       ['Compte d’un membre du bureau', 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés, ses notes, ses tâches et les documents qu’elle a déposés ou validés. Il est supprimé si elle le demande : ses notes, ses tâches et ses documents restent, sans son nom.'],
       ['Notes et tâches du bureau', 'Supprimées avec leur événement, ou à la main : une note par son auteur'],
       ['Documents du bureau', 'Gardés pour la gestion de l’association, factures comprises ; un membre du bureau peut en supprimer un'],
       ['Noms des bénévoles affectés aux postes', 'Effacés 2 ans après l’événement'],
       ['Noms et remarques des réservations', 'Effacés 3 mois après l’événement, les totaux conservés'],
+      ['Téléphone d’un emprunteur', 'Effacé 3 mois après le retour du matériel, ou après la date de retour prévue d’un prêt annulé'],
+      ['Nom d’un emprunteur particulier, et remarques de son prêt', 'Effacés 1 an après le retour du matériel, ou après la date de retour prévue d’un prêt annulé'],
       ['Session de l’espace du bureau', '7 jours, puis effacée la nuit suivante'],
       ['Session de l’administration des comptes', '2 semaines, puis effacée la nuit suivante'],
       ['Compteurs de connexion', 'Effacés chaque nuit'],

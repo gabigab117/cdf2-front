@@ -13,7 +13,7 @@ function mockDashboard(documents = [documentItem()], count = documents.length) {
   mockApi(DASHBOARD, { handler: () => apiResponse(200, {
     notes_count: 0, tasks_done: 0, tasks_total: 0, next_tasks: [], recently_done_tasks: [],
     assigned_count: 0, required_count: 0, reserved_seats: 0, capacity: null,
-    documents_count: count, documents,
+    documents_count: count, documents, equipment_count: 0, committee_loan: null,
   }) }, { event_id: 12 })
 }
 

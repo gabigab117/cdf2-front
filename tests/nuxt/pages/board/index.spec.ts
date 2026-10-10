@@ -6,6 +6,7 @@ import type { components } from '~/types/api'
 import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
 import { julie, overviewEvent } from '../../helpers/events'
 import { documentItem } from '../../helpers/documents'
+import { loanBrief } from '../../helpers/equipment'
 import { boardTask } from '../../helpers/tasks'
 
 type BoardOverviewOut = components['schemas']['BoardOverviewOut']
@@ -16,11 +17,20 @@ const camille = { email: 'camille.martin@example.test', first_name: 'Camille', l
 /** No general task yet. */
 const NO_GENERAL_TASK: BoardOverviewOut['general_tasks'] = { tasks_done: 0, tasks_total: 0, next_tasks: [], recently_done_tasks: [] }
 
+/** No loan to prepare or late. */
+const NO_PENDING_LOAN: BoardOverviewOut['pending']['loans'] = { overdue: 0, to_prepare: 0, items: [] }
+
 /** Nothing awaiting the board. */
 const NOTHING_PENDING: BoardOverviewOut['pending'] = {
   total: 0,
   documents: { counts: { total: 0, invoice: 0, order: 0, minutes: 0, misc: 0 }, items: [] },
+  loans: NO_PENDING_LOAN,
 }
+
+/** No equipment out, none to prepare. */
+const NOTHING_LENT: BoardOverviewOut['loans'] = { out_count: 0, to_prepare_count: 0, next_return: null }
+
+const LINE = { id: 41, equipment: { id: 5, name: 'Barnums 3 × 3 m', unit_value: '250.00' }, quantity: 2, damaged_quantity: 0, missing_quantity: 0 }
 
 function overview(
   events = [overviewEvent()],
@@ -29,6 +39,8 @@ function overview(
   generalTasks = NO_GENERAL_TASK,
   pending = NOTHING_PENDING,
   recent: BoardOverviewOut['recent_documents'] = [],
+  loans = NOTHING_LENT,
+  movements: BoardOverviewOut['loan_movements'] = [],
 ): BoardOverviewOut {
   return {
     upcoming_events: events,
@@ -37,7 +49,13 @@ function overview(
     general_tasks: generalTasks,
     pending,
     recent_documents: recent,
+    loans,
+    loan_movements: movements,
   }
+}
+
+function readable(text: string): string {
+  return text.replaceAll('\u202F', ' ').replaceAll('\u00A0', ' ')
 }
 
 function mockOverview(body: BoardOverviewOut) {
@@ -216,7 +234,7 @@ describe('the dashboard', () => {
      * Then the azur card counts them, by category, and leads to the documents to review
      */
     const counts = { total: 4, invoice: 2, order: 1, minutes: 1, misc: 0 }
-    mockOverview(overview([], 0, [], NO_GENERAL_TASK, { total: 4, documents: { counts, items: [] } }))
+    mockOverview(overview([], 0, [], NO_GENERAL_TASK, { total: 4, documents: { counts, items: [] }, loans: NO_PENDING_LOAN }))
 
     const dashboard = await mountDashboard()
 
@@ -224,6 +242,76 @@ describe('the dashboard', () => {
     const card = dashboard.findAll('a').find(link => link.text().includes('À valider'))!
     expect(card.text()).toContain('2 factures, 1 commande, 1 compte rendu')
     expect(card.attributes('href')).toBe('/bureau/documents?statut=a-verifier')
+  })
+
+  it('counts the equipment lent, names the first loan due back, and leads to the loans', async () => {
+    /**
+     * Given, on 1 October, two loans out, the school's due back tomorrow, and
+     * one to prepare
+     * Then the first card counts two out, names the school's return and the
+     * loan to prepare, and leads to the loans
+     */
+    const school = loanBrief({ id: 18, display_name: 'École du village', state: 'out', start_date: '2026-09-30', end_date: '2026-10-02' })
+    mockOverview(overview([], 0, [], NO_GENERAL_TASK, NOTHING_PENDING, [], { out_count: 2, to_prepare_count: 1, next_return: school }))
+
+    const dashboard = await mountDashboard()
+
+    await vi.waitFor(() => expect(dashboard.text()).toContain('2 en cours'))
+    const card = dashboard.findAll('a').find(link => link.text().startsWith('Matériel prêté'))!
+    expect(readable(card.text())).toBe('Matériel prêté2 en coursÉcole du village : retour ven. 2 oct. · 1 prêt à préparer')
+    expect(card.attributes('href')).toBe('/bureau/prets')
+  })
+
+  it('says a loan out is late, and when nothing is lent', async () => {
+    const tennis = loanBrief({ display_name: 'Tennis', state: 'overdue', start_date: '2026-09-25', end_date: '2026-09-29' })
+    mockOverview(overview([], 0, [], NO_GENERAL_TASK, NOTHING_PENDING, [], { out_count: 1, to_prepare_count: 0, next_return: tennis }))
+
+    const dashboard = await mountDashboard()
+
+    await vi.waitFor(() => expect(dashboard.text()).toContain('1 en cours'))
+    expect(readable(dashboard.text())).toContain('Tennis : en retard depuis le mer. 30 sept.')
+  })
+
+  it('says nothing is lent nor to prepare', async () => {
+    mockOverview(overview([], 0))
+
+    const dashboard = await mountDashboard()
+
+    await vi.waitFor(() => expect(dashboard.text()).toContain('0 en cours'))
+    expect(dashboard.text()).toContain('Aucun prêt en cours ni à préparer.')
+  })
+
+  it('lists the checkouts and returns of the fortnight, each leading to its loan', async () => {
+    /**
+     * Given the school's return tomorrow, M. Petit's checkout to prepare on
+     * Saturday, and the football club's on 16 October
+     * Then the block lists them by day, with their pills and equipment
+     */
+    const movements: BoardOverviewOut['loan_movements'] = [
+      { kind: 'return', day: '2026-10-02', loan: { ...loanBrief({ id: 18, display_name: 'École du village', purpose: 'Cross', state: 'out' }), lines: [LINE] } },
+      { kind: 'checkout', day: '2026-10-03', loan: { ...loanBrief({ id: 19, display_name: 'M. Petit', purpose: 'Anniversaire', state: 'to_prepare' }), lines: [LINE] } },
+      { kind: 'checkout', day: '2026-10-16', loan: { ...loanBrief({ id: 20 }), lines: [{ ...LINE, quantity: 4 }] } },
+    ]
+    mockOverview(overview([], 0, [], NO_GENERAL_TASK, NOTHING_PENDING, [], NOTHING_LENT, movements))
+
+    const dashboard = await mountDashboard()
+
+    await vi.waitFor(() => expect(block(dashboard, 'Matériel : sorties et retours').findAll('li')).toHaveLength(3))
+    const rows = block(dashboard, 'Matériel : sorties et retours').findAll('li a')
+    expect(rows.map(row => [readable(row.text()), row.attributes('href')])).toEqual([
+      ['RetourÉcole du village — CrossBarnums 3 × 3 m (2)ven. 2 oct.', '/bureau/prets?pret=18'],
+      ['SortieM. Petit — AnniversaireBarnums 3 × 3 m (2) · à préparersam. 3 oct.', '/bureau/prets?pret=19'],
+      ['SortieClub de football — Tournoi jeunesBarnums 3 × 3 m (4)ven. 16 oct.', '/bureau/prets?pret=20'],
+    ])
+    expect(block(dashboard, 'Matériel : sorties et retours').findAll('a').find(link => link.text() === 'Nouveau prêt')?.attributes('href')).toBe('/bureau/prets/nouveau')
+  })
+
+  it('says when no loan leaves or comes back within the fortnight', async () => {
+    mockOverview(overview([], 0))
+
+    const dashboard = await mountDashboard()
+
+    await vi.waitFor(() => expect(dashboard.text()).toContain('Aucune sortie ni aucun retour dans les deux semaines à venir.'))
   })
 
   it('says every document is validated when none awaits', async () => {

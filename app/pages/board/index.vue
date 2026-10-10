@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FileCheck } from '@lucide/vue'
+import { ArrowRightLeft, FileCheck } from '@lucide/vue'
 
 definePageMeta({ path: '/bureau' })
 
@@ -7,7 +7,7 @@ useHead({ title: 'Tableau de bord' })
 
 const session = useSessionStore()
 const now = useNow()
-const { longDay, countdown, countdownText } = useDateFormat()
+const { longDay, countdown, countdownText, calendarWeekday } = useDateFormat()
 
 // The dashboard's figures, shared with the layout. Lazy: the greeting and the
 // day wait for no request.
@@ -31,6 +31,21 @@ const toReviewValue = computed(() => {
 const toReviewDetail = computed(() =>
   toReview.value && toReview.value.total > 0 ? categoryCounts(toReview.value) : 'Tous les documents sont validés.',
 )
+// « 2 en cours », then the first loan due back and those to prepare:
+// « École du village : retour ven. 2 oct. · 1 prêt à préparer ».
+const loaned = computed(() => data.value?.loans ?? null)
+const loanedValue = computed(() => `${loaned.value?.out_count ?? 0} en cours`)
+const loanedDetail = computed(() => {
+  const shown = loaned.value
+  if (!shown) return ''
+  const due = shown.next_return
+  const parts = [
+    due ? `${due.display_name} : ${dueBack(due)}` : '',
+    shown.to_prepare_count > 0 ? `${shown.to_prepare_count} prêt${shown.to_prepare_count > 1 ? 's' : ''} à préparer` : '',
+  ].filter(Boolean)
+  return parts.length > 0 ? parts.join(' · ') : 'Aucun prêt en cours ni à préparer.'
+})
+const movements = computed(() => data.value?.loan_movements ?? [])
 const count = computed(() => data.value?.upcoming_events_count ?? 0)
 const loading = computed(() => status.value === 'pending')
 const next = computed(() => events.value[0] ?? null)
@@ -45,6 +60,13 @@ const dateLine = computed(() =>
     : today.value,
 )
 const nextPill = computed(() => (nextCountdown.value ? countdownText(nextCountdown.value, 'short') : ''))
+
+// « retour ven. 2 oct. », or « en retard depuis le mer. 30 sept. ».
+function dueBack(loan: { state: string, end_date: string }): string {
+  return loan.state === 'overdue'
+    ? `en retard depuis le ${calendarWeekday(addDays(loan.end_date, 1), now.value)}`
+    : `retour ${calendarWeekday(loan.end_date, now.value)}`
+}
 </script>
 
 <template>
@@ -65,6 +87,14 @@ const nextPill = computed(() => (nextCountdown.value ? countdownText(nextCountdo
         v-if="toReview"
         :class="classes.kpis"
       >
+        <UiKpiCard
+          label="Matériel prêté"
+          :value="loanedValue"
+          :icon="ArrowRightLeft"
+          :to="LOANS_PATH"
+        >
+          {{ loanedDetail }}
+        </UiKpiCard>
         <UiKpiCard
           tone="azur"
           label="À valider"
@@ -106,12 +136,17 @@ const nextPill = computed(() => (nextCountdown.value ? countdownText(nextCountdo
       </div>
       <!-- The notes stand beside the events, then under them on a phone. -->
       <div class="flex flex-wrap items-start gap-5">
-        <DashboardUpcomingEvents
-          class="min-w-0 flex-1 basis-150"
-          :events
-          :count
-          :loading
-        />
+        <div class="flex min-w-0 flex-1 basis-150 flex-col gap-5">
+          <DashboardUpcomingEvents
+            :events
+            :count
+            :loading
+          />
+          <DashboardLoanMovements
+            :movements
+            :loading
+          />
+        </div>
         <div class="flex min-w-0 flex-1 basis-80 flex-col gap-5 md:max-w-105">
           <DashboardNotes
             :notes

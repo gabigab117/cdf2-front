@@ -95,7 +95,7 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
   - **L'agrégat du tableau de bord (`useBoardOverview`, clé `board:overview`) est partagé avec le layout**, qui en montre ce qui attend le bureau (la cloche, les badges de la barre latérale, A6) sur toutes les pages : sa clé reste donc montée.
     - Il reste paresseux : un appel paresseux relance la requête à chaque montage, si bien que le tableau de bord le relit à chaque visite.
     - `dedupe: 'defer'` fait attendre la requête en cours au layout, aux deux barres latérales, à la cloche et au tableau de bord, qui montent ensemble ; la valeur par défaut l'annulerait.
-    - Toute écriture qui change ce qui attend le bureau le recharge (`refreshBoardOverview`) : le dépôt, la correction, la validation et la suppression d'un document, et une pièce jointe de note.
+    - Toute écriture qui change ce qui attend le bureau le recharge (`refreshBoardOverview`) : le dépôt, la correction, la validation et la suppression d'un document, une pièce jointe de note, et toute écriture d'un prêt (`useLoanWrites`), convention signée comprise.
   - Les compteurs des onglets d'un événement viennent de son tableau de bord (`useEventDashboard`) : toute écriture d'un onglet le recharge (`refreshEventDashboard`), jamais un compte fait côté client.
   - **L'onglet d'une page vit dans l'adresse** (`?onglet=…&page=…`, `utils/event-tabs.ts`) : un lien y mène, la pagination d'un onglet passe par des liens, et Nuxt ne remonte pas la page quand seule la requête change.
   - Dans les tests, les composants se démontent avant `clearNuxtData()` : sinon, une réponse en vol réécrit les données vidées.

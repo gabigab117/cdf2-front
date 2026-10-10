@@ -258,7 +258,7 @@ export function returnNotes(lines: readonly LoanLineOut[]): string {
  * « Rendu le ven. 2 oct. », or its state.
  */
 export function loanHeadline(
-  loan: Pick<LoanOut, 'state' | 'start_date' | 'end_date' | 'returned_at'>,
+  loan: Pick<LoanOut, 'state' | 'start_date' | 'end_date'> & Partial<Pick<LoanOut, 'returned_at'>>,
   today: string,
   written: (date: string) => string,
 ): string {
