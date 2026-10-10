@@ -49,12 +49,11 @@ function pageLocation(target: number) {
           :location="documentLocation"
           :event-column="false"
         />
-        <p
+        <UiEmptyState
           v-else-if="!loading"
-          class="px-5.5 py-8 text-center text-argent-600"
         >
           Aucun document pour cet événement.
-        </p>
+        </UiEmptyState>
       </UiCard>
       <UiPagination
         :page

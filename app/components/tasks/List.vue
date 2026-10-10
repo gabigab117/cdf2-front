@@ -68,12 +68,11 @@ function add(fields: TaskFields): Promise<FormErrors | null> {
             />
           </li>
         </ul>
-        <p
+        <UiEmptyState
           v-else-if="!loading"
-          class="px-5.5 py-8 text-center text-argent-600"
         >
           {{ empty }}
-        </p>
+        </UiEmptyState>
       </UiCard>
       <UiPagination
         :page

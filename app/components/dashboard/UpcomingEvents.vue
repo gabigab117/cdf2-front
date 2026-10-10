@@ -123,11 +123,10 @@ const more = computed(() => count > events.length)
         </NuxtLink>
       </p>
     </template>
-    <p
+    <UiEmptyState
       v-else-if="!loading"
-      class="px-5.5 py-8 text-center text-argent-600"
     >
       Aucun événement à venir.
-    </p>
+    </UiEmptyState>
   </UiCard>
 </template>

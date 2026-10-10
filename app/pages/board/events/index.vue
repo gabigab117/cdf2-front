@@ -84,9 +84,8 @@ watch(() => query.value.page, () => window.scrollTo({ top: 0 }))
             <EventsListItem :event />
           </li>
         </ul>
-        <p
+        <UiEmptyState
           v-else-if="beyondTheEnd"
-          class="px-5.5 py-8 text-center text-argent-600"
         >
           Cette page ne contient aucun événement.
           <NuxtLink
@@ -95,13 +94,12 @@ watch(() => query.value.page, () => window.scrollTo({ top: 0 }))
           >
             Revenir à la première page
           </NuxtLink>
-        </p>
-        <p
+        </UiEmptyState>
+        <UiEmptyState
           v-else-if="!loading"
-          class="px-5.5 py-8 text-center text-argent-600"
         >
           {{ emptyMessage }}
-        </p>
+        </UiEmptyState>
       </UiCard>
       <UiPagination
         :page="query.page"

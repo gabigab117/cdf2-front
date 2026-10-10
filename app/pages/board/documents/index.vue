@@ -171,12 +171,11 @@ async function deleted(): Promise<void> {
             :selected="query.document"
             :location="documentLink"
           />
-          <p
+          <UiEmptyState
             v-else-if="!loading"
-            class="px-5.5 py-8 text-center text-argent-600"
           >
             {{ emptyText }}
-          </p>
+          </UiEmptyState>
         </UiCard>
         <UiPagination
           :page="query.page"

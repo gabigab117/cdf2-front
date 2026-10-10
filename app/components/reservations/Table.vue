@@ -257,12 +257,11 @@ defineExpose({ refresh })
           </tfoot>
         </table>
       </div>
-      <p
+      <UiEmptyState
         v-else-if="!loading"
-        class="px-5.5 py-8 text-center text-argent-600"
       >
         Aucune réservation enregistrée pour le moment.
-      </p>
+      </UiEmptyState>
     </UiCard>
     <UiPagination
       :page
