@@ -2,6 +2,7 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig, devices } from '@playwright/test'
 import type { ConfigOptions } from '@nuxt/test-utils/playwright'
 import { BACK_DIR } from './e2e/back-end'
+import { PUBLICATION_DIRECTOR } from './e2e/legal-notice'
 
 const CI = Boolean(process.env.CI)
 
@@ -26,12 +27,14 @@ export default defineConfig<ConfigOptions>({
       rootDir: fileURLToPath(new URL('.', import.meta.url)),
       dev: true,
       // The server renders the public pages with the back end of the journeys,
-      // as a preproduction would, with fictitious contact details.
+      // as a preproduction would, with fictitious contact details and legal notice.
       env: {
         NUXT_API_INTERNAL_URL: 'http://127.0.0.1:8000',
         NUXT_PUBLIC_SITE_URL: 'https://site.example',
         NUXT_PUBLIC_PREPROD: 'true',
         NUXT_PUBLIC_CONTACT_EMAIL: 'contact@example.test',
+        NUXT_LEGAL_PUBLICATION_DIRECTOR: PUBLICATION_DIRECTOR,
+        NUXT_LEGAL_HOST_NAME: 'Hébergeur Exemple SARL',
       },
     },
     trace: 'retain-on-failure',

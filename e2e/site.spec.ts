@@ -1,4 +1,5 @@
 import { expect, test } from '@nuxt/test-utils/playwright'
+import { PUBLICATION_DIRECTOR } from './legal-notice'
 
 // The public site read without JavaScript: what the server writes is all a
 // search engine reads. The demo events (manage.py seed_demo) move with the
@@ -53,6 +54,22 @@ test('an address the agenda does not know is not found, with a way home', async 
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Cette page n’existe pas')
   await page.getByRole('link', { name: 'Retour à l’accueil' }).click()
   await expect(page).toHaveURL('/')
+})
+
+test('the legal pages read from the footer of any page', async ({ page }) => {
+  await page.goto('/')
+
+  await page.getByRole('contentinfo').getByRole('link', { name: 'Mentions légales' }).click()
+
+  await expect(page).toHaveURL('/mentions-legales')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Mentions légales')
+  await expect(page.getByText(PUBLICATION_DIRECTOR)).toBeVisible()
+
+  await page.getByRole('contentinfo').getByRole('link', { name: 'Données personnelles' }).click()
+
+  await expect(page).toHaveURL('/donnees-personnelles')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Données personnelles')
+  await expect(page.getByRole('heading', { name: 'Durées de conservation' })).toBeVisible()
 })
 
 test.describe('on a phone', () => {
