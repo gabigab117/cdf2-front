@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import NotesTab from '~/components/notes/Tab.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
 import { boardEvent, julie, page } from '../../helpers/events'
+import { boardDocument } from '../../helpers/documents'
 import { boardNote } from '../../helpers/notes'
 
 const { navigateToMock, refreshNuxtDataMock } = vi.hoisted(() => ({ navigateToMock: vi.fn(), refreshNuxtDataMock: vi.fn() }))
@@ -102,7 +103,7 @@ describe('the « Notes du bureau » tab', () => {
 
     await vi.waitFor(() => expect(listed).toHaveBeenCalledTimes(2))
     expect(sent.find(request => request.method === 'POST')?.body).toEqual({
-      event: 12, text: 'Salle réservée de 13 h à 20 h.', tag: 'logistics', pinned: false,
+      event: 12, text: 'Salle réservée de 13 h à 20 h.', tag: 'logistics', pinned: false, document: null,
     })
     expect(refreshNuxtDataMock).toHaveBeenCalledWith('board:event:12:dashboard')
     expect((tab.get('textarea').element as HTMLTextAreaElement).value).toBe('')
@@ -141,5 +142,98 @@ describe('the « Notes du bureau » tab', () => {
 
     await vi.waitFor(() => expect(tab.find('nav[aria-label="Pagination"]').exists()).toBe(true))
     expect(tab.get('nav[aria-label="Pagination"] a').attributes('href')).toContain('page=2')
+  })
+
+  describe('with a file joined', () => {
+    const minutes = new File(['%PDF-1.4'], 'compte-rendu.pdf', { type: 'application/pdf' })
+
+    async function join(tab: Awaited<ReturnType<typeof mountTab>>, file = minutes) {
+      const picker = tab.get<HTMLInputElement>('input[type="file"]')
+      Object.defineProperty(picker.element, 'files', { value: [file], configurable: true })
+      await picker.trigger('change')
+    }
+
+    it('deposits the file as a document of the event, then publishes the note that names it', async () => {
+      /**
+       * Given a note written with a file joined
+       * When it is published
+       * Then the file is deposited first, a misc document of the event, to
+       * review, titled after its name; the note then names it
+       * And what awaits the board is fetched again
+       */
+      mockApi(NOTES, { handler: () => apiResponse(200, page([])) })
+      mockApi('/api/board/documents', { method: 'POST', handler: () => apiResponse(201, boardDocument({ id: 23 })) })
+      mockApi(NOTES, { method: 'POST', handler: () => apiResponse(201, boardNote()) })
+      const sent = recordRequests()
+      const tab = await mountTab()
+
+      await join(tab)
+      expect(tab.text()).toContain('compte-rendu.pdf')
+      await tab.get('textarea').setValue('Parcours validé.')
+      await tab.get('form').trigger('submit')
+
+      await vi.waitFor(() => expect(sent.filter(request => request.method === 'POST')).toHaveLength(2))
+      const [deposit, note] = sent.filter(request => request.method === 'POST')
+      expect(deposit!.body).toEqual({
+        file: { name: 'compte-rendu.pdf', type: 'application/pdf' }, category: 'misc', title: 'compte-rendu', event: '12',
+      })
+      expect(note!.body).toMatchObject({ text: 'Parcours validé.', document: 23 })
+      expect(refreshNuxtDataMock).toHaveBeenCalledWith('board:overview')
+      expect(tab.text()).not.toContain('compte-rendu.pdf')
+    })
+
+    it('tells why the file could not be joined, and publishes nothing', async () => {
+      mockApi(NOTES, { handler: () => apiResponse(200, page([])) })
+      mockApi('/api/board/documents', { method: 'POST', handler: () => apiResponse(422, {
+        detail: [{ type: 'validation_error', loc: ['body', 'file'], msg: 'Ce fichier a déjà été déposé.' }],
+      }) })
+      const sent = recordRequests()
+      const tab = await mountTab()
+
+      await join(tab)
+      await tab.get('textarea').setValue('Parcours validé.')
+      await tab.get('form').trigger('submit')
+
+      await vi.waitFor(() => expect(tab.text()).toContain('Pièce jointe : Ce fichier a déjà été déposé.'))
+      expect(sent.filter(request => request.method === 'POST')).toHaveLength(1)
+    })
+
+    it('deposits the file once, though the note is refused then sent again', async () => {
+      /**
+       * Given a note refused once its file was deposited
+       * When it is sent again
+       * Then the note names the document already deposited, which the same file
+       * would not be again
+       */
+      mockApi(NOTES, { handler: () => apiResponse(200, page([])) })
+      mockApi('/api/board/documents', { method: 'POST', handler: () => apiResponse(201, boardDocument({ id: 23 })) })
+      const notePost = vi.fn()
+        .mockImplementationOnce(() => apiResponse(422, { detail: [{ type: 'validation_error', loc: ['body', 'text'], msg: 'Trop long.' }] }))
+        .mockImplementation(() => apiResponse(201, boardNote()))
+      mockApi(NOTES, { method: 'POST', handler: notePost })
+      const sent = recordRequests()
+      const tab = await mountTab()
+
+      await join(tab)
+      await tab.get('textarea').setValue('Parcours validé.')
+      await tab.get('form').trigger('submit')
+      await vi.waitFor(() => expect(tab.text()).toContain('Trop long.'))
+      await tab.get('form').trigger('submit')
+
+      await vi.waitFor(() => expect(notePost).toHaveBeenCalledTimes(2))
+      const deposits = sent.filter(request => request.url === '/api/board/documents')
+      expect(deposits).toHaveLength(1)
+      expect(sent.filter(request => request.url === '/api/board/notes' && request.method === 'POST').at(-1)!.body).toMatchObject({ document: 23 })
+    })
+
+    it('takes back a file before the note is published', async () => {
+      mockApi(NOTES, { handler: () => apiResponse(200, page([])) })
+      const tab = await mountTab()
+
+      await join(tab)
+      await tab.get('button[aria-label="Retirer la pièce jointe"]').trigger('click')
+
+      expect(tab.text()).not.toContain('compte-rendu.pdf')
+    })
   })
 })

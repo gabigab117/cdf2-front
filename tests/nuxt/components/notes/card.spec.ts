@@ -178,4 +178,15 @@ describe('a note of the board', () => {
 
     expect(document.activeElement).toBe(button(card, 'Supprimer la réponse')!.element)
   })
+
+  it('leads to the document joined to it', async () => {
+    /**
+     * Given a note with the minutes of a meeting joined
+     * Then its chip names the file, and leads to the document's panel
+     */
+    const card = await mountCard(boardNote({ document: { id: 23, title: 'Compte rendu — 24 sept.', original_name: 'CR-reunion-24-09.pdf' } }))
+
+    const chip = card.get('a[href="/bureau/documents?document=23"]')
+    expect(chip.text()).toBe('CR-reunion-24-09.pdf')
+  })
 })

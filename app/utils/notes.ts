@@ -3,10 +3,12 @@ import type { components } from '~/types/api'
 type NoteTag = components['schemas']['NoteTag']
 type BoardMemberOut = components['schemas']['BoardMemberOut']
 
-/** What a member writes: a text, and a tag for a note. */
+/** What a member writes: a text, and a tag and a file to join for a note. */
 export interface NoteDraft {
   text: string
   tag: NoteTag | null
+  /** The file joined to a new note, deposited as a document of the board. */
+  file?: File | null
 }
 
 /** The tags of a note, with the tone of their pill. The API only knows their keys. */
@@ -28,6 +30,8 @@ export function authorName(author: BoardMemberOut | null): string {
 }
 
 const NOTE_FIELD_LABELS: Readonly<Record<string, string>> = {
+  file: 'Pièce jointe',
+  document: 'Pièce jointe',
   event: 'Événement',
   text: 'Texte',
   tag: 'Étiquette',

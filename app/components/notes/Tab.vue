@@ -15,14 +15,36 @@ const { event, page } = defineProps<{
 
 const { data, status, error, refresh } = useEventNotes(event.id, () => page)
 const { publishNote } = useNoteWrites()
+const { uploadDocument } = useDocumentWrites()
 
 const notes = computed(() => data.value?.items ?? [])
 const pageCount = computed(() => Math.ceil((data.value?.count ?? 0) / NOTES_PAGE_SIZE))
 const loading = computed(() => status.value === 'pending')
 const leadId = computed(() => event.lead?.id ?? null)
 
-function publish({ text, tag }: NoteDraft): Promise<FormErrors | null> {
-  return publishNote({ event: event.id, text, tag, pinned: false })
+// The file joined to a note is deposited first, as a document of the board, a
+// misc one of the event, to review; the note then names it. Kept until the
+// note is published: a new try sends it again rather than the same file, which
+// the deposit would refuse.
+let deposited: { file: File, id: number } | null = null
+
+async function publish({ text, tag, file }: NoteDraft): Promise<FormErrors | null> {
+  if (file && deposited?.file !== file) {
+    const upload = await uploadDocument(file, { category: 'misc', title: fileTitle(file.name), event: event.id })
+    if (upload.errors) return attachmentErrors(upload.errors)
+    deposited = { file, id: upload.data.id }
+    void refreshBoardOverview()
+  }
+  const document = file ? (deposited?.id ?? null) : null
+  const errors = await publishNote({ event: event.id, text, tag, pinned: false, document })
+  if (errors === null) deposited = null
+  return errors
+}
+
+// The input zone shows no field of a document: every error of the deposit is
+// its attachment's.
+function attachmentErrors(errors: FormErrors): FormErrors {
+  return { form: errors.form, fields: { file: Object.values(errors.fields).flat() } }
 }
 
 // A write changes the notes, and the count of their tab.
@@ -50,6 +72,7 @@ function pageLocation(target: number) {
     <NotesForm
       composer
       tagged
+      attachable
       label="Nouvelle note pour le bureau"
       placeholder="Écrire une note pour le bureau…"
       action="Publier"

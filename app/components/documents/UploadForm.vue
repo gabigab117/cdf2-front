@@ -49,8 +49,7 @@ function choose(): void {
 
 function chose(chosenFile: File): void {
   file.value = chosenFile
-  // The name of the file, without its extension, as the title to start with.
-  title.value = chosenFile.name.replace(/\.[^.]+$/, '')
+  title.value = fileTitle(chosenFile.name)
   errors.value = null
   emit('chosen')
 }

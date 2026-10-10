@@ -37,6 +37,7 @@ export function boardNote(changes: Partial<NoteOut> = {}): NoteOut {
     editable: false,
     tag: 'minutes',
     pinned: false,
+    document: null,
     replies: [],
     ...changes,
   }

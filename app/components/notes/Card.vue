@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Pencil, Pin, PinOff, Trash2 } from '@lucide/vue'
+import { FileText, Pencil, Pin, PinOff, Trash2 } from '@lucide/vue'
 import type { ComponentPublicInstance } from 'vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
@@ -99,6 +99,18 @@ async function remove(): Promise<void> {
     >
       {{ note.text }}
     </p>
+    <NuxtLink
+      v-if="note.document"
+      :to="documentLocation(note.document.id)"
+      class="inline-flex h-9 w-fit max-w-full items-center gap-2 rounded-control border border-argent-200 bg-argent-50 px-3 text-note text-sable-950 transition-colors hover:bg-argent-100"
+    >
+      <FileText
+        :size="16"
+        aria-hidden="true"
+        class="shrink-0 text-argent-600"
+      />
+      <span class="truncate">{{ note.document.original_name }}</span>
+    </NuxtLink>
     <p
       v-if="pinFailure"
       role="alert"

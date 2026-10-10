@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleAlert } from '@lucide/vue'
+import { CircleAlert, FileText, Paperclip, X } from '@lucide/vue'
 import type { FormErrors } from '~/utils/api-errors'
 import type { NoteDraft } from '~/utils/notes'
 
@@ -10,6 +10,7 @@ const {
   initial = { text: '', tag: null },
   tagged = false,
   composer = false,
+  attachable = false,
   cancellable = false,
   save,
 } = defineProps<{
@@ -23,6 +24,8 @@ const {
   tagged?: boolean
   /** The input zone of the mockup: a card of its own, its text without a frame. */
   composer?: boolean
+  /** « Joindre un fichier »: a new note takes a file, deposited as a document. */
+  attachable?: boolean
   cancellable?: boolean
   /** Sends the draft: the errors to show, or null once it is saved. */
   save: (draft: NoteDraft) => Promise<FormErrors | null>
@@ -35,6 +38,19 @@ const errors = ref<FormErrors | null>(null)
 const pending = ref(false)
 
 const form = useTemplateRef<HTMLFormElement>('form')
+const picker = useTemplateRef<HTMLInputElement>('picker')
+
+function joined(event: Event): void {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  // The same file chosen again is a new choice.
+  input.value = ''
+  if (file) draft.value = { ...draft.value, file }
+}
+
+function unjoin(): void {
+  draft.value = { ...draft.value, file: null }
+}
 
 const SHOWN = new Set(['text', 'tag'])
 
@@ -110,7 +126,45 @@ async function submit(): Promise<void> {
         :invalid
       />
     </UiField>
+    <div
+      v-if="draft.file"
+      class="mx-3.5 flex w-fit max-w-full items-center gap-2 rounded-control border border-argent-200 bg-argent-50 py-1 pr-1 pl-3 text-note"
+    >
+      <FileText
+        :size="16"
+        aria-hidden="true"
+        class="shrink-0 text-argent-600"
+      />
+      <span class="truncate">{{ draft.file.name }}</span>
+      <UiIconButton
+        label="Retirer la pièce jointe"
+        size="sm"
+        surface="plain"
+        @click="unjoin"
+      >
+        <X :size="14" />
+      </UiIconButton>
+    </div>
     <div :class="classes.toolbar[look]">
+      <template v-if="attachable">
+        <UiIconButton
+          label="Joindre un fichier"
+          size="sm"
+          surface="plain"
+          @click="picker?.click()"
+        >
+          <Paperclip :size="18" />
+        </UiIconButton>
+        <input
+          ref="picker"
+          type="file"
+          class="sr-only"
+          tabindex="-1"
+          aria-hidden="true"
+          :accept="DOCUMENT_TYPES"
+          @change="joined"
+        >
+      </template>
       <div
         v-if="tagged"
         class="w-44"
