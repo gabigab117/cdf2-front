@@ -6,8 +6,9 @@ import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../he
 import { DEPOSITS, availabilityItem, availabilityOut, loanOut } from '../../../helpers/equipment'
 import { eventItem, page } from '../../../helpers/events'
 
-const { navigateToMock } = vi.hoisted(() => ({ navigateToMock: vi.fn() }))
+const { navigateToMock, showErrorMock } = vi.hoisted(() => ({ navigateToMock: vi.fn(), showErrorMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
+mockNuxtImport('showError', () => showErrorMock)
 
 // The loan's own marquees are left out of what the API counts: three free.
 const MARQUEES = availabilityItem({}, { free: 3 })
@@ -35,6 +36,7 @@ describe('the page that changes a loan', () => {
     clearNuxtState('now')
     vi.restoreAllMocks()
     navigateToMock.mockReset()
+    showErrorMock.mockReset()
     useSessionStore().clear()
     await useRouter().push('/')
   })
@@ -120,5 +122,15 @@ describe('the page that changes a loan', () => {
     const view = await mountPage()
 
     await vi.waitFor(() => expect(view.text()).toContain('Réessayer'))
+  })
+
+  it('is the page not found of a loan that does not exist', async () => {
+    mockApi('/api/board/loans/{loan_id}', { method: 'GET', handler: () => apiResponse(404, { detail: 'Introuvable.' }) }, { loan_id: 20 })
+    mockApi('/api/board/loans/deposits', { handler: () => apiResponse(200, DEPOSITS) })
+    mockApi('/api/board/events', { handler: () => apiResponse(200, page([])) })
+
+    await mountPage()
+
+    await vi.waitFor(() => expect(showErrorMock).toHaveBeenCalledWith({ status: 404, statusText: 'Not Found' }))
   })
 })

@@ -1,10 +1,13 @@
-import { mountSuspended } from '@nuxt/test-utils/runtime'
+import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import type { DOMWrapper } from '@vue/test-utils'
 import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import AgreementPage from '~/pages/board/loans/[id]/agreement.vue'
 import { apiResponse, clearApiMocks, mockApi } from '../../../helpers/api'
 import { loanOut } from '../../../helpers/equipment'
+
+const { showErrorMock } = vi.hoisted(() => ({ showErrorMock: vi.fn() }))
+mockNuxtImport('showError', () => showErrorMock)
 
 function readable(text: string): string {
   return text.replaceAll('\u202F', ' ').replaceAll('\u00A0', ' ')
@@ -37,6 +40,7 @@ describe('the agreement of a loan', () => {
     clearNuxtState('now')
     vi.restoreAllMocks()
     vi.unstubAllGlobals()
+    showErrorMock.mockReset()
     useSessionStore().clear()
     await useRouter().push('/')
   })
@@ -128,5 +132,13 @@ describe('the agreement of a loan', () => {
     await vi.waitFor(() => expect(view.text()).toContain('Une réservation interne n’a pas de convention de prêt.'))
     expect(view.find('article').exists()).toBe(false)
     expect(view.findAll('button').some(button => button.text().startsWith('Imprimer'))).toBe(false)
+  })
+
+  it('is the page not found of a loan that does not exist', async () => {
+    mockApi('/api/board/loans/{loan_id}', { method: 'GET', handler: () => apiResponse(404, { detail: 'Introuvable.' }) }, { loan_id: 20 })
+
+    await mountPage()
+
+    await vi.waitFor(() => expect(showErrorMock).toHaveBeenCalledWith({ status: 404, statusText: 'Not Found' }))
   })
 })

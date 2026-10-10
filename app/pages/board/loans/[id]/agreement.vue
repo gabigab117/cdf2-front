@@ -10,8 +10,12 @@ useHead({ title: 'Convention de prêt' })
 
 const id = Number(useRoute().params.id)
 
-const { data: loan, error, refresh } = await useLoan(id)
-if (error.value?.status === 404) showError({ status: 404, statusText: 'Not Found' })
+const { data: loan, error, refresh } = useLoan(id)
+// The loan comes once the page shows: a loan that does not exist turns it
+// into the page not found.
+watch(error, (failure) => {
+  if (failure?.status === 404) showError({ status: 404, statusText: 'Not Found' })
+})
 
 const { public: { office, contact } } = useRuntimeConfig()
 const { calendarNumeric } = useDateFormat()
