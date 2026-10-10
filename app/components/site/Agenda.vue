@@ -116,13 +116,11 @@ const updatedOn = computed(() => {
           class="flex flex-wrap gap-x-2 border-t border-argent-200 pt-6 text-body text-argent-600"
         >
           {{ empty }}
-          <NuxtLink
+          <SiteTextLink
             v-if="query.page > 1"
             :to="agendaLink(query.category)"
-            class="text-azur-600 transition-colors hover:text-azur-700"
-          >
-            Revenir au début de l’agenda
-          </NuxtLink>
+            label="Revenir au début de l’agenda"
+          />
         </p>
         <UiPagination
           :page="query.page"

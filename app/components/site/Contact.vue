@@ -25,11 +25,12 @@ const { contact, hall } = useRuntimeConfig().public
         <h2 class="text-caption font-semibold tracking-overline text-argent-600 uppercase">
           Contact
         </h2>
-        <a
+        <SiteTextLink
           v-if="contact.email"
-          :href="`mailto:${contact.email}`"
-          class="w-fit text-azur-600 transition-colors hover:text-azur-700"
-        >{{ contact.email }}</a>
+          :to="`mailto:${contact.email}`"
+          :label="contact.email"
+          class="w-fit"
+        />
         <p
           v-if="contact.phone"
           class="text-sable-600"

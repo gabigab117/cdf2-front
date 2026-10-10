@@ -92,10 +92,10 @@ const position = computed(() =>
       class="px-3 text-note text-argent-600"
     >
       Une question ? Écrivez au comité :
-      <a
-        :href="`mailto:${contact.email}`"
-        class="text-azur-600 transition-colors hover:text-azur-700"
-      >{{ contact.email }}</a>
+      <SiteTextLink
+        :to="`mailto:${contact.email}`"
+        :label="contact.email"
+      />
     </p>
   </aside>
 </template>
