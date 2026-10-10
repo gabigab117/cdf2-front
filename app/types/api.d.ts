@@ -532,7 +532,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List the loans
+         * @description The loans, by page: late, out, to prepare, confirmed, the committee's to
+         *     come, then those over, the latest first. A state keeps its own.
+         */
+        get: operations["equipment_api_list_loans"];
         put?: never;
         /**
          * Record a loan
@@ -540,6 +545,26 @@ export interface paths {
          *     someone takes the next number of its year.
          */
         post: operations["equipment_api_record_loan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/loans/counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Count the loans by state
+         * @description How many loans in all, and in each state: the counts of the list's chips.
+         */
+        get: operations["equipment_api_count_loans"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -582,6 +607,85 @@ export interface paths {
          */
         put: operations["equipment_api_change_loan"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/loans/{loan_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a loan */
+        post: operations["equipment_api_cancel_loan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/loans/{loan_id}/checkout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hand the equipment of a loan over
+         * @description « Préparer la sortie »: the loan holds its equipment from today, even
+         *     before its start, and is refused if it is not free by then.
+         */
+        post: operations["equipment_api_checkout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/loans/{loan_id}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reopen a returned loan
+         * @description « Rouvrir »: the return is undone, if the equipment is still free.
+         */
+        post: operations["equipment_api_reopen_loan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/loans/{loan_id}/return": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record the return of a loan
+         * @description « Valider le retour »: what is damaged goes under repair, what is missing
+         *     is reported. The loans to come that the repairs leave short are named.
+         */
+        post: operations["equipment_api_record_return"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1660,6 +1764,28 @@ export interface components {
             quantity: number;
         };
         /**
+         * LoanCountsOut
+         * @description How many loans in all, and in each state: the chips of the list.
+         */
+        LoanCountsOut: {
+            /** Cancelled */
+            cancelled: number;
+            /** Committee */
+            committee: number;
+            /** Confirmed */
+            confirmed: number;
+            /** Out */
+            out: number;
+            /** Overdue */
+            overdue: number;
+            /** Returned */
+            returned: number;
+            /** To Prepare */
+            to_prepare: number;
+            /** Total */
+            total: number;
+        };
+        /**
          * LoanDepositOut
          * @description The cheque a type of borrower leaves by default (A16).
          */
@@ -1699,6 +1825,13 @@ export interface components {
             title: string;
         };
         /**
+         * LoanFilters
+         * @description The loans the list keeps: those of a state, or all.
+         */
+        LoanFilters: {
+            state?: components["schemas"]["LoanState"] | null;
+        };
+        /**
          * LoanIn
          * @description A loan as the board writes it: whole, every key required.
          *
@@ -1732,6 +1865,34 @@ export interface components {
              * Format: date
              */
             start_date: string;
+        };
+        /**
+         * LoanItemOut
+         * @description A loan, as the list shows it: with its lines, and how they came back.
+         */
+        LoanItemOut: {
+            borrower_type: components["schemas"]["LoanBorrowerType"];
+            /** Display Name */
+            display_name: string;
+            /**
+             * End Date
+             * Format: date
+             */
+            end_date: string;
+            /** Id */
+            id: number;
+            /** Lines */
+            lines: components["schemas"]["LoanLineOut"][];
+            /** Number */
+            number: string | null;
+            /** Purpose */
+            purpose: string;
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
+            state: components["schemas"]["LoanState"];
         };
         /**
          * LoanLineIn
@@ -1800,6 +1961,23 @@ export interface components {
             start_date: string;
             state: components["schemas"]["LoanState"];
             status: components["schemas"]["LoanStatus"];
+        };
+        /**
+         * LoanReturnIn
+         * @description How the equipment of a loan came back: a line not given came back whole.
+         */
+        LoanReturnIn: {
+            /** Lines */
+            lines: components["schemas"]["ReturnLineIn"][];
+        };
+        /**
+         * LoanReturnOut
+         * @description A loan returned, and the loans to come its damage leaves short.
+         */
+        LoanReturnOut: {
+            loan: components["schemas"]["LoanOut"];
+            /** Shortages */
+            shortages: components["schemas"]["ShortageOut"][];
         };
         /**
          * LoanState
@@ -1985,6 +2163,13 @@ export interface components {
             count: number;
             /** Items */
             items: components["schemas"]["EventItemOut"][];
+        };
+        /** PagedLoanItemOut */
+        PagedLoanItemOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["LoanItemOut"][];
         };
         /** PagedNoteOut */
         PagedNoteOut: {
@@ -2257,6 +2442,36 @@ export interface components {
             seats: number;
             /** Ticket Types */
             ticket_types: components["schemas"]["TicketTypeStatsOut"][];
+        };
+        /**
+         * ReturnLineIn
+         * @description What came back of a line: the pieces damaged, and those missing.
+         */
+        ReturnLineIn: {
+            /** Damaged Quantity */
+            damaged_quantity: number;
+            /** Line */
+            line: number;
+            /** Missing Quantity */
+            missing_quantity: number;
+        };
+        /**
+         * ShortageOut
+         * @description An equipment the loans to come take more of than it offers (A17).
+         */
+        ShortageOut: {
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            equipment: components["schemas"]["LoanEquipmentOut"];
+            /** Loans */
+            loans: components["schemas"]["LoanBriefOut"][];
+            /** Offered */
+            offered: number;
+            /** Taken */
+            taken: number;
         };
         /**
          * StationBoardOut
@@ -4393,6 +4608,57 @@ export interface operations {
             };
         };
     };
+    equipment_api_list_loans: {
+        parameters: {
+            query?: {
+                state?: components["schemas"]["LoanState"] | null;
+                page?: number;
+                page_size?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedLoanItemOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
     equipment_api_record_loan: {
         parameters: {
             query?: never;
@@ -4449,6 +4715,44 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    equipment_api_count_loans: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanCountsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
                 };
             };
         };
@@ -4571,6 +4875,251 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoanOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    equipment_api_cancel_loan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    equipment_api_checkout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    equipment_api_reopen_loan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    equipment_api_record_return: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                loan_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoanReturnIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoanReturnOut"];
                 };
             };
             /** @description Bad Request */

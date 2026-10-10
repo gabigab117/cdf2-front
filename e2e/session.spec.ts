@@ -6,6 +6,14 @@ const STATION = 'Buvette du parcours'
 // The document the journey deposits, validates, then deletes.
 const DOCUMENT = 'Facture — Parcours du bureau'
 
+// The borrower of the loans the journey records, then cancels.
+const BORROWER = 'Parcours du bureau'
+
+// A day some days ahead, as a date field takes it.
+function daysAhead(days: number): string {
+  return new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10)
+}
+
 // The fictitious board member of fixtures/board-member.json.
 const MEMBER = {
   email: 'camille.martin@example.test',
@@ -13,7 +21,7 @@ const MEMBER = {
   name: 'Camille Martin',
 }
 
-test('a board member signs in, keeps their session over a reload, staffs a station, validates a document, then signs out', async ({ page, goto }) => {
+test('a board member signs in, keeps their session over a reload, staffs a station, validates a document, records a loan in conflict, then signs out', async ({ page, goto }) => {
   await test.step('signing in brings the member to the page they asked for', async () => {
     await goto('/bureau/documents', { waitUntil: 'hydration' })
     await expect(page).toHaveURL('/connexion?redirect=/bureau/documents')
@@ -141,6 +149,75 @@ test('a board member signs in, keeps their session over a reload, staffs a stati
     await panel.getByRole('button', { name: 'Corriger' }).click()
     await panel.getByRole('button', { name: 'Supprimer' }).click()
     await panel.getByRole('button', { name: 'Supprimer définitivement' }).click()
+    await expect(rows).toHaveCount(0)
+  })
+
+  await test.step('a loan in conflict is blocked, then brought back to what is free', async () => {
+    const rows = page.getByRole('listitem').filter({ hasText: BORROWER })
+    const panel = page.getByRole('region', { name: BORROWER })
+    const summary = page.getByRole('complementary', { name: 'Récapitulatif' })
+    const save = summary.getByRole('button', { name: 'Enregistrer le prêt' })
+
+    async function cancelShown(): Promise<void> {
+      await panel.getByRole('button', { name: 'Annuler le prêt' }).click()
+      await panel.getByRole('button', { name: 'Confirmer l’annulation' }).click()
+      await expect(panel.getByText('Annulé', { exact: true })).toBeVisible()
+    }
+
+    // A journey cut short leaves its loans behind, holding the refrigerator:
+    // a new try cancels them first.
+    await page.getByRole('navigation', { name: 'Espace bureau' }).getByRole('link', { name: /^Prêts/ }).click()
+    await page.getByRole('navigation', { name: 'États' }).getByRole('link', { name: /^Confirmés/ }).click()
+    await expect(page).toHaveURL(/etat=confirmes/)
+    await expect(page.getByText(/Aucun prêt dans cet état|Prêts de matériel/).first()).toBeVisible()
+    for (let left = await rows.count(); left > 0; left -= 1) {
+      await rows.first().getByRole('link').click()
+      await cancelShown()
+      await panel.getByRole('button', { name: 'Fermer la fiche' }).click()
+      await expect(rows).toHaveCount(left - 1)
+    }
+
+    // A first loan takes the only refrigerator, far ahead.
+    await page.getByRole('link', { name: 'Nouveau prêt' }).click()
+    await expect(page).toHaveURL('/bureau/prets/nouveau')
+    await page.getByLabel('Nom de l’association').fill(BORROWER)
+    await page.getByLabel('Sortie du matériel').fill(daysAhead(40))
+    await page.getByLabel('Retour', { exact: true }).fill(daysAhead(41))
+    await page.getByRole('button', { name: 'Ajouter : Réfrigérateur vitrine' }).click()
+    await save.click()
+    await expect(page).toHaveURL(/pret=\d+/)
+    await expect(panel.getByText(/P-\d{4}-\d{3}/)).toBeVisible()
+
+    // A second, two days later, takes it too, with six high tables.
+    await page.getByRole('link', { name: 'Nouveau prêt' }).click()
+    await page.getByLabel('Nom de l’association').fill(BORROWER)
+    await page.getByLabel('Sortie du matériel').fill(daysAhead(43))
+    await page.getByLabel('Retour', { exact: true }).fill(daysAhead(44))
+    await page.getByRole('button', { name: 'Ajouter : Réfrigérateur vitrine' }).click()
+    for (let table = 0; table < 6; table += 1) {
+      await page.getByRole('button', { name: 'Ajouter : Mange-debout' }).click()
+    }
+    await expect(summary.getByText('Tout est disponible sur la période.')).toBeVisible()
+
+    // Brought onto the days of the first, it is in conflict, and blocked.
+    await page.getByLabel('Sortie du matériel').fill(daysAhead(40))
+    await page.getByLabel('Retour', { exact: true }).fill(daysAhead(41))
+    await expect(summary.getByText('Réfrigérateur vitrine : 1 demandé, aucun libre sur la période.')).toBeVisible()
+    await expect(save).toBeDisabled()
+
+    await summary.getByRole('button', { name: 'Ramener aux quantités libres' }).click()
+    await expect(save).toBeEnabled()
+    await save.click()
+    await expect(page).toHaveURL(/pret=\d+/)
+    await expect(panel.getByText('Mange-debout')).toBeVisible()
+    await expect(panel.getByText('Réfrigérateur vitrine')).toHaveCount(0)
+
+    // Both loans are cancelled: the next try starts afresh.
+    await cancelShown()
+    await page.getByRole('navigation', { name: 'États' }).getByRole('link', { name: /^Confirmés/ }).click()
+    await rows.first().getByRole('link').click()
+    await cancelShown()
+    await panel.getByRole('button', { name: 'Fermer la fiche' }).click()
     await expect(rows).toHaveCount(0)
   })
 

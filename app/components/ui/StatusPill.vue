@@ -2,11 +2,12 @@
 const { tone = 'neutral', size = 'md', dot = false } = defineProps<{
   /**
    * Azur for what goes ahead, solid azur for what is under way, amber for what
-   * needs attention, black for the committee's own use, an outline for a
-   * category on the board. The public agenda colours its categories with them,
-   * and with steel; the documents, with slate and mist too.
+   * needs attention, solid amber for what is late, black for the committee's
+   * own use, an outline for a category on the board. The public agenda colours
+   * its categories with them, and with steel; the documents, with slate and
+   * mist too.
    */
-  tone?: 'azur' | 'accent' | 'ambre' | 'neutral' | 'steel' | 'dark' | 'outline' | 'slate' | 'mist'
+  tone?: 'azur' | 'accent' | 'ambre' | 'alert' | 'neutral' | 'steel' | 'dark' | 'outline' | 'slate' | 'mist'
   /** 22, 26 or 28 px high. */
   size?: 'sm' | 'md' | 'lg'
   /** A dot before the text, as for "Publié sur le site". */
@@ -24,6 +25,7 @@ const classes = {
     azur: 'bg-azur-100 text-azur-700',
     accent: 'bg-azur-600 text-white',
     ambre: 'bg-ambre-50 text-ambre-800',
+    alert: 'bg-ambre-500 text-white',
     neutral: 'bg-argent-100 text-sable-600',
     steel: 'bg-argent-175 text-sable-800',
     dark: 'bg-sable-950 text-white',

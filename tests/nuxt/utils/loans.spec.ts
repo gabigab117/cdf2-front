@@ -75,3 +75,49 @@ describe('the addresses of the loans', () => {
     expect(queryId(undefined)).toBeNull()
   })
 })
+
+describe('the address of the Prêts page', () => {
+  it('reads the loan shown, the state and the page', () => {
+    expect(parseLoansQuery({ pret: '18', etat: 'en-retard', page: '2' })).toEqual({ loan: 18, state: 'overdue', page: 2 })
+    expect(parseLoansQuery({ etat: 'perdu', page: '0' })).toEqual({ loan: null, state: null, page: 1 })
+  })
+
+  it('writes back what it reads', () => {
+    expect(loansQuery({ loan: 18, state: 'committee', page: 2 })).toEqual({ pret: '18', etat: 'usage-comite', page: '2' })
+    expect(loansQuery({ loan: null, state: null, page: 1 })).toEqual({ pret: undefined, etat: undefined, page: undefined })
+  })
+})
+
+describe('what a loan tells', () => {
+  const line = { id: 41, equipment: { id: 5, name: 'Bancs pliants', unit_value: null }, quantity: 12, damaged_quantity: 0, missing_quantity: 0 }
+
+  it('lists its equipment, and how it came back when not whole', () => {
+    expect(loanItems([line, { ...line, id: 42, equipment: { ...line.equipment, name: 'Tables' }, quantity: 6 }])).toBe('Bancs pliants (12), Tables (6)')
+    expect(returnNotes([{ ...line, damaged_quantity: 1 }, { ...line, id: 42, missing_quantity: 2, damaged_quantity: 2 }, { ...line, id: 43 }]))
+      .toBe('Bancs pliants : 1 abîmé, mis en réparation · Bancs pliants : 2 abîmés, mis en réparation, 2 manquants')
+    expect(returnNotes([{ ...line, missing_quantity: 1 }])).toBe('Bancs pliants : 1 manquant')
+  })
+
+  it.each([
+    [{ state: 'to_prepare', start_date: '2026-10-01' }, 'Sortie aujourd’hui'],
+    [{ state: 'to_prepare', start_date: '2026-10-02' }, 'Sortie demain'],
+    [{ state: 'to_prepare', start_date: '2026-10-05' }, 'Sortie le 2026-10-05'],
+    [{ state: 'to_prepare', start_date: '2026-09-29' }, 'Sortie prévue le 2026-09-29'],
+    [{ state: 'out', end_date: '2026-10-02' }, 'Retour prévu demain'],
+    [{ state: 'overdue', end_date: '2026-09-29' }, 'En retard depuis le 2026-09-30'],
+    [{ state: 'returned', returned_at: '2026-09-28T16:00:00Z' }, 'Rendu le 2026-09-28'],
+    [{ state: 'committee' }, 'Usage comité'],
+  ] as const)('heads its panel with its next step: %o', (changes, headline) => {
+    const loan = { ...loanOut(), ...changes }
+
+    expect(loanHeadline(loan, '2026-10-01', date => date)).toBe(headline)
+  })
+
+  it('tells its deposit', () => {
+    const amount = (value: string) => `${value.replace('.', ',')} €`
+
+    expect(depositFact(loanOut(), amount)).toBe('caution de 150,00 €')
+    expect(depositFact(loanOut({ deposit_amount: '0.00' }), amount)).toBe('pas de caution')
+    expect(depositFact(loanOut({ borrower_type: 'committee', deposit_amount: '0.00' }), amount)).toBe('usage interne')
+  })
+})

@@ -1,3 +1,23 @@
+import type { LoansQuery } from '~/utils/loans'
+
+/** A page of the loans the Prêts page shows, of a state or all. Lazy. */
+export function useLoanList(query: () => LoansQuery) {
+  return useLazyAsyncData(
+    () => `board:loans:${query().state ?? 'all'}:${query().page}`,
+    (_nuxtApp, { signal }) =>
+      loadData(useApi().GET('/api/board/loans', {
+        params: { query: { state: query().state, page: query().page, page_size: LOANS_PAGE_SIZE } },
+        signal,
+      })),
+  )
+}
+
+/** How many loans in all, and in each state: the counts of the chips. */
+export function useLoanCounts() {
+  return useLazyAsyncData('board:loans:counts', (_nuxtApp, { signal }) =>
+    loadData(useApi().GET('/api/board/loans/counts', { signal })))
+}
+
 /** The key of a loan, as its form and its panel read it. */
 export function loanKey(id: number): string {
   return `board:loan:${id}`
