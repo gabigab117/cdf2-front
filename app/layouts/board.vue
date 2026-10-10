@@ -2,6 +2,7 @@
 import { X } from '@lucide/vue'
 
 const session = useSessionStore()
+const route = useRoute()
 
 // Below the mockup's breakpoint, the sidebar opens as a drawer.
 const navigationOpen = ref(false)
@@ -36,7 +37,10 @@ onMounted(() => {
     </UiDrawer>
     <div class="flex min-w-0 flex-1 flex-col">
       <BoardTopBar @open-navigation="navigationOpen = true" />
-      <main class="mx-auto flex w-full max-w-board flex-col px-4 pt-6 pb-10 md:px-8 md:pt-9 md:pb-14">
+      <main
+        class="flex w-full flex-1"
+        :class="route.meta.fullWidth ? '' : 'mx-auto max-w-board flex-col px-4 pt-6 pb-10 md:px-8 md:pt-9 md:pb-14'"
+      >
         <slot />
       </main>
     </div>

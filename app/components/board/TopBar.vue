@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { CalendarDays, ListChecks, Menu, Plus } from '@lucide/vue'
+import { CalendarDays, FileText, ListChecks, Menu, Plus } from '@lucide/vue'
 import type { Component } from 'vue'
 
-// On a computer the bar holds the « Nouveau » menu alone for now: the bell
-// comes with card 4.3 and the assistant with phase 9 (no make-believe interface).
+// On a computer the bar holds the « Nouveau » menu, or the action of the page
+// shown in its place: the bell comes with card 4.3 and the assistant with
+// phase 9 (no make-believe interface).
 const emit = defineEmits<{ openNavigation: [] }>()
+
+const route = useRoute()
 
 interface Entry {
   label: string
@@ -16,6 +19,7 @@ interface Entry {
 const NEW_ENTRIES: readonly Entry[] = [
   { label: 'Événement', to: NEW_EVENT_PATH, icon: CalendarDays },
   { label: 'Tâche', to: NEW_TASK_PATH, icon: ListChecks },
+  { label: 'Document', to: NEW_DOCUMENT_PATH, icon: FileText },
 ]
 </script>
 
@@ -39,35 +43,42 @@ const NEW_ENTRIES: readonly Entry[] = [
         <span class="mt-0.5 text-xs text-argent-600">Espace bureau</span>
       </span>
     </NuxtLink>
-    <UiPopover placement="board">
-      <template #invoker="{ invoker }">
-        <UiButton
-          v-bind="invoker"
-          class="ml-auto"
-        >
-          <Plus :size="18" />
-          Nouveau
-        </UiButton>
-      </template>
-      <nav aria-label="Nouveau">
-        <ul class="flex flex-col gap-1">
-          <li
-            v-for="entry in NEW_ENTRIES"
-            :key="entry.to"
-          >
-            <NuxtLink
-              :to="entry.to"
-              class="flex h-12 items-center gap-3 rounded-field px-4 text-base font-medium text-sable-950 transition-colors hover:bg-argent-100"
+    <div class="ml-auto flex items-center gap-2">
+      <!-- Where a page renders its own action: always there, for its Teleport to find. -->
+      <div
+        id="board-top-bar-action"
+        class="contents"
+      />
+      <UiPopover
+        v-if="!route.meta.topBarAction"
+        placement="board"
+      >
+        <template #invoker="{ invoker }">
+          <UiButton v-bind="invoker">
+            <Plus :size="18" />
+            Nouveau
+          </UiButton>
+        </template>
+        <nav aria-label="Nouveau">
+          <ul class="flex flex-col gap-1">
+            <li
+              v-for="entry in NEW_ENTRIES"
+              :key="entry.to"
             >
-              <component
-                :is="entry.icon"
-                :size="18"
-              />
-              {{ entry.label }}
-            </NuxtLink>
-          </li>
-        </ul>
-      </nav>
-    </UiPopover>
+              <NuxtLink
+                :to="entry.to"
+                class="flex h-12 items-center gap-3 rounded-field px-4 text-base font-medium text-sable-950 transition-colors hover:bg-argent-100"
+              >
+                <component
+                  :is="entry.icon"
+                  :size="18"
+                />
+                {{ entry.label }}
+              </NuxtLink>
+            </li>
+          </ul>
+        </nav>
+      </UiPopover>
+    </div>
   </div>
 </template>

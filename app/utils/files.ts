@@ -1,3 +1,12 @@
+/** The files the board may deposit, as the file picker offers them (D9). */
+export const DOCUMENT_TYPES = 'application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif'
+
+/** « 120 Ko », « 1,2 Mo »: the size of a file as the board reads it. */
+export function fileSize(bytes: number): string {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} Ko`
+  return `${(bytes / (1024 * 1024)).toFixed(1).replace('.', ',')} Mo`
+}
+
 /** A file fetched through the API: `api.GET(…, { parseAs: 'blob' })`. */
 interface FileFetch {
   data?: Blob

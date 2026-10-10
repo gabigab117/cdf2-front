@@ -37,12 +37,18 @@ export function apiResponse(status: number, body: unknown, headers: Record<strin
   })
 }
 
+/** A file sent in a form, as a test reads it. */
+export interface SentFile {
+  name: string
+  type: string
+}
+
 /** A request sent to the API, as a test reads it. */
 export interface SentRequest {
   method: string
   /** Its path and query string: "/api/board/events?period=upcoming". */
   url: string
-  /** Its JSON body, if any. */
+  /** Its JSON body, if any, or the fields of its multipart form. */
   body?: unknown
 }
 
@@ -56,9 +62,22 @@ export function recordRequests(): SentRequest[] {
   vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
     if (!(input instanceof Request)) return fetch(input, init)
     const { pathname, search } = new URL(input.url)
-    const body = await input.clone().text()
-    sent.push({ method: input.method, url: `${pathname}${search}`, ...(body ? { body: JSON.parse(body) } : {}) })
+    const body = await sentBody(input.clone())
+    sent.push({ method: input.method, url: `${pathname}${search}`, ...(body === undefined ? {} : { body }) })
     return fetch(input)
   })
   return sent
+}
+
+// A form that sends a file is read field by field, each file by its name and type.
+async function sentBody(request: Request): Promise<unknown> {
+  if ((request.headers.get('Content-Type') ?? '').startsWith('multipart/form-data')) {
+    const fields: Record<string, string | SentFile> = {}
+    for (const [key, value] of await request.formData()) {
+      fields[key] = typeof value === 'string' ? value : { name: value.name, type: value.type }
+    }
+    return fields
+  }
+  const body = await request.text()
+  return body ? JSON.parse(body) : undefined
 }

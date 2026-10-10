@@ -41,7 +41,8 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
   - Les opérations de session (`login`, `refresh`, `logout`) ne sont jamais rejouées : un 401 du refresh attendrait sinon sa propre réponse.
   - Le refresh passe sous un verrou partagé par les onglets (`navigator.locks`) : chaque refresh consomme le cookie, que les onglets partagent.
   - `renew()` ne se résout que sur une issue définitive (`'renewed'`, ou `'ended'` sur un 401 ou un 403). Un 429 ou un 5xx lève une `SessionRenewalError` (`retryAfter`), une coupure réseau son erreur : ni l'un ni l'autre ne déconnecte.
-  - `toFormErrors()` place les erreurs d'un 422 sur les champs. Il suppose que le corps JSON de chaque opération s'appelle `payload`, convention du back.
+  - `toFormErrors()` place les erreurs d'un 422 sur les champs. Il suppose que le corps JSON de chaque opération s'appelle `payload`, convention du back. Un formulaire multipart (un envoi de fichier) a ses champs sous `form` (`["form", "category"]`) et ses fichiers sous `file` (`["file", "file"]`) : les trois racines se placent de la même façon.
+  - **Un envoi de fichier** passe un `FormData` en corps (`useDocumentWrites`), par un seul transtypage commenté : openapi-typescript type le fichier en `string`. openapi-fetch le transmet tel quel, et le navigateur pose le `Content-Type` et sa frontière. Un champ laissé vide n'est pas ajouté : l'API lirait une valeur vide.
   - `placeErrors()` garde sous ses champs les erreurs des champs qu'un formulaire affiche, et passe les autres sur le formulaire, après le nom de leur champ : aucune ne se perd.
   - `loadData()` est le handler d'un `useAsyncData` : il renvoie `data`, ou lève une erreur qui porte le statut de la réponse (503 sans réponse) et le message à afficher.
   - `errorMessage()` donne le message à afficher pour une requête qui a échoué : le `detail` d'un refus de l'API, rédigé pour le membre, ou un repli en français (réseau, 5xx, 429). Le corps d'une erreur serveur n'est jamais affiché.
@@ -61,6 +62,9 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
 
 - Respecter les conventions du framework : auto-imports, pas de réinvention de la roue.
 - `components/` découpés par domaine métier (`events/`, `stations/`, `loans/`, `treasury/`…), plus `ui/` pour les composants de base du système visuel.
+- **Méta d'une page du bureau** (`types/page-meta.d.ts`) :
+  - `fullWidth` : le layout ne lui donne ni marge ni largeur maximale. La page Documents s'en sert pour son panneau de détail, qui touche le bord de la fenêtre (`UiSidePanel`, en pleine largeur sous 820 px) ;
+  - `topBarAction` : la page a sa propre action dans la barre supérieure (« Importer »), à la place du menu « Nouveau ». Elle l'y place par `<Teleport defer to="#board-top-bar-action">`. La barre rend toujours cette destination, que `defer` exige dans le même cycle de rendu. Un test de la page remplace le `teleport` (`stubs: { teleport: true }`).
 - `composables/` : préfixe `use*`, une responsabilité chacun.
 - `plugins/` pour les **intégrations globales uniquement** : ce qui doit exister avant le premier rendu ou s'appliquer à toute l'app (client API partagé, gestionnaire d'erreurs global).
   - Un plugin est un point d'entrée d'infrastructure, pas un fourre-tout. Toute logique réutilisable appelée depuis des composants est un composable ; toute règle de navigation est un middleware.
@@ -150,6 +154,9 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
 - **Vitest + `@nuxt/test-utils`** pour les composables, les stores et les composants (environnement `nuxt`).
   - Les tests vivent dans `tests/nuxt/`, en miroir de `app/`. C'est le seul dossier de tests que la configuration TypeScript de Nuxt vérifie.
   - Les appels API se simulent avec `registerEndpoint`, par le helper `mockApi()` (`tests/nuxt/helpers/api.ts`). openapi-fetch passe à `fetch` un `Request`, dont l'URL est absolue : le mock est enregistré sous cette URL.
+  - **Un mock sans méthode répond à toutes**, et le dernier enregistré l'emporte : la lecture d'une adresse qu'une écriture partage déclare `method: 'GET'`, sinon elle répond à la place du `PUT` ou du `DELETE`.
+  - `recordRequests()` lit le corps JSON d'une requête, ou les champs d'un formulaire multipart (un fichier par son nom et son type).
+  - Un test d'une page privée pose un jeton de session avant de la monter : sans lui, le middleware renvoie vers la connexion et rien ne s'affiche.
   - Jamais de requête vers un vrai back dans un test unitaire.
   - La configuration du test vient de `vitest.config.ts` (`environmentOptions.nuxt.overrides.runtimeConfig`), avec des valeurs fictives, clés privées comprises. Un test qui la change la rétablit.
   - Une page servie sans script se monte avec `route: false` : naviguer vers elle déclencherait le chargement de page du routeur. Son câblage se vérifie sans naviguer (`getRouteRules()`).

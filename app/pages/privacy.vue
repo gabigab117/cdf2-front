@@ -8,9 +8,10 @@ const { contact } = useRuntimeConfig().public
 const RETENTION_PERIODS: ReadonlyArray<{ data: string, period: string }> = [
   {
     data: 'Compte d’un membre du bureau',
-    period: 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés, ses notes et ses tâches. Il est supprimé si elle le demande : ses notes et ses tâches restent, sans son nom.',
+    period: 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés, ses notes, ses tâches et les documents qu’elle a déposés ou validés. Il est supprimé si elle le demande : ses notes, ses tâches et ses documents restent, sans son nom.',
   },
   { data: 'Notes et tâches du bureau', period: 'Supprimées avec leur événement, ou à la main : une note par son auteur' },
+  { data: 'Documents du bureau', period: 'Gardés pour la gestion de l’association, factures comprises ; un membre du bureau peut en supprimer un' },
   { data: 'Noms des bénévoles affectés aux postes', period: 'Effacés 2 ans après l’événement' },
   { data: 'Noms et remarques des réservations', period: 'Effacés 3 mois après l’événement, les totaux conservés' },
   { data: 'Session de l’espace du bureau', period: '7 jours, puis effacée la nuit suivante' },
@@ -45,6 +46,10 @@ useSitePage({
       <p>Les membres voient le nom et l’e-mail des autres membres. Un événement peut nommer son responsable parmi eux : ce lien n’est visible que du bureau, jamais publié sur le site.</p>
       <p>Les notes du bureau portent le nom de leur auteur, les tâches celui de la personne qui les a créées et de celle à qui elles sont assignées. Seul le bureau les lit. Ce sont des textes libres : on n’y écrit que le nécessaire, et aucune donnée sensible, comme une information de santé.</p>
       <p>La connexion à l’espace du bureau pose un cookie technique, indispensable pour rester connecté. L’administration des comptes pose aussi les siens : sa session et la protection de ses formulaires. Les connexions sont comptées par adresse IP, pour bloquer les essais de mots de passe.</p>
+    </SiteLegalSection>
+    <SiteLegalSection title="Documents du bureau">
+      <p>Le bureau dépose les documents du comité : factures, commandes, comptes rendus de réunion, courriers. Ils peuvent porter des noms, comme celui d’un fournisseur, d’un emprunteur ou d’un membre présent à une réunion. Seul le bureau les lit : aucun n’est publié sur le site, et chacun ne s’ouvre qu’à un membre connecté.</p>
+      <p>Chaque document porte le nom du membre qui l’a déposé, et de celui qui l’a validé. Une photo déposée perd ses métadonnées, la position où elle a été prise comprise. Les documents sont gardés pour la gestion de l’association ; un membre du bureau peut en supprimer un.</p>
     </SiteLegalSection>
     <SiteLegalSection title="Bénévoles et réservations">
       <p>Le bureau répartit les bénévoles sur les postes d’un événement : il note leur nom, et parfois leur rôle. Ces noms ne sont visibles que du bureau, jamais publiés sur le site, et ils sont effacés deux ans après l’événement.</p>

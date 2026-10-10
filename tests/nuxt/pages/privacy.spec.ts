@@ -26,13 +26,15 @@ describe('privacy page', () => {
 
     expect(page.get('h1').text()).toBe('Données personnelles')
     expect(page.findAll('h2').map(title => title.text())).toEqual([
-      'Visiteurs du site', 'Membres du bureau', 'Bénévoles et réservations', 'Durées de conservation', 'Vos droits',
+      'Visiteurs du site', 'Membres du bureau', 'Documents du bureau', 'Bénévoles et réservations', 'Durées de conservation', 'Vos droits',
     ])
     expect(page.text()).toContain('Le site ne dépose aucun cookie, ne mesure pas son audience et ne vous demande rien.')
     expect(page.text()).toContain('Les notes du bureau portent le nom de leur auteur, les tâches celui de la personne qui les a créées et de celle à qui elles sont assignées. Seul le bureau les lit.')
+    expect(page.text()).toContain('Une photo déposée perd ses métadonnées, la position où elle a été prise comprise.')
     expect(page.findAll('tbody tr').map(row => [row.get('th').text(), row.get('td').text()])).toEqual([
-      ['Compte d’un membre du bureau', 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés, ses notes et ses tâches. Il est supprimé si elle le demande : ses notes et ses tâches restent, sans son nom.'],
+      ['Compte d’un membre du bureau', 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés, ses notes, ses tâches et les documents qu’elle a déposés ou validés. Il est supprimé si elle le demande : ses notes, ses tâches et ses documents restent, sans son nom.'],
       ['Notes et tâches du bureau', 'Supprimées avec leur événement, ou à la main : une note par son auteur'],
+      ['Documents du bureau', 'Gardés pour la gestion de l’association, factures comprises ; un membre du bureau peut en supprimer un'],
       ['Noms des bénévoles affectés aux postes', 'Effacés 2 ans après l’événement'],
       ['Noms et remarques des réservations', 'Effacés 3 mois après l’événement, les totaux conservés'],
       ['Session de l’espace du bureau', '7 jours, puis effacée la nuit suivante'],
