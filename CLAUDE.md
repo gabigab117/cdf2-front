@@ -87,6 +87,8 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
   - `data` n'est pas profond : on le remplace, on ne le modifie jamais.
   - Après une écriture, la donnée qu'elle change se recharge par sa clé (`refreshNuxtData`). Toute écriture d'un événement recharge la barre latérale (`useEventWrites`).
   - Une donnée qu'une seule page lit (le tableau de bord) n'a pas de rechargement à prévoir après une écriture faite sur une autre page : Nuxt purge la donnée d'une clé au démontage de son dernier composant, `refreshNuxtData` n'atteint que les clés montées, et la page la relit à sa prochaine visite.
+  - Les compteurs des onglets d'un événement viennent de son tableau de bord (`useEventDashboard`) : toute écriture d'un onglet le recharge (`refreshEventDashboard`), jamais un compte fait côté client.
+  - **L'onglet d'une page vit dans l'adresse** (`?onglet=…&page=…`, `utils/event-tabs.ts`) : un lien y mène, la pagination d'un onglet passe par des liens, et Nuxt ne remonte pas la page quand seule la requête change.
   - Dans les tests, les composants se démontent avant `clearNuxtData()` : sinon, une réponse en vol réécrit les données vidées.
 - **Pas de logique dans les templates** : extraire dans des `computed` ou des composables.
 - **Un lien dans un texte** (`SiteTextLink`) reçoit son texte en propriété, pas dans un slot : le linter met le contenu d'un composant sur ses propres lignes, et le lien finirait par un espace, avant la virgule ou le point qui le suit.
@@ -153,6 +155,7 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
   - Une page servie sans script se monte avec `route: false` : naviguer vers elle déclencherait le chargement de page du routeur. Son câblage se vérifie sans naviguer (`getRouteRules()`).
   - `useRuntimeConfig()`, `useNow()` et les autres composables ne s'appellent que dans un test, jamais au niveau du module : l'application n'existe pas encore à l'import.
   - happy-dom ne connaît pas l'API Popover : un test vérifie le câblage (`popovertarget`, `popovertargetaction`), l'ouverture se vérifie sur capture ou en E2E.
+  - **Choisir l'option d'une liste à valeurs numériques** : `setValue('7')`, en texte. happy-dom compare la valeur d'une option à un nombre sans la convertir : `setValue(7)` ne choisit rien, et le modèle passe à `undefined`.
 - **Playwright** pour les parcours critiques uniquement (`e2e/`), **contre un vrai back Django**. Les parcours critiques sont :
   - connexion, déconnexion et rechargement en cours de session ;
   - **une page publique chargée JavaScript désactivé** : la preuve que son contenu est rendu côté serveur, donc indexable ;
@@ -166,6 +169,7 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
   - Playwright démarre le back (`webServer`, dossier `E2E_BACK_DIR`, `../back` par défaut). `e2e/global-setup.ts` y charge un membre du bureau fictif (`e2e/fixtures/board-member.json`), repéré par son e-mail : le recharger met à jour le même compte. Il y écrit aussi les événements fictifs de la maquette (`manage.py seed_demo`, permis pour ce seul appel).
   - Le serveur de dev reçoit sa configuration de `playwright.config.ts` (`use.nuxt.env`) : l'API des parcours pour le rendu serveur, et une préproduction fictive.
   - Les dates de la démonstration suivent le jour où elle s'écrit : un parcours retrouve un événement par son nom, jamais par sa place.
+  - Un parcours qui écrit (un poste sur Halloween) nettoie d'abord ce qu'un essai interrompu a laissé, une fois la donnée chargée, en attendant après chaque suppression que la liste l'ait perdue : une relance de la CI repart de la même base.
   - Une page lue sans JavaScript se charge par `page.goto` : le `goto` qui attend l'hydratation ne rendrait jamais la main.
   - L'API limite les connexions à 5 par minute et par IP, et tous les navigateurs de la suite partagent celle du proxy. Un parcours ne se connecte donc qu'une fois, le refus des identifiants une autre, avec une seule relance en CI.
   - Le job `e2e` de la CI rejoue les parcours contre la branche `main` du back, et le déploiement l'attend.
