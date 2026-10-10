@@ -31,6 +31,8 @@ describe('privacy page', () => {
     expect(page.text()).toContain('Le site ne dépose aucun cookie, ne mesure pas son audience et ne vous demande rien.')
     expect(page.text()).toContain('Les notes du bureau portent le nom de leur auteur, les tâches celui de la personne qui les a créées et de celle à qui elles sont assignées. Seul le bureau les lit.')
     expect(page.text()).toContain('Une photo déposée perd ses métadonnées, la position où elle a été prise comprise.')
+    expect(page.text()).toContain('Un document déposé est annoncé par e-mail aux membres du bureau que l’administrateur du site a choisis, sauf à celui qui l’a déposé.')
+    expect(page.text()).toContain('Il passe par Mailo, qui en reçoit le texte et l’adresse de chaque destinataire. Le site n’en garde aucune copie.')
     expect(page.findAll('tbody tr').map(row => [row.get('th').text(), row.get('td').text()])).toEqual([
       ['Compte d’un membre du bureau', 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés, ses notes, ses tâches et les documents qu’elle a déposés ou validés. Il est supprimé si elle le demande : ses notes, ses tâches et ses documents restent, sans son nom.'],
       ['Notes et tâches du bureau', 'Supprimées avec leur événement, ou à la main : une note par son auteur'],
@@ -61,6 +63,6 @@ describe('privacy page', () => {
     // The link's text comes as a prop: a slot would leave a space before the comma.
     const page = await mountPrivacy()
 
-    expect(page.text()).toContain('nommé dans les mentions légales, et ne sont transmises à personne.')
+    expect(page.text()).toContain('nommé dans les mentions légales, et ne sont transmises à personne : seuls les e-mails')
   })
 })

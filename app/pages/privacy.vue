@@ -34,7 +34,7 @@ useSitePage({
       <SiteTextLink
         :to="LEGAL_NOTICE_PATH"
         label="mentions légales"
-      />, et ne sont transmises à personne.
+      />, et ne sont transmises à personne : seuls les e-mails envoyés aux membres du bureau passent par Mailo, la messagerie de l’association.
     </p>
     <SiteLegalSection title="Visiteurs du site">
       <p>Le site ne dépose aucun cookie, ne mesure pas son audience et ne vous demande rien. Ses polices de caractères sont servies par le site lui-même.</p>
@@ -50,6 +50,7 @@ useSitePage({
     <SiteLegalSection title="Documents du bureau">
       <p>Le bureau dépose les documents du comité : factures, commandes, comptes rendus de réunion, courriers. Ils peuvent porter des noms, comme celui d’un fournisseur, d’un emprunteur ou d’un membre présent à une réunion. Seul le bureau les lit : aucun n’est publié sur le site, et chacun ne s’ouvre qu’à un membre connecté.</p>
       <p>Chaque document porte le nom du membre qui l’a déposé, et de celui qui l’a validé. Une photo déposée perd ses métadonnées, la position où elle a été prise comprise. Les documents sont gardés pour la gestion de l’association ; un membre du bureau peut en supprimer un.</p>
+      <p>Un document déposé est annoncé par e-mail aux membres du bureau que l’administrateur du site a choisis, sauf à celui qui l’a déposé. Le message donne le titre et la catégorie du document, le nom du membre qui l’a déposé et la date du dépôt, avec un lien qui demande de se connecter : il ne contient ni le fichier ni son contenu. Il passe par Mailo, qui en reçoit le texte et l’adresse de chaque destinataire. Le site n’en garde aucune copie.</p>
     </SiteLegalSection>
     <SiteLegalSection title="Bénévoles et réservations">
       <p>Le bureau répartit les bénévoles sur les postes d’un événement : il note leur nom, et parfois leur rôle. Ces noms ne sont visibles que du bureau, jamais publiés sur le site, et ils sont effacés deux ans après l’événement.</p>
