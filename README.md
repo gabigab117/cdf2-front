@@ -8,7 +8,7 @@ Front de la v2 de l'application du Comité des fêtes d'Ons-en-Bray (Oise), une 
 
 Ce dépôt contient le front. L'API (Django Ninja) est dans [cdf2-back](https://github.com/gabigab117/cdf2-back).
 
-> **État** : projet en cours de construction (octobre 2026). Le site public (accueil, agenda, fiches des événements) et la gestion des événements par le bureau sont en place ; les autres écrans arrivent par étapes.
+> **État** : projet en cours de construction (octobre 2026). Le site public (accueil, agenda, fiches des événements, mentions légales et données personnelles) et la gestion des événements par le bureau sont en place ; les autres écrans arrivent par étapes.
 
 ## Stack
 
@@ -23,6 +23,7 @@ Ce dépôt contient le front. L'API (Django Ninja) est dans [cdf2-back](https://
 
 - **Rendu hybride.**
   - Les pages publiques sont rendues côté serveur (SSR). Elles sont indexables, lisibles sans JavaScript et ne portent aucune donnée de session ni aucune donnée personnelle.
+  - Seule exception, imposée par la loi : les mentions légales nomment le directeur ou la directrice de la publication. Elles lisent ce nom dans une clé privée de la configuration, et sont servies sans script : il n'est écrit dans aucune autre page, et les moteurs de recherche ne les indexent pas.
   - L'espace `/bureau` est une application côté client (`routeRules`). Sa session n'existe que dans le navigateur.
 - **Un site public complet sans JavaScript.**
   - Les filtres de l'agenda sont des liens.
@@ -67,8 +68,11 @@ Toute la configuration vient de l'environnement (`.env` en local) : le dépôt n
 | `NUXT_PUBLIC_PREPROD` | `true` en préproduction : bandeau « Préproduction — données fictives » et pages jamais indexées. |
 | `NUXT_PUBLIC_CONTACT_EMAIL`, `NUXT_PUBLIC_CONTACT_PHONE` | E-mail et téléphone de l'association, jamais ceux d'un membre. |
 | `NUXT_PUBLIC_HALL_STREET`, `NUXT_PUBLIC_HALL_TOWN` | Adresse de la salle des fêtes, puis son code postal et sa commune. |
+| `NUXT_LEGAL_PUBLICATION_DIRECTOR` | Nom du directeur ou de la directrice de la publication, cité par les mentions légales. |
+| `NUXT_LEGAL_OFFICE_STREET`, `NUXT_LEGAL_OFFICE_TOWN` | Siège de l'association, puis son code postal et sa commune. |
+| `NUXT_LEGAL_HOST_NAME`, `NUXT_LEGAL_HOST_ADDRESS`, `NUXT_LEGAL_HOST_PHONE` | Raison sociale, adresse et téléphone de l'hébergeur. |
 
-Les variables `NUXT_PUBLIC_*` sont écrites dans chaque page servie, pour le navigateur : elles ne contiennent jamais de donnée personnelle. Une valeur vide masque la ligne qu'elle remplit.
+Les variables `NUXT_PUBLIC_*` sont écrites dans chaque page servie, pour le navigateur : elles ne contiennent jamais de donnée personnelle. Les variables `NUXT_LEGAL_*` restent privées : seul le rendu serveur des mentions légales les lit, et cette page est servie sans script. Une valeur vide masque la ligne qu'elle remplit.
 
 ## Qualité
 

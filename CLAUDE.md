@@ -88,6 +88,7 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
   - Après une écriture, la donnée qu'elle change se recharge par sa clé (`refreshNuxtData`). Toute écriture d'un événement recharge la barre latérale (`useEventWrites`).
   - Dans les tests, les composants se démontent avant `clearNuxtData()` : sinon, une réponse en vol réécrit les données vidées.
 - **Pas de logique dans les templates** : extraire dans des `computed` ou des composables.
+- **Un lien dans un texte** (`SiteTextLink`) reçoit son texte en propriété, pas dans un slot : le linter met le contenu d'un composant sur ses propres lignes, et le lien finirait par un espace, avant la virgule ou le point qui le suit.
 - **Pas de commentaire HTML à la racine d'un template** : il en fait un fragment, et les attributs passés au composant ne tombent plus sur son élément (constaté sur `UiButton`). Le commentaire va dans le script, ou hors du `<template>`.
 - **Un lien vers la page affichée est toujours « actif » pour le routeur**, quelle que soit sa requête ou son ancre : vue-router ignore les deux et lui pose `aria-current="page"`. Un lien vers la même page avec une autre requête (chip de filtre, pagination, ancre du site) lie donc `aria-current` lui-même (`UiFilterChip`, `UiButton`, `SiteNav`). L'environnement de test ne marque aucun lien : seul le HTML rendu le prouve (parcours E2E).
 
@@ -108,6 +109,7 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
   - En dev, le `devProxy` de Nitro tient le rôle de nginx : le navigateur ne voit qu'une origine, comme en prod.
 - Les coordonnées du comité et le drapeau de préproduction viennent de `runtimeConfig`, alimentée par l'environnement : aucune donnée réelle dans le dépôt, qui est public.
   - **`runtimeConfig.public` est écrite dans chaque page servie**, pour le navigateur : jamais une donnée personnelle. Ce qu'une seule page doit montrer reste en clé privée, lue par son rendu serveur.
+  - **Une page qui lit une clé privée est servie sans script** (`noScripts` dans `routeRules`, comme `/mentions-legales`). Nuxt n'y écrit ni script ni payload, et le routeur du navigateur remplace toute navigation vers elle par un chargement complet : seul le serveur la rend. Son chemin s'écrit en toutes lettres dans la règle et dans son `definePageMeta`. Écartés, ils feraient monter au navigateur le bouchon de la page, qui la recharge sans fin.
 - **Une page publique se lit sans JavaScript**, son contenu comme sa navigation.
   - Un filtre est un lien. Un menu est un `popover` natif (`UiPopover`), qui s'ouvre et se ferme sans script.
   - Ce qui ne peut pas marcher sans script ne s'affiche que dans le navigateur (`<ClientOnly>`) : pas de bouton mort.
@@ -146,7 +148,8 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
   - Les tests vivent dans `tests/nuxt/`, en miroir de `app/`. C'est le seul dossier de tests que la configuration TypeScript de Nuxt vérifie.
   - Les appels API se simulent avec `registerEndpoint`, par le helper `mockApi()` (`tests/nuxt/helpers/api.ts`). openapi-fetch passe à `fetch` un `Request`, dont l'URL est absolue : le mock est enregistré sous cette URL.
   - Jamais de requête vers un vrai back dans un test unitaire.
-  - La configuration du test vient de `vitest.config.ts` (`environmentOptions.nuxt.overrides.runtimeConfig`), avec des valeurs fictives. Un test qui la change la rétablit.
+  - La configuration du test vient de `vitest.config.ts` (`environmentOptions.nuxt.overrides.runtimeConfig`), avec des valeurs fictives, clés privées comprises. Un test qui la change la rétablit.
+  - Une page servie sans script se monte avec `route: false` : naviguer vers elle déclencherait le chargement de page du routeur. Son câblage se vérifie sans naviguer (`getRouteRules()`).
   - `useRuntimeConfig()`, `useNow()` et les autres composables ne s'appellent que dans un test, jamais au niveau du module : l'application n'existe pas encore à l'import.
   - happy-dom ne connaît pas l'API Popover : un test vérifie le câblage (`popovertarget`, `popovertargetaction`), l'ouverture se vérifie sur capture ou en E2E.
 - **Playwright** pour les parcours critiques uniquement (`e2e/`), **contre un vrai back Django**. Les parcours critiques sont :
@@ -177,5 +180,6 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
 5. Aucune valeur Tailwind arbitraire ; classes récurrentes extraites en composants.
 6. Pas de logique métier dans les templates ni de fetch hors du composable API.
 7. Écran conforme à la maquette, ou, s'il en est absent, composé de ses tokens et composants et validé sur capture.
-8. La CI est verte, et le déploiement en préproduction aussi.
-9. La card correspondante de la roadmap est annotée **✅ Terminé**.
+8. Une donnée personnelle ajoutée, ou une durée de conservation changée, est décrite sur la page « Données personnelles » (`pages/privacy.vue`).
+9. La CI est verte, et le déploiement en préproduction aussi.
+10. La card correspondante de la roadmap est annotée **✅ Terminé**.

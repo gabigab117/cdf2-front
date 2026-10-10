@@ -37,8 +37,11 @@ Le service lit `shared/front.env` (0600), qui reste hors du dépôt. Une variabl
 | `NUXT_PUBLIC_PREPROD` | `true` pour la préproduction seulement : bandeau « Préproduction — données fictives » et `noindex` sur chaque page. |
 | `NUXT_PUBLIC_CONTACT_EMAIL`, `NUXT_PUBLIC_CONTACT_PHONE` | Coordonnées de l'association, jamais celles d'un membre. |
 | `NUXT_PUBLIC_HALL_STREET`, `NUXT_PUBLIC_HALL_TOWN` | Adresse de la salle des fêtes. |
+| `NUXT_LEGAL_PUBLICATION_DIRECTOR` | Directeur ou directrice de la publication, nommé par les mentions légales. |
+| `NUXT_LEGAL_OFFICE_STREET`, `NUXT_LEGAL_OFFICE_TOWN` | Siège de l'association. |
+| `NUXT_LEGAL_HOST_NAME`, `NUXT_LEGAL_HOST_ADDRESS`, `NUXT_LEGAL_HOST_PHONE` | Hébergeur du site : raison sociale, adresse et téléphone. |
 
-Les variables `NUXT_PUBLIC_*` sont écrites dans chaque page servie : jamais de donnée personnelle.
+Les variables `NUXT_PUBLIC_*` sont écrites dans chaque page servie : jamais de donnée personnelle. Les variables `NUXT_LEGAL_*` ne sont lues que par le rendu serveur des mentions légales, servies sans script.
 
 Le contrôle de santé ne prouve pas que l'API est jointe : l'accueil répond même quand elle ne répond pas. Après un changement de configuration, on vérifie qu'un titre d'événement figure dans le HTML de l'accueil.
 
