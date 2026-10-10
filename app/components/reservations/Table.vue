@@ -104,9 +104,10 @@ defineExpose({ refresh })
         class="m-5.5"
         @retry="refresh()"
       />
+      <!-- Relative: the hidden heading « Actions » would otherwise widen the page. -->
       <div
         v-else-if="reservations.length > 0"
-        class="overflow-x-auto"
+        class="relative overflow-x-auto"
       >
         <table class="w-full text-left text-ui">
           <thead>

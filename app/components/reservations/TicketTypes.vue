@@ -83,16 +83,17 @@ async function remove(): Promise<void> {
         :errors="capacityMessages"
       >
         <div class="flex flex-wrap gap-2">
-          <UiInput
-            :id
-            v-model="capacity"
-            type="number"
-            min="1"
-            inputmode="numeric"
-            class="w-40"
-            :aria-describedby="describedby"
-            :invalid
-          />
+          <div class="w-40">
+            <UiInput
+              :id
+              v-model="capacity"
+              type="number"
+              min="1"
+              inputmode="numeric"
+              :aria-describedby="describedby"
+              :invalid
+            />
+          </div>
           <UiButton
             type="submit"
             variant="secondary"

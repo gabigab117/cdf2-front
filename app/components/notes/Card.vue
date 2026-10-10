@@ -120,6 +120,7 @@ async function remove(): Promise<void> {
     </UiConfirmation>
     <div class="flex flex-wrap items-start justify-between gap-3">
       <NotesReplies
+        class="min-w-0 flex-1"
         :note
         :lead-id
         @changed="emit('changed')"
