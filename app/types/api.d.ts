@@ -108,7 +108,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List the documents
+         * @description The documents, by page, the latest date first: a search keeps those holding
+         *     its words, in their texts, amount or event.
+         */
+        get: operations["documents_api_list_documents"];
         put?: never;
         /**
          * Deposit a document
@@ -118,6 +123,52 @@ export interface paths {
          */
         post: operations["documents_api_upload"];
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/documents/counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Count the documents by category
+         * @description How many documents answer a search, in all and by category, whatever the
+         *     category shown: the counts of the list's chips, whole.
+         */
+        get: operations["documents_api_counts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/documents/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a document */
+        get: operations["documents_api_read"];
+        /**
+         * Correct a document
+         * @description Rewrite a document whole: how it is classified, and its fields.
+         */
+        put: operations["documents_api_update"];
+        post?: never;
+        /**
+         * Delete a document
+         * @description Delete a document and its file.
+         */
+        delete: operations["documents_api_delete"];
         options?: never;
         head?: never;
         patch?: never;
@@ -137,6 +188,26 @@ export interface paths {
         get: operations["documents_api_read_file"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/documents/{document_id}/validate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Validate a document
+         * @description Validate a document awaiting review: minutes create the tasks they list.
+         */
+        post: operations["documents_api_validate"];
         delete?: never;
         options?: never;
         head?: never;
@@ -555,6 +626,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/tasks/general": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the general tasks
+         * @description The tasks without an event (D10), by page, in the same order as an event's.
+         */
+        get: operations["tasks_api_list_general_tasks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/tasks/{task_id}": {
         parameters: {
             query?: never;
@@ -773,6 +864,7 @@ export interface components {
          * @description What the board's dashboard shows.
          */
         BoardOverviewOut: {
+            general_tasks: components["schemas"]["GeneralTasksOut"];
             /** Latest Notes */
             latest_notes: components["schemas"]["LatestNoteOut"][];
             /** Upcoming Events */
@@ -791,6 +883,23 @@ export interface components {
          */
         DocumentCategory: "invoice" | "order" | "minutes" | "misc";
         /**
+         * DocumentCountsOut
+         * @description How many documents answer a search, in all and by category, whatever
+         *     the category shown: the chips of the list.
+         */
+        DocumentCountsOut: {
+            /** Invoice */
+            invoice: number;
+            /** Minutes */
+            minutes: number;
+            /** Misc */
+            misc: number;
+            /** Order */
+            order: number;
+            /** Total */
+            total: number;
+        };
+        /**
          * DocumentEventOut
          * @description The event a document belongs to.
          */
@@ -799,6 +908,114 @@ export interface components {
             id: number;
             /** Title */
             title: string;
+        };
+        /**
+         * DocumentExtractedIn
+         * @description What belongs to one kind of document, whole, every key required: the
+         *     service keeps the keys of the document's category.
+         */
+        DocumentExtractedIn: {
+            /** Abstract */
+            abstract: string;
+            /** Decisions */
+            decisions: string[];
+            /** Delivery Date */
+            delivery_date: string | null;
+            /** Items */
+            items: string;
+            /** Key Date */
+            key_date: string;
+            /** Tasks */
+            tasks: components["schemas"]["ExtractedTaskIn"][];
+        };
+        /**
+         * DocumentExtractedOut
+         * @description What belongs to the document's kind: a key of another kind reads empty.
+         */
+        DocumentExtractedOut: {
+            /** Abstract */
+            abstract: string;
+            /** Decisions */
+            decisions: string[];
+            /** Delivery Date */
+            delivery_date: string | null;
+            /** Items */
+            items: string;
+            /** Key Date */
+            key_date: string;
+            /** Tasks */
+            tasks: components["schemas"]["ExtractedTaskOut"][];
+        };
+        /**
+         * DocumentFilters
+         * @description The documents a search keeps: every filter given applies.
+         */
+        DocumentFilters: {
+            /** Event */
+            event?: number | null;
+            /** Search */
+            search?: string | null;
+            status?: components["schemas"]["DocumentStatus"] | null;
+        };
+        /**
+         * DocumentIn
+         * @description A document as a member corrects it: whole, every key required.
+         *
+         *     Its values are checked by the model, whose messages are in French.
+         */
+        DocumentIn: {
+            /** Amount */
+            amount: number | string | null;
+            category: components["schemas"]["DocumentCategory"];
+            /** Document Date */
+            document_date: string | null;
+            /** Due Date */
+            due_date: string | null;
+            /** Event */
+            event: number | null;
+            extracted: components["schemas"]["DocumentExtractedIn"];
+            /** Issuer */
+            issuer: string;
+            /** Note */
+            note: string;
+            /** Paid On */
+            paid_on: string | null;
+            /** Reference */
+            reference: string;
+            /** Title */
+            title: string;
+        };
+        /**
+         * DocumentItemOut
+         * @description A document as the list shows it.
+         */
+        DocumentItemOut: {
+            /** Amount */
+            amount: string | null;
+            category: components["schemas"]["DocumentCategory"];
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            event: components["schemas"]["DocumentEventOut"] | null;
+            /** Id */
+            id: number;
+            status: components["schemas"]["DocumentStatus"];
+            /** Title */
+            title: string;
+        };
+        /**
+         * DocumentListFilters
+         * @description The filters of the list, which also keeps a single category.
+         */
+        DocumentListFilters: {
+            category?: components["schemas"]["DocumentCategory"] | null;
+            /** Event */
+            event?: number | null;
+            /** Search */
+            search?: string | null;
+            status?: components["schemas"]["DocumentStatus"] | null;
         };
         /**
          * DocumentOut
@@ -823,6 +1040,7 @@ export interface components {
             /** Due Date */
             due_date: string | null;
             event: components["schemas"]["DocumentEventOut"] | null;
+            extracted: components["schemas"]["DocumentExtractedOut"];
             /** Id */
             id: number;
             /** Issuer */
@@ -1033,6 +1251,37 @@ export interface components {
             /** Venue Name */
             venue_name: string;
         };
+        /**
+         * ExtractedTaskIn
+         * @description A task the minutes of a meeting list, to create when they are validated.
+         */
+        ExtractedTaskIn: {
+            /** Assignee */
+            assignee: number | null;
+            /** Title */
+            title: string;
+        };
+        /** ExtractedTaskOut */
+        ExtractedTaskOut: {
+            /** Assignee */
+            assignee: number | null;
+            /** Title */
+            title: string;
+        };
+        /**
+         * GeneralTasksOut
+         * @description The tasks without an event (D10), as the dashboard's block shows them.
+         */
+        GeneralTasksOut: {
+            /** Next Tasks */
+            next_tasks: components["schemas"]["TaskOut"][];
+            /** Recently Done Tasks */
+            recently_done_tasks: components["schemas"]["TaskOut"][];
+            /** Tasks Done */
+            tasks_done: number;
+            /** Tasks Total */
+            tasks_total: number;
+        };
         /** HealthOut */
         HealthOut: {
             /** Database */
@@ -1190,6 +1439,13 @@ export interface components {
             count: number;
             /** Items */
             items: components["schemas"]["BoardMemberOut"][];
+        };
+        /** PagedDocumentItemOut */
+        PagedDocumentItemOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["DocumentItemOut"][];
         };
         /** PagedEventItemOut */
         PagedEventItemOut: {
@@ -1823,6 +2079,60 @@ export interface operations {
             };
         };
     };
+    documents_api_list_documents: {
+        parameters: {
+            query?: {
+                search?: string | null;
+                status?: components["schemas"]["DocumentStatus"] | null;
+                event?: number | null;
+                category?: components["schemas"]["DocumentCategory"] | null;
+                page?: number;
+                page_size?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedDocumentItemOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
     documents_api_upload: {
         parameters: {
             query?: never;
@@ -1898,6 +2208,242 @@ export interface operations {
             };
         };
     };
+    documents_api_counts: {
+        parameters: {
+            query?: {
+                search?: string | null;
+                status?: components["schemas"]["DocumentStatus"] | null;
+                event?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentCountsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    documents_api_read: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    documents_api_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    documents_api_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
     documents_api_read_file: {
         parameters: {
             query?: {
@@ -1919,6 +2465,64 @@ export interface operations {
                 content: {
                     "application/pdf": string;
                     "image/webp": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    documents_api_validate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
                 };
             };
             /** @description Unauthorized */
@@ -3707,6 +4311,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    tasks_api_list_general_tasks: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedTaskOut"];
                 };
             };
             /** @description Unauthorized */
