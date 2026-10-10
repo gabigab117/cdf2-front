@@ -112,6 +112,32 @@ function calendarDay(date: string, now: number): string {
 }
 
 /**
+ * A day of the calendar with its weekday, such as the return of a loan:
+ * « ven. 16 oct. », with its year when it is not the year of `now`.
+ */
+function calendarWeekday(date: string, now: number): string {
+  const iso = `${date}T12:00:00Z`
+  return day(iso, { year: parisCalendar(iso).year !== parisCalendar(now).year })
+}
+
+/**
+ * The days of a loan, both counted: « du ven. 16 au dim. 18 oct. », « du
+ * ven. 30 oct. au dim. 1er nov. », « ven. 16 oct. » for a single day, with the
+ * year when it is not the year of `now`.
+ */
+function calendarPeriod(start: string, end: string, now: number): string {
+  if (start === end) return calendarWeekday(start, now)
+  const first = `${start}T12:00:00Z`
+  const last = `${end}T12:00:00Z`
+  const from = parisCalendar(first)
+  const to = parisCalendar(last)
+  if (from.year !== to.year) return `du ${written(FORMATS.weekdayAndYear, first)} au ${day(last, { year: true })}`
+  const until = day(last, { year: to.year !== parisCalendar(now).year })
+  if (from.month !== to.month) return `du ${written(FORMATS.weekday, first)} au ${until}`
+  return `du ${written(FORMATS.weekdayAndDay, first)} au ${until}`
+}
+
+/**
  * A day with its month in full: « samedi 31 octobre », « sam. 31 octobre »,
  * « 30 septembre », with its year if asked. At the start of a sentence, it
  * takes a capital: « Samedi 31 octobre 2026 ».
@@ -248,5 +274,5 @@ function season(now: number): string {
  * the browser: the formats of the mockup.
  */
 export function useDateFormat() {
-  return { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
+  return { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarWeekday, calendarPeriod, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
 }

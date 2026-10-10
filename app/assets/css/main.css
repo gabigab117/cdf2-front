@@ -145,7 +145,13 @@
   --grid-template-columns-documents-event: 40px minmax(0, 1fr) 110px 84px;
   --grid-template-columns-documents-narrow: 40px minmax(0, 1fr) auto;
 
+  /* Grids of the inventory's rows: equipment, total, out, under repair, free,
+     their bar; equipment and free below 820 px. */
+  --grid-template-columns-equipment: minmax(0, 1.7fr) 64px 64px 84px 84px minmax(0, 1fr);
+  --grid-template-columns-equipment-narrow: minmax(0, 1fr) auto;
+
   /* Radii */
+  --radius-swatch: 3px;     /* colour swatches of a legend */
   --radius-badge: 7px;
   --radius-segment: 9px;     /* segmented control options */
   --radius-control: 10px;    /* small controls */

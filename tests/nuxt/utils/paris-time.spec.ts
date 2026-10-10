@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { fromDateTimeInput, parisCalendar, parisDay, toDateTimeInput } from '~/utils/paris-time'
+import { fromDateTimeInput, parisCalendar, parisDate, parisDay, toDateTimeInput } from '~/utils/paris-time'
 
 describe('fromDateTimeInput', () => {
   afterEach(() => {
@@ -69,5 +69,12 @@ describe('parisDay', () => {
     expect(parisDay('2026-10-30T23:30:00Z') - parisDay('2026-10-30T22:30:00Z')).toBe(1)
     // Over the night the clocks go back: two days, though 49 hours apart.
     expect(parisDay('2026-10-26T12:00:00Z') - parisDay('2026-10-24T11:00:00Z')).toBe(2)
+  })
+})
+
+describe('parisDate', () => {
+  it('writes the day an instant falls on in Paris, as the API writes a day', () => {
+    expect(parisDate('2026-12-31T23:30:00Z')).toBe('2027-01-01')
+    expect(parisDate(Date.parse('2026-10-01T08:00:00Z'))).toBe('2026-10-01')
   })
 })

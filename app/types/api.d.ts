@@ -214,6 +214,97 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/equipment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read today's inventory
+         * @description What each equipment offers today, by category: its pieces, those taken
+         *     today and those under repair, with the figures of the inventory.
+         */
+        get: operations["equipment_api_read_inventory"];
+        put?: never;
+        /** Add equipment */
+        post: operations["equipment_api_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/equipment/availability": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tell what equipment is free over a period
+         * @description For each equipment: what the loans take of it at their daily peak over
+         *     the period, what remains free, and those loans. The loan being edited is
+         *     left out: its own pieces do not stand in its way.
+         */
+        get: operations["equipment_api_read_availability"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/equipment/{equipment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Change equipment
+         * @description Rewrite an equipment whole, such as the pieces put back in service.
+         *
+         *     Fewer pieces offered are refused if a loan to come would then lack some.
+         */
+        put: operations["equipment_api_update"];
+        post?: never;
+        /**
+         * Delete equipment
+         * @description Delete an equipment no loan names.
+         */
+        delete: operations["equipment_api_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/equipment/{equipment_id}/occupancy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the occupancy of equipment
+         * @description The loans that take an equipment, from the Monday of this week, for
+         *     eleven weeks.
+         */
+        get: operations["equipment_api_read_occupancy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/events": {
         parameters: {
             query?: never;
@@ -843,6 +934,42 @@ export interface components {
             role: string;
         };
         /**
+         * AvailabilityOut
+         * @description What every equipment offers over a period: a bounded aggregate (A7).
+         */
+        AvailabilityOut: {
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /** Items */
+            items: components["schemas"]["EquipmentAvailabilityOut"][];
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+        };
+        /**
+         * AvailabilityQuery
+         * @description The period of a loan, both days counted, and the loan being edited.
+         */
+        AvailabilityQuery: {
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /** Exclude Loan */
+            exclude_loan?: number | null;
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
+        };
+        /**
          * BoardMemberOut
          * @description A board member as the board space names them, the lead of an event.
          *
@@ -1091,6 +1218,84 @@ export interface components {
             /** Title */
             title?: string | null;
         };
+        /**
+         * EquipmentAvailabilityOut
+         * @description What one equipment offers over the period.
+         */
+        EquipmentAvailabilityOut: {
+            /** Conflicts */
+            conflicts: components["schemas"]["LoanConflictOut"][];
+            equipment: components["schemas"]["EquipmentOut"];
+            /** Free */
+            free: number;
+            /** Taken */
+            taken: number;
+        };
+        /**
+         * EquipmentCategory
+         * @enum {string}
+         */
+        EquipmentCategory: "furniture" | "marquees" | "sound_and_light" | "kitchen" | "street_and_games";
+        /**
+         * EquipmentCountsOut
+         * @description How many equipment each category holds: the chips of the inventory.
+         */
+        EquipmentCountsOut: {
+            /** Furniture */
+            furniture: number;
+            /** Kitchen */
+            kitchen: number;
+            /** Marquees */
+            marquees: number;
+            /** Sound And Light */
+            sound_and_light: number;
+            /** Street And Games */
+            street_and_games: number;
+            /** Total */
+            total: number;
+        };
+        /**
+         * EquipmentIn
+         * @description An equipment as the board writes it: whole, every key required.
+         *
+         *     Its values are checked by the model, whose messages are in French.
+         */
+        EquipmentIn: {
+            category: components["schemas"]["EquipmentCategory"];
+            /** Name */
+            name: string;
+            /** Repair Note */
+            repair_note: string;
+            /** Repair Quantity */
+            repair_quantity: number;
+            /** Storage Location */
+            storage_location: string;
+            /** Total Quantity */
+            total_quantity: number;
+            /** Unit Value */
+            unit_value: number | string | null;
+        };
+        /**
+         * EquipmentOut
+         * @description An equipment of the inventory.
+         */
+        EquipmentOut: {
+            category: components["schemas"]["EquipmentCategory"];
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Repair Note */
+            repair_note: string;
+            /** Repair Quantity */
+            repair_quantity: number;
+            /** Storage Location */
+            storage_location: string;
+            /** Total Quantity */
+            total_quantity: number;
+            /** Unit Value */
+            unit_value: string | null;
+        };
         /** ErrorOut */
         ErrorOut: {
             /** Detail */
@@ -1307,6 +1512,34 @@ export interface components {
             page_size?: number | null;
         };
         /**
+         * InventoryOut
+         * @description What each equipment offers today, in the inventory's order: a bounded
+         *     aggregate (A7).
+         */
+        InventoryOut: {
+            counts: components["schemas"]["EquipmentCountsOut"];
+            /**
+             * Day
+             * Format: date
+             */
+            day: string;
+            /** Items */
+            items: components["schemas"]["EquipmentAvailabilityOut"][];
+            totals: components["schemas"]["InventoryTotalsOut"];
+        };
+        /**
+         * InventoryTotalsOut
+         * @description The figures under the inventory's title.
+         */
+        InventoryTotalsOut: {
+            /** Pieces Under Repair */
+            pieces_under_repair: number;
+            /** References */
+            references: number;
+            /** Taken Today */
+            taken_today: number;
+        };
+        /**
          * LatestNoteOut
          * @description A note of the board, as the dashboard lists the latest.
          */
@@ -1323,6 +1556,53 @@ export interface components {
             /** Text */
             text: string;
         };
+        /**
+         * LoanBorrowerType
+         * @enum {string}
+         */
+        LoanBorrowerType: "association" | "individual" | "municipality" | "committee";
+        /**
+         * LoanBriefOut
+         * @description A loan, as a line of a list or of a planning names it.
+         */
+        LoanBriefOut: {
+            borrower_type: components["schemas"]["LoanBorrowerType"];
+            /** Display Name */
+            display_name: string;
+            /**
+             * End Date
+             * Format: date
+             */
+            end_date: string;
+            /** Id */
+            id: number;
+            /** Number */
+            number: string | null;
+            /** Purpose */
+            purpose: string;
+            /**
+             * Start Date
+             * Format: date
+             */
+            start_date: string;
+            state: components["schemas"]["LoanState"];
+        };
+        /**
+         * LoanConflictOut
+         * @description A loan that takes the equipment over the period, and how many pieces.
+         */
+        LoanConflictOut: {
+            loan: components["schemas"]["LoanBriefOut"];
+            /** Quantity */
+            quantity: number;
+        };
+        /**
+         * LoanState
+         * @description Where a loan stands today, its pill and its chip: its status, with its
+         *     dates (A14). A committee loan has neither checkout nor return.
+         * @enum {string}
+         */
+        LoanState: "to_prepare" | "confirmed" | "out" | "overdue" | "committee" | "returned" | "cancelled";
         /** LoginIn */
         LoginIn: {
             /** Email */
@@ -1421,6 +1701,24 @@ export interface components {
             tag: components["schemas"]["NoteTag"] | null;
             /** Text */
             text: string;
+        };
+        /**
+         * OccupancyOut
+         * @description The loans that take an equipment over the weeks to come.
+         */
+        OccupancyOut: {
+            /**
+             * End
+             * Format: date
+             */
+            end: string;
+            /** Loans */
+            loans: components["schemas"]["LoanConflictOut"][];
+            /**
+             * Start
+             * Format: date
+             */
+            start: string;
         };
         /**
          * OverviewEventOut
@@ -2563,6 +2861,340 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    equipment_api_read_inventory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    equipment_api_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EquipmentIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EquipmentOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    equipment_api_read_availability: {
+        parameters: {
+            query: {
+                start: string;
+                end: string;
+                exclude_loan?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvailabilityOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    equipment_api_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                equipment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EquipmentIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EquipmentOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    equipment_api_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                equipment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    equipment_api_read_occupancy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                equipment_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OccupancyOut"];
                 };
             };
             /** @description Unauthorized */

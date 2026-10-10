@@ -59,6 +59,12 @@ export function parisDay(instant: string | number): number {
   return Date.UTC(year, month - 1, day) / DAY_MS
 }
 
+/** The day an instant falls on in Paris, as the API writes a day: "2026-10-16". */
+export function parisDate(instant: string | number): string {
+  const { year, month, day } = parisCalendar(instant)
+  return `${year}-${pad(month)}-${pad(day)}`
+}
+
 // How far ahead of UTC Paris is at an instant, in milliseconds: one hour in
 // winter, two in summer.
 function offsetAt(instant: number): number {

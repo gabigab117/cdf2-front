@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import UiAvatar from '~/components/ui/Avatar.vue'
 import UiField from '~/components/ui/Field.vue'
 import UiKpiCard from '~/components/ui/KpiCard.vue'
+import UiLegend from '~/components/ui/Legend.vue'
 import UiProgressBar from '~/components/ui/ProgressBar.vue'
 import UiSidePanel from '~/components/ui/SidePanel.vue'
 import UiStackedBar from '~/components/ui/StackedBar.vue'
@@ -131,5 +132,16 @@ describe('UiSidePanel', () => {
 
     expect(panel.attributes('aria-label')).toBe('Location sono')
     expect(panel.emitted('close')).toHaveLength(1)
+  })
+})
+
+describe('UiLegend', () => {
+  it('names the colours of the bars beside it, for the eye alone', async () => {
+    const legend = await mountSuspended(UiLegend, {
+      props: { items: [{ label: 'Prêt', tone: 'azur' }, { label: 'Aujourd’hui', tone: 'ambre', shape: 'line' }] },
+    })
+
+    expect(legend.attributes('aria-hidden')).toBe('true')
+    expect(legend.findAll('li').map(item => item.text())).toEqual(['Prêt', 'Aujourd’hui'])
   })
 })

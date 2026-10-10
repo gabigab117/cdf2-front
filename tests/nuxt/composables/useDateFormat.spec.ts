@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { useDateFormat } from '~/composables/useDateFormat'
 
 const formats = useDateFormat()
-const { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, longDay, dayParts, clock, period, eventDays, countdown, countdownText, season } = formats
+const { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarWeekday, calendarPeriod, longDay, dayParts, clock, period, eventDays, countdown, countdownText, season } = formats
 
 // The texts as they read: the spaces of a time do not break, which a test
 // checks once.
@@ -60,6 +60,23 @@ describe('useDateFormat', () => {
 
     expect(calendarDay('2026-10-08', now)).toBe('8 oct.')
     expect(calendarDay('2027-01-01', now)).toBe('1er janv. 2027')
+  })
+
+  it('writes a day of the calendar with its weekday, as a loan returns', () => {
+    const now = Date.parse('2026-10-10T08:00:00Z')
+
+    expect(calendarWeekday('2026-10-16', now)).toBe('ven. 16 oct.')
+    expect(calendarWeekday('2027-01-01', now)).toBe('ven. 1er janv. 2027')
+  })
+
+  it.each([
+    ['2026-10-16', '2026-10-16', 'ven. 16 oct.'],
+    ['2026-10-16', '2026-10-18', 'du ven. 16 au dim. 18 oct.'],
+    ['2026-10-30', '2026-11-01', 'du ven. 30 oct. au dim. 1er nov.'],
+    ['2026-12-30', '2027-01-02', 'du mer. 30 déc. 2026 au sam. 2 janv. 2027'],
+    ['2027-01-08', '2027-01-10', 'du ven. 8 au dim. 10 janv. 2027'],
+  ])('writes the days of a loan from %s to %s: « %s »', (start, end, written) => {
+    expect(calendarPeriod(start, end, Date.parse('2026-10-10T08:00:00Z'))).toBe(written)
   })
 
   it('keeps the parts of a time together on a line', () => {
