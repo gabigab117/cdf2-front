@@ -15,25 +15,38 @@ const FIELDS = new Set(['password', 'confirmation'])
 
 const { checkLink, choosePassword } = usePasswordWrites()
 
-const link = passwordLink(useRoute().hash)
+// The link of the address: a second email opened in the same tab changes the
+// fragment alone, which the page follows.
+const route = useRoute()
+const link = computed(() => passwordLink(route.hash))
 // The link checked: the account it leads to, or why it holds no more.
 const account = ref<string | null>(null)
-const refusal = ref(link ? '' : INVALID_LINK)
+const refusal = ref('')
 const fields = reactive({ password: '', confirmation: '' })
 const errors = ref<FormErrors | null>(null)
 const pending = ref(false)
 
-onMounted(async () => {
-  if (!link) return
-  const result = await checkLink(link)
+async function check(): Promise<void> {
+  account.value = null
+  errors.value = null
+  const asked = link.value
+  if (!asked) {
+    refusal.value = INVALID_LINK
+    return
+  }
+  refusal.value = ''
+  const result = await checkLink(asked)
   if (result.errors) refusal.value = result.errors.form.join(' ') || INVALID_LINK
   else account.value = result.data.email
-})
+}
+
+onMounted(check)
+watch(link, check)
 
 async function submit(): Promise<void> {
-  if (!link) return
+  if (!link.value) return
   pending.value = true
-  const result = await choosePassword({ ...link, ...fields })
+  const result = await choosePassword({ ...link.value, ...fields })
   pending.value = false
   if (result.errors) {
     errors.value = placeErrors(result.errors, FIELDS, path => path)

@@ -88,8 +88,35 @@ describe('the page to choose a password', () => {
 
     const view = await mountPage('')
 
+    await vi.waitFor(() => expect(view.find('[role="alert"]').exists()).toBe(true))
     expect(view.get('[role="alert"]').text()).toBe(INVALID_LINK)
     expect(sent).toEqual([])
+  })
+
+  it('checks the link of a second email opened in the same tab', async () => {
+    /**
+     * Given the page of a link that holds no more
+     * When a second link, which holds, opens in the same tab: only the « # » changes
+     * Then the page checks it, and names its account
+     */
+    // The first link holds no more, the second does.
+    const answers = [
+      apiResponse(422, { detail: [{ type: 'validation_error', loc: ['body'], msg: INVALID_LINK }] }),
+      apiResponse(200, { email: 'julie.petit@example.fr' }),
+    ]
+    mockApi('/api/auth/password-link', { handler: () => answers.shift() })
+    const sent = recordRequests()
+    const view = await mountPage()
+    await vi.waitFor(() => expect(view.find('[role="alert"]').exists()).toBe(true))
+
+    await useRouter().push('/choisir-mot-de-passe#OTM.d2abcd-4567')
+
+    await vi.waitFor(() => expect(view.text()).toContain('Pour le compte julie.petit@example.fr'))
+    expect(view.find('[role="alert"]').exists()).toBe(false)
+    expect(sent.map(request => request.body)).toEqual([
+      { uid: 'MTI', token: 'd2abcd-0123' },
+      { uid: 'OTM', token: 'd2abcd-4567' },
+    ])
   })
 
   it('is rendered by the browser alone, and kept out of the search engines', async () => {
