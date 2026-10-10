@@ -156,6 +156,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/events/{event_id}/capacity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Set the capacity of an event
+         * @description Set how many places the reservations may take, or no limit: the figures follow.
+         */
+        put: operations["reservations_api_capacity"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/events/{event_id}/dashboard": {
         parameters: {
             query?: never;
@@ -168,6 +188,70 @@ export interface paths {
          * @description The counts of an event's tabs, whole: a bounded aggregate, never paginated.
          */
         get: operations["dashboard_api_for_event"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/events/{event_id}/reservations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the reservations of an event
+         * @description The reservations of an event, by page, the latest first.
+         */
+        get: operations["reservations_api_list_reservations"];
+        put?: never;
+        /**
+         * Record a reservation
+         * @description Record a reservation, within the event's capacity.
+         */
+        post: operations["reservations_api_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/events/{event_id}/reservations.xlsx": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Export the reservations of an event
+         * @description The reservations as an Excel workbook, in the v1's format.
+         */
+        get: operations["reservations_api_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/events/{event_id}/reservations/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Figures of the reservations of an event
+         * @description The reservations, places taken and still free, and the places by type, whole.
+         */
+        get: operations["reservations_api_stats"];
         put?: never;
         post?: never;
         delete?: never;
@@ -214,6 +298,23 @@ export interface paths {
          */
         put: operations["stations_api_reorder"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/events/{event_id}/ticket-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a type of place to an event */
+        post: operations["reservations_api_create_type"];
         delete?: never;
         options?: never;
         head?: never;
@@ -329,6 +430,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/reservations/{reservation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Update a reservation
+         * @description Rewrite a reservation, its places replaced: only an increase meets the capacity.
+         */
+        put: operations["reservations_api_update"];
+        post?: never;
+        /** Delete a reservation */
+        delete: operations["reservations_api_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/stations/{station_id}": {
         parameters: {
             query?: never;
@@ -407,6 +529,26 @@ export interface paths {
         post?: never;
         /** Delete a task */
         delete: operations["tasks_api_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/ticket-types/{ticket_type_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a type of place
+         * @description Delete a type of place no reservation uses: one in use is refused (422).
+         */
+        delete: operations["reservations_api_delete_type"];
         options?: never;
         head?: never;
         patch?: never;
@@ -594,6 +736,11 @@ export interface components {
             /** Upcoming Events Count */
             upcoming_events_count: number;
         };
+        /** CapacityIn */
+        CapacityIn: {
+            /** Capacity */
+            capacity: number | null;
+        };
         /** ErrorOut */
         ErrorOut: {
             /** Detail */
@@ -611,6 +758,8 @@ export interface components {
         EventDashboardOut: {
             /** Assigned Count */
             assigned_count: number;
+            /** Capacity */
+            capacity: number | null;
             /** Next Tasks */
             next_tasks: components["schemas"]["TaskOut"][];
             /** Notes Count */
@@ -619,6 +768,8 @@ export interface components {
             recently_done_tasks: components["schemas"]["TaskOut"][];
             /** Required Count */
             required_count: number;
+            /** Reserved Seats */
+            reserved_seats: number;
             /** Tasks Done */
             tasks_done: number;
             /** Tasks Total */
@@ -875,6 +1026,13 @@ export interface components {
             /** Items */
             items: components["schemas"]["PublicEventItemOut"][];
         };
+        /** PagedReservationOut */
+        PagedReservationOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["ReservationOut"][];
+        };
         /** PagedTaskOut */
         PagedTaskOut: {
             /** Count */
@@ -1046,6 +1204,69 @@ export interface components {
             updated_at: string;
         };
         /**
+         * ReservationIn
+         * @description A reservation as the board writes it: whole, every key required.
+         */
+        ReservationIn: {
+            /** Lines */
+            lines: components["schemas"]["ReservationLineIn"][];
+            /** Name */
+            name: string;
+            /** Note */
+            note: string;
+        };
+        /** ReservationLineIn */
+        ReservationLineIn: {
+            /** Quantity */
+            quantity: number;
+            /** Ticket Type */
+            ticket_type: number;
+        };
+        /** ReservationLineOut */
+        ReservationLineOut: {
+            /** Quantity */
+            quantity: number;
+            /** Ticket Type */
+            ticket_type: number;
+        };
+        /**
+         * ReservationOut
+         * @description A reservation, its places by type and their total.
+         */
+        ReservationOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: number;
+            /** Lines */
+            lines: components["schemas"]["ReservationLineOut"][];
+            /** Name */
+            name: string;
+            /** Note */
+            note: string;
+            /** Seats */
+            seats: number;
+        };
+        /**
+         * ReservationStatsOut
+         * @description The figures of an event's reservations: a bounded aggregate.
+         */
+        ReservationStatsOut: {
+            /** Capacity */
+            capacity: number | null;
+            /** Remaining */
+            remaining: number | null;
+            /** Reservations */
+            reservations: number;
+            /** Seats */
+            seats: number;
+            /** Ticket Types */
+            ticket_types: components["schemas"]["TicketTypeStatsOut"][];
+        };
+        /**
          * StationBoardOut
          * @description The stations of an event and their totals: a bounded aggregate.
          */
@@ -1134,6 +1355,29 @@ export interface components {
             id: number;
             /** Title */
             title: string;
+        };
+        /** TicketTypeIn */
+        TicketTypeIn: {
+            /** Name */
+            name: string;
+        };
+        /** TicketTypeOut */
+        TicketTypeOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+        };
+        /** TicketTypeStatsOut */
+        TicketTypeStatsOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Reservations */
+            reservations: number;
+            /** Seats */
+            seats: number;
         };
         /** ValidationErrorItem */
         ValidationErrorItem: {
@@ -1691,6 +1935,77 @@ export interface operations {
             };
         };
     };
+    reservations_api_capacity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CapacityIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservationStatsOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
     dashboard_api_for_event: {
         parameters: {
             query?: never;
@@ -1709,6 +2024,254 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["EventDashboardOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    reservations_api_list_reservations: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number | null;
+            };
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedReservationOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    reservations_api_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReservationIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservationOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    reservations_api_export: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Excel workbook */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    reservations_api_stats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservationStatsOut"];
                 };
             };
             /** @description Unauthorized */
@@ -1900,6 +2463,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["StationBoardOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    reservations_api_create_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TicketTypeIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TicketTypeOut"];
                 };
             };
             /** @description Bad Request */
@@ -2346,6 +2980,133 @@ export interface operations {
             };
         };
     };
+    reservations_api_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservation_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReservationIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReservationOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    reservations_api_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                reservation_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
     stations_api_update: {
         parameters: {
             query?: never;
@@ -2732,6 +3493,62 @@ export interface operations {
             header?: never;
             path: {
                 task_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    reservations_api_delete_type: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                ticket_type_id: number;
             };
             cookie?: never;
         };
