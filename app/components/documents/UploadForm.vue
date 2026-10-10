@@ -141,7 +141,7 @@ defineExpose({ choose })
           <UiField
             v-slot="{ id, describedby, invalid }"
             label="Catégorie"
-            class="w-full sm:w-48"
+            class="w-full sm:w-56"
             :errors="fieldErrors('category')"
           >
             <UiSelect
@@ -171,7 +171,7 @@ defineExpose({ choose })
           <UiField
             v-slot="{ id, describedby, invalid }"
             label="Événement"
-            class="w-full sm:w-72"
+            class="w-full sm:w-80"
             :errors="fieldErrors('event')"
           >
             <UiSelect
