@@ -3,6 +3,9 @@ import { expect, test } from '@nuxt/test-utils/playwright'
 // The station the journey staffs, then deletes, on Halloween.
 const STATION = 'Buvette du parcours'
 
+// The document the journey deposits, validates, then deletes.
+const DOCUMENT = 'Facture — Parcours du bureau'
+
 // The fictitious board member of fixtures/board-member.json.
 const MEMBER = {
   email: 'camille.martin@example.test',
@@ -10,7 +13,7 @@ const MEMBER = {
   name: 'Camille Martin',
 }
 
-test('a board member signs in, keeps their session over a reload, staffs a station, then signs out', async ({ page, goto }) => {
+test('a board member signs in, keeps their session over a reload, staffs a station, validates a document, then signs out', async ({ page, goto }) => {
   await test.step('signing in brings the member to the page they asked for', async () => {
     await goto('/bureau/documents', { waitUntil: 'hydration' })
     await expect(page).toHaveURL('/connexion?redirect=/bureau/documents')
@@ -93,6 +96,52 @@ test('a board member signs in, keeps their session over a reload, staffs a stati
     await card.getByRole('button', { name: 'Supprimer le poste' }).click()
     await panel.getByRole('button', { name: 'Supprimer définitivement' }).click()
     await expect(card).toHaveCount(0)
+  })
+
+  await test.step('a document is deposited, completed, then validated', async () => {
+    await page.getByRole('navigation', { name: 'Espace bureau' }).getByRole('link', { name: /^Documents/ }).click()
+    await expect(page).toHaveURL('/bureau/documents')
+    const rows = page.getByRole('listitem').filter({ hasText: DOCUMENT })
+    const panel = page.getByRole('complementary', { name: DOCUMENT })
+
+    // A journey cut short leaves its document behind, which a new try deletes
+    // first, once the search has kept it alone.
+    await page.getByLabel('Rechercher dans les documents').fill(DOCUMENT)
+    await expect(page).toHaveURL(/recherche=/)
+    await expect(page.getByText(/Aucun document ne correspond|Parcours du bureau/).first()).toBeVisible()
+    for (let left = await rows.count(); left > 0; left -= 1) {
+      await rows.first().getByRole('link').click()
+      await panel.getByRole('button', { name: 'Corriger' }).click()
+      await panel.getByRole('button', { name: 'Supprimer' }).click()
+      await panel.getByRole('button', { name: 'Supprimer définitivement' }).click()
+      await expect(rows).toHaveCount(left - 1)
+    }
+
+    // A file of its own on every try: the same file twice is refused.
+    await page.locator('input[type="file"]').setInputFiles({
+      name: 'facture-parcours.pdf',
+      mimeType: 'application/pdf',
+      buffer: Buffer.from(`%PDF-1.4\n% ${Date.now()}\n%%EOF\n`),
+    })
+    await page.getByLabel('Catégorie', { exact: true }).selectOption('invoice')
+    await page.getByLabel('Titre', { exact: true }).fill(DOCUMENT)
+    await page.getByRole('button', { name: 'Déposer' }).click()
+
+    // The document deposited opens on its form, to complete it.
+    await panel.getByLabel('Fournisseur').fill('Animation 60')
+    await panel.getByLabel('Montant TTC').fill('380,00')
+    await panel.getByRole('button', { name: 'Enregistrer' }).click()
+    await expect(panel.getByText('380,00')).toBeVisible()
+    await expect(rows).toContainText('À vérifier')
+
+    await panel.getByRole('button', { name: 'Valider la facture' }).click()
+    await expect(panel.getByText('Validée par Camille M.')).toBeVisible()
+    await expect(rows).not.toContainText('À vérifier')
+
+    await panel.getByRole('button', { name: 'Corriger' }).click()
+    await panel.getByRole('button', { name: 'Supprimer' }).click()
+    await panel.getByRole('button', { name: 'Supprimer définitivement' }).click()
+    await expect(rows).toHaveCount(0)
   })
 
   await test.step('signing out closes the session for good', async () => {
