@@ -152,6 +152,7 @@
 
   /* Rows of the loans' planning: whom it lends to, then its track of weeks. */
   --grid-template-columns-planning: 220px minmax(0, 1fr);
+  --grid-template-columns-planning-narrow: 96px minmax(0, 1fr); /* the planning under 820 px: its track scrolls */
 
   /* Lines of the loan form: equipment, what is free, its quantity. */
   --grid-template-columns-loan-line: minmax(0, 1fr) 140px 132px;

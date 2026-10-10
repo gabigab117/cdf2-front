@@ -90,7 +90,7 @@ const rows = computed(() => {
     >
       <div class="flex min-w-160 flex-col gap-0.5 px-5.5 pt-3.5 pb-4.5">
         <div
-          class="grid h-6 grid-cols-planning items-end gap-4"
+          class="grid h-6 grid-cols-planning-narrow items-end gap-4 md:grid-cols-planning"
           aria-hidden="true"
         >
           <span />
@@ -110,7 +110,7 @@ const rows = computed(() => {
           <li
             v-for="row in rows"
             :key="row.id"
-            class="grid h-9.5 grid-cols-planning items-center gap-4"
+            class="grid h-9.5 grid-cols-planning-narrow items-center gap-4 md:grid-cols-planning"
           >
             <span
               class="truncate text-note font-medium"
