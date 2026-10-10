@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { FileCheck } from '@lucide/vue'
+
 definePageMeta({ path: '/bureau' })
 
 useHead({ title: 'Tableau de bord' })
@@ -7,12 +9,9 @@ const session = useSessionStore()
 const now = useNow()
 const { longDay, countdown, countdownText } = useDateFormat()
 
-// The dashboard's figures, read by this page alone: its key lives here, as the
-// list's does. Lazy: the greeting and the day wait for no request.
-const { data, status, error, refresh } = useLazyAsyncData(
-  'board:overview',
-  (_nuxtApp, { signal }) => loadData(useApi().GET('/api/board/overview', { signal })),
-)
+// The dashboard's figures, shared with the layout. Lazy: the greeting and the
+// day wait for no request.
+const { data, status, error, refresh } = useBoardOverview()
 
 const classes = {
   kpis: 'grid grid-cols-kpis gap-4',
@@ -21,6 +20,17 @@ const classes = {
 const events = computed(() => data.value?.upcoming_events ?? [])
 const notes = computed(() => data.value?.latest_notes ?? [])
 const generalTasks = computed(() => data.value?.general_tasks ?? null)
+const recentDocuments = computed(() => data.value?.recent_documents ?? [])
+const toReview = computed(() => data.value?.pending.documents.counts ?? null)
+// « 4 documents », then « 2 factures, 1 commande, 1 compte rendu »: by hand
+// until the assistant (phase 9), never « lus par l’assistant ».
+const toReviewValue = computed(() => {
+  const total = toReview.value?.total ?? 0
+  return `${total} document${total > 1 ? 's' : ''}`
+})
+const toReviewDetail = computed(() =>
+  toReview.value && toReview.value.total > 0 ? categoryCounts(toReview.value) : 'Tous les documents sont validés.',
+)
 const count = computed(() => data.value?.upcoming_events_count ?? 0)
 const loading = computed(() => status.value === 'pending')
 const next = computed(() => events.value[0] ?? null)
@@ -52,10 +62,20 @@ const nextPill = computed(() => (nextCountdown.value ? countdownText(nextCountdo
     />
     <template v-else>
       <div
-        v-if="next"
+        v-if="toReview"
         :class="classes.kpis"
       >
         <UiKpiCard
+          tone="azur"
+          label="À valider"
+          :value="toReviewValue"
+          :icon="FileCheck"
+          :to="TO_REVIEW_LOCATION"
+        >
+          {{ toReviewDetail }}
+        </UiKpiCard>
+        <UiKpiCard
+          v-if="next"
           tone="dark"
           label="Prochain événement"
           :value="next.title"
@@ -101,6 +121,10 @@ const nextPill = computed(() => (nextCountdown.value ? countdownText(nextCountdo
             v-if="generalTasks"
             :summary="generalTasks"
             @changed="refresh()"
+          />
+          <DashboardRecentDocuments
+            :documents="recentDocuments"
+            :loading
           />
         </div>
       </div>

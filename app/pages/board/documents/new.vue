@@ -16,8 +16,10 @@ const event = computed(() => {
   return Number.isInteger(id) && id > 0 ? id : null
 })
 
-// The document deposited opens in the Documents page, to complete and validate it.
+// The document deposited, which now awaits the board, opens in the Documents
+// page, to complete and validate it.
 async function open(document: DocumentOut): Promise<void> {
+  void refreshBoardOverview()
   await navigateTo(documentLocation(document.id))
 }
 </script>

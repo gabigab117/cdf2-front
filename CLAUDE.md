@@ -90,7 +90,11 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
   - Quand plusieurs composants montent en même temps, `dedupe: 'defer'` leur fait attendre la requête en cours, au lieu de l'annuler pour la leur.
   - `data` n'est pas profond : on le remplace, on ne le modifie jamais.
   - Après une écriture, la donnée qu'elle change se recharge par sa clé (`refreshNuxtData`). Toute écriture d'un événement recharge la barre latérale (`useEventWrites`).
-  - Une donnée qu'une seule page lit (le tableau de bord) n'a pas de rechargement à prévoir après une écriture faite sur une autre page : Nuxt purge la donnée d'une clé au démontage de son dernier composant, `refreshNuxtData` n'atteint que les clés montées, et la page la relit à sa prochaine visite.
+  - Une donnée qu'une seule page lit n'a pas de rechargement à prévoir après une écriture faite sur une autre page : Nuxt purge la donnée d'une clé au démontage de son dernier composant, `refreshNuxtData` n'atteint que les clés montées, et la page la relit à sa prochaine visite.
+  - **L'agrégat du tableau de bord (`useBoardOverview`, clé `board:overview`) est partagé avec le layout**, qui en montre ce qui attend le bureau (la cloche, les badges de la barre latérale, A6) sur toutes les pages : sa clé reste donc montée.
+    - Il reste paresseux : un appel paresseux relance la requête à chaque montage, si bien que le tableau de bord le relit à chaque visite.
+    - `dedupe: 'defer'` fait attendre la requête en cours au layout, aux deux barres latérales, à la cloche et au tableau de bord, qui montent ensemble ; la valeur par défaut l'annulerait.
+    - Toute écriture qui change ce qui attend le bureau le recharge (`refreshBoardOverview`) : le dépôt, la correction, la validation et la suppression d'un document, et une pièce jointe de note.
   - Les compteurs des onglets d'un événement viennent de son tableau de bord (`useEventDashboard`) : toute écriture d'un onglet le recharge (`refreshEventDashboard`), jamais un compte fait côté client.
   - **L'onglet d'une page vit dans l'adresse** (`?onglet=…&page=…`, `utils/event-tabs.ts`) : un lien y mène, la pagination d'un onglet passe par des liens, et Nuxt ne remonte pas la page quand seule la requête change.
   - Dans les tests, les composants se démontent avant `clearNuxtData()` : sinon, une réponse en vol réécrit les données vidées.

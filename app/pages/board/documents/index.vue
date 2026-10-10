@@ -80,9 +80,11 @@ async function uploaded(document: DocumentOut): Promise<void> {
   changed()
 }
 
+// A write changes the list, its counts, and what awaits the board.
 function changed(): void {
   void refresh()
   void refreshCounts()
+  void refreshBoardOverview()
 }
 
 async function close(): Promise<void> {

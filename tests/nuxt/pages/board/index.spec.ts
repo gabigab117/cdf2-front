@@ -5,6 +5,7 @@ import DashboardPage from '~/pages/board/index.vue'
 import type { components } from '~/types/api'
 import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
 import { julie, overviewEvent } from '../../helpers/events'
+import { documentItem } from '../../helpers/documents'
 import { boardTask } from '../../helpers/tasks'
 
 type BoardOverviewOut = components['schemas']['BoardOverviewOut']
@@ -15,13 +16,28 @@ const camille = { email: 'camille.martin@example.test', first_name: 'Camille', l
 /** No general task yet. */
 const NO_GENERAL_TASK: BoardOverviewOut['general_tasks'] = { tasks_done: 0, tasks_total: 0, next_tasks: [], recently_done_tasks: [] }
 
+/** Nothing awaiting the board. */
+const NOTHING_PENDING: BoardOverviewOut['pending'] = {
+  total: 0,
+  documents: { counts: { total: 0, invoice: 0, order: 0, minutes: 0, misc: 0 }, items: [] },
+}
+
 function overview(
   events = [overviewEvent()],
   count = events.length,
   notes: BoardOverviewOut['latest_notes'] = [],
   generalTasks = NO_GENERAL_TASK,
+  pending = NOTHING_PENDING,
+  recent: BoardOverviewOut['recent_documents'] = [],
 ): BoardOverviewOut {
-  return { upcoming_events: events, upcoming_events_count: count, latest_notes: notes, general_tasks: generalTasks }
+  return {
+    upcoming_events: events,
+    upcoming_events_count: count,
+    latest_notes: notes,
+    general_tasks: generalTasks,
+    pending,
+    recent_documents: recent,
+  }
 }
 
 function mockOverview(body: BoardOverviewOut) {
@@ -192,5 +208,51 @@ describe('the dashboard', () => {
     ])
     expect(tasks.get('a').attributes('href')).toBe('/bureau/taches')
     expect(tasks.get('a').text()).toBe('Voir les 2 tâches')
+  })
+
+  it('counts the documents to validate by category, and leads to them', async () => {
+    /**
+     * Given four documents to review: two invoices, an order and minutes
+     * Then the azur card counts them, by category, and leads to the documents to review
+     */
+    const counts = { total: 4, invoice: 2, order: 1, minutes: 1, misc: 0 }
+    mockOverview(overview([], 0, [], NO_GENERAL_TASK, { total: 4, documents: { counts, items: [] } }))
+
+    const dashboard = await mountDashboard()
+
+    await vi.waitFor(() => expect(dashboard.text()).toContain('4 documents'))
+    const card = dashboard.findAll('a').find(link => link.text().includes('À valider'))!
+    expect(card.text()).toContain('2 factures, 1 commande, 1 compte rendu')
+    expect(card.attributes('href')).toBe('/bureau/documents?statut=a-verifier')
+  })
+
+  it('says every document is validated when none awaits', async () => {
+    mockOverview(overview([], 0))
+
+    const dashboard = await mountDashboard()
+
+    await vi.waitFor(() => expect(dashboard.text()).toContain('0 document'))
+    expect(dashboard.text()).toContain('Tous les documents sont validés.')
+  })
+
+  it('shows the latest documents, each leading to its panel', async () => {
+    mockOverview(overview([], 0, [], NO_GENERAL_TASK, undefined, [documentItem(), documentItem({ id: 22, title: 'Bon de commande — Bonbons', date: '2026-09-25' })]))
+
+    const dashboard = await mountDashboard()
+
+    await vi.waitFor(() => expect(block(dashboard, 'Documents récents').findAll('li')).toHaveLength(2))
+    const [first, second] = block(dashboard, 'Documents récents').findAll('li a')
+    expect(first!.text()).toBe('Facture — Location sono28 sept.')
+    expect(first!.attributes('href')).toBe('/bureau/documents?document=21')
+    expect(second!.text()).toBe('Bon de commande — Bonbons25 sept.')
+    expect(block(dashboard, 'Documents récents').get('header a').attributes('href')).toBe('/bureau/documents')
+  })
+
+  it('says when no document is deposited yet', async () => {
+    mockOverview(overview())
+
+    const dashboard = await mountDashboard()
+
+    await vi.waitFor(() => expect(block(dashboard, 'Documents récents').text()).toContain('Aucun document pour l’instant.'))
   })
 })

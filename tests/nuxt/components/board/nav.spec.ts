@@ -62,4 +62,19 @@ describe('BoardNav', () => {
 
     await vi.waitFor(() => expect(nav.get('a[href="/bureau/evenements"]').text()).toBe('Événements5 à venir'))
   })
+
+  it('shows on « Documents » how many await review', async () => {
+    /**
+     * Given four documents awaiting review
+     * Then the « Documents » entry shows their number in its badge, for screen readers too
+     */
+    mockApi('/api/board/overview', { handler: () => apiResponse(200, {
+      pending: { total: 4, documents: { counts: { total: 4, invoice: 2, order: 1, minutes: 1, misc: 0 }, items: [] } },
+    }) })
+
+    const nav = await mountSuspended(BoardNav, { route: '/bureau' })
+
+    const documents = nav.findAll('a').find(link => link.attributes('href') === '/bureau/documents')!
+    await vi.waitFor(() => expect(documents.text()).toBe('Documents4 à vérifier'))
+  })
 })

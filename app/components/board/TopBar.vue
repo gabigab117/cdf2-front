@@ -1,13 +1,21 @@
 <script setup lang="ts">
-import { CalendarDays, FileText, ListChecks, Menu, Plus } from '@lucide/vue'
+import { Bell, CalendarDays, FileText, ListChecks, Menu, Plus } from '@lucide/vue'
 import type { Component } from 'vue'
 
-// On a computer the bar holds the « Nouveau » menu, or the action of the page
-// shown in its place: the bell comes with card 4.3 and the assistant with
-// phase 9 (no make-believe interface).
+// On a computer the bar holds the bell, then the « Nouveau » menu, or the
+// action of the page shown in its place. The assistant comes with phase 9 (no
+// make-believe interface).
 const emit = defineEmits<{ openNavigation: [] }>()
 
 const route = useRoute()
+
+// What awaits the board (A6), from its overview: a dot on the bell if anything.
+const { data: overview } = useBoardOverview()
+const pending = computed(() => overview.value?.pending ?? null)
+const bellLabel = computed(() => {
+  const total = pending.value?.total ?? 0
+  return total > 0 ? `À traiter (${total})` : 'À traiter'
+})
 
 interface Entry {
   label: string
@@ -44,6 +52,23 @@ const NEW_ENTRIES: readonly Entry[] = [
       </span>
     </NuxtLink>
     <div class="ml-auto flex items-center gap-2">
+      <UiPopover placement="board-wide">
+        <template #invoker="{ invoker }">
+          <UiIconButton
+            v-bind="invoker"
+            class="relative"
+            :label="bellLabel"
+          >
+            <Bell :size="18" />
+            <span
+              v-if="pending && pending.total > 0"
+              class="absolute top-2.5 right-2.75 size-2 rounded-full bg-azur-600 ring-2 ring-white"
+              aria-hidden="true"
+            />
+          </UiIconButton>
+        </template>
+        <BoardPendingPanel :pending />
+      </UiPopover>
       <!-- Where a page renders its own action: always there, for its Teleport to find. -->
       <div
         id="board-top-bar-action"

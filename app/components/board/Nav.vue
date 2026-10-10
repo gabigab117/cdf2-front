@@ -15,7 +15,7 @@ const SECTIONS: ReadonlyArray<{ title?: string, entries: readonly Entry[] }> = [
       { label: 'Tableau de bord', path: BOARD_HOME_PATH, icon: LayoutGrid },
       { label: 'Événements', path: EVENTS_PATH, icon: Calendar },
       { label: 'Photos', path: '/bureau/photos', icon: Image },
-      { label: 'Documents', path: '/bureau/documents', icon: Folder },
+      { label: 'Documents', path: DOCUMENTS_PATH, icon: Folder },
     ],
   },
   {
@@ -34,6 +34,9 @@ const route = useRoute()
 // The number of events to come, from the request the « À venir » block shares.
 const { data: upcoming } = useUpcomingEvents()
 
+// What awaits the board, from its overview (A6): the documents to review.
+const { data: overview } = useBoardOverview()
+
 // An entry stays current on the pages below it, such as a loan under "Prêts";
 // not the dashboard, which every page of the board is below.
 function isCurrent({ path }: Entry): boolean {
@@ -47,6 +50,7 @@ const sections = computed(() =>
       ...entry,
       current: isCurrent(entry),
       count: entry.path === EVENTS_PATH && upcoming.value?.count ? upcoming.value.count : null,
+      badge: entry.path === DOCUMENTS_PATH ? overview.value?.pending.documents.counts.total || null : null,
     })),
   })),
 )
@@ -81,6 +85,10 @@ const sections = computed(() =>
           v-if="entry.count"
           class="font-mono text-xs text-argent-450"
         >{{ entry.count }}<span class="sr-only"> à venir</span></span>
+        <span
+          v-if="entry.badge"
+          class="inline-flex h-5.5 min-w-5.5 items-center justify-center rounded-full bg-azur-600 px-1.5 text-xs font-semibold text-white"
+        >{{ entry.badge }}<span class="sr-only"> à vérifier</span></span>
       </NuxtLink>
     </template>
   </nav>
