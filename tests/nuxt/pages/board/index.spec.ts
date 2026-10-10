@@ -4,15 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import DashboardPage from '~/pages/board/index.vue'
 import type { components } from '~/types/api'
 import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
-import { eventItem } from '../../helpers/events'
+import { julie, overviewEvent } from '../../helpers/events'
 
 type BoardOverviewOut = components['schemas']['BoardOverviewOut']
 
 /** The fictitious member signed in. */
 const camille = { email: 'camille.martin@example.test', first_name: 'Camille', last_name: 'Martin', position: 'Trésorière' }
 
-function overview(events = [eventItem()], count = events.length): BoardOverviewOut {
-  return { upcoming_events: events, upcoming_events_count: count }
+function overview(events = [overviewEvent()], count = events.length, notes: BoardOverviewOut['latest_notes'] = []): BoardOverviewOut {
+  return { upcoming_events: events, upcoming_events_count: count, latest_notes: notes }
 }
 
 function mockOverview(body: BoardOverviewOut) {
@@ -73,11 +73,47 @@ describe('the dashboard', () => {
     expect(card.attributes('href')).toBe('/bureau/evenements/12')
     expect(card.text()).toContain('J-30')
     expect(card.text()).toContain('Halloween des enfants')
+    expect(card.text().replace(/\s+/g, ' ')).toContain('Tâches 9 / 14')
+    expect(card.get('[role="progressbar"]').attributes()).toMatchObject({ 'aria-valuenow': '9', 'aria-valuemax': '14' })
+  })
+
+  it('shows the board\'s latest notes beside the events, each leading to its event', async () => {
+    /**
+     * Given a note of Julie on Halloween, two hours ago, and a general note of
+     * a former member, the day before
+     * When the member opens the dashboard
+     * Then the block « Notes du bureau » shows them, the event and the time
+     * gone by after the author, the first leading to its event
+     */
+    mockOverview(overview([overviewEvent()], 1, [
+      { id: 31, author: julie, text: 'Salle réservée de 13 h à 20 h.', created_at: '2026-10-01T06:00:00Z', event: { id: 12, title: 'Halloween des enfants' } },
+      { id: 32, author: null, text: 'Assemblée générale en janvier.', created_at: '2026-09-30T15:00:00Z', event: null },
+    ]))
+
+    const dashboard = await mountDashboard()
+
+    await vi.waitFor(() => expect(dashboard.findAll('section').at(-1)!.findAll('li')).toHaveLength(2))
+    const block = dashboard.findAll('section').at(-1)!
+    expect(block.get('h2').text()).toBe('Notes du bureau')
+    expect(block.find('[aria-label="Privé"]').exists()).toBe(true)
+    const [julieNote, general] = block.findAll('li')
+    expect(julieNote!.get('a').attributes('href')).toBe('/bureau/evenements/12')
+    expect(julieNote!.text().replaceAll('\u00A0', ' ')).toContain('Julie R.Halloween des enfants · il y a 2 h')
+    expect(general!.find('a').exists()).toBe(false)
+    expect(general!.text()).toContain('Ancien membrehier')
+  })
+
+  it('says when the board has no note yet', async () => {
+    mockOverview(overview())
+
+    const dashboard = await mountDashboard()
+
+    await vi.waitFor(() => expect(dashboard.text()).toContain('Aucune note pour l’instant.'))
   })
 
   it.each([
-    ['today', '2026-10-31T09:00:00+01:00', eventItem(), 'Halloween des enfants aujourd’hui', 'Aujourd’hui'],
-    ['under way', '2026-10-31T09:00:00+01:00', eventItem({ starts_at: '2026-10-30T13:00:00Z', ends_at: '2026-11-01T17:00:00Z' }), 'Halloween des enfants en cours', 'En cours'],
+    ['today', '2026-10-31T09:00:00+01:00', overviewEvent(), 'Halloween des enfants aujourd’hui', 'Aujourd’hui'],
+    ['under way', '2026-10-31T09:00:00+01:00', overviewEvent({ starts_at: '2026-10-30T13:00:00Z', ends_at: '2026-11-01T17:00:00Z' }), 'Halloween des enfants en cours', 'En cours'],
   ])('tells when the next event is %s', async (_case, now, event, inline, pill) => {
     useNow().value = Date.parse(now)
     mockOverview(overview([event]))

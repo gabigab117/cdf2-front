@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { useDateFormat } from '~/composables/useDateFormat'
 
 const formats = useDateFormat()
-const { dayMonth, recordedAt, day, writtenDay, calendarDay, longDay, dayParts, clock, period, eventDays, countdown, countdownText, season } = formats
+const { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, longDay, dayParts, clock, period, eventDays, countdown, countdownText, season } = formats
 
 // The texts as they read: the spaces of a time do not break, which a test
 // checks once.
@@ -42,6 +42,17 @@ describe('useDateFormat', () => {
     ['by the year of Paris, on the last night of a year', '2025-12-31T23:30:00Z', '1er janv.'],
   ])('writes the day something was written, %s', (_case, instant, written) => {
     expect(writtenDay(instant, Date.parse('2026-10-10T08:00:00Z'))).toBe(written)
+  })
+
+  it.each([
+    ['now', '2026-10-10T09:59:40Z', 'maintenant'],
+    ['minutes ago', '2026-10-10T09:55:00Z', 'il y a 5 min'],
+    ['hours ago, the same day in Paris', '2026-10-10T07:30:00Z', 'il y a 2 h'],
+    ['the day before in Paris, though less than a day ago', '2026-10-09T21:59:00Z', 'hier'],
+    ['earlier', '2026-09-28T09:00:00Z', '28 sept.'],
+  ])('tells how long ago something was written: %s', (_case, instant, written) => {
+    // Saturday 10 October 2026, noon in Paris.
+    expect(readable(ago(instant, Date.parse('2026-10-10T10:00:00Z')))).toBe(written)
   })
 
   it('writes a day of the calendar as it is, whatever the time zone', () => {

@@ -28,6 +28,11 @@ export function eventItem(changes: Partial<EventItemOut> = {}): EventItemOut {
   }
 }
 
+/** An event as the dashboard's table shows it: 9 tasks done out of 14, and 6 notes. */
+export function overviewEvent(changes: Partial<components['schemas']['OverviewEventOut']> = {}): components['schemas']['OverviewEventOut'] {
+  return { ...eventItem(), tasks_done: 9, tasks_total: 14, notes_count: 6, ...changes }
+}
+
 /** The same event with all its content, as its page shows it. */
 export function boardEvent(changes: Partial<EventOut> = {}): EventOut {
   return {

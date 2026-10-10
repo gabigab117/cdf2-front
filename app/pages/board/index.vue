@@ -19,6 +19,7 @@ const classes = {
 }
 
 const events = computed(() => data.value?.upcoming_events ?? [])
+const notes = computed(() => data.value?.latest_notes ?? [])
 const count = computed(() => data.value?.upcoming_events_count ?? 0)
 const loading = computed(() => status.value === 'pending')
 const next = computed(() => events.value[0] ?? null)
@@ -68,13 +69,34 @@ const nextPill = computed(() => (nextCountdown.value ? countdownText(nextCountdo
               {{ nextPill }}
             </UiStatusPill>
           </template>
+          <div class="flex flex-col gap-2">
+            <span class="flex justify-between gap-3">
+              Tâches
+              <span class="font-mono text-white">{{ next.tasks_done }} / {{ next.tasks_total }}</span>
+            </span>
+            <UiProgressBar
+              :value="next.tasks_done"
+              :max="next.tasks_total"
+              label="Tâches faites"
+              surface="dark"
+            />
+          </div>
         </UiKpiCard>
       </div>
-      <DashboardUpcomingEvents
-        :events
-        :count
-        :loading
-      />
+      <!-- The notes stand beside the events, then under them on a phone. -->
+      <div class="flex flex-wrap items-start gap-5">
+        <DashboardUpcomingEvents
+          class="min-w-0 flex-1 basis-150"
+          :events
+          :count
+          :loading
+        />
+        <DashboardNotes
+          class="min-w-0 flex-1 basis-80 md:max-w-105"
+          :notes
+          :loading
+        />
+      </div>
     </template>
   </div>
 </template>

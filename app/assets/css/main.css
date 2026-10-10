@@ -137,6 +137,7 @@
    */
   --grid-template-columns-kpis: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   --grid-template-columns-upcoming: minmax(0, 2fr) minmax(0, 1fr);  /* « Événements à venir »: event, date */
+  --grid-template-columns-upcoming-full: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1.6fr) 64px;  /* …, tasks, notes, from 820 px */
 
   /* Radii */
   --radius-badge: 7px;

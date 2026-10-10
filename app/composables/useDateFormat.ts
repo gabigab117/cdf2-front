@@ -84,6 +84,24 @@ function writtenDay(iso: string, now: number): string {
   return day(iso, { weekday: false, year: parisCalendar(iso).year !== parisCalendar(now).year })
 }
 
+// French's own words for the time gone by: « il y a 5 min », « hier ».
+const RELATIVE = new Intl.RelativeTimeFormat('fr', { style: 'short', numeric: 'auto' })
+
+/**
+ * How long ago something was written, as of `now`: « maintenant », « il y a
+ * 5 min », « il y a 2 h » the same day in Paris, « hier », then the day:
+ * « 28 sept. ».
+ */
+function ago(iso: string, now: number): string {
+  const minutes = Math.floor((now - Date.parse(iso)) / 60_000)
+  if (minutes < 1) return RELATIVE.format(0, 'second')
+  if (minutes < 60) return RELATIVE.format(-minutes, 'minute')
+  const days = parisDay(now) - parisDay(iso)
+  if (days === 0) return RELATIVE.format(-Math.floor(minutes / 60), 'hour')
+  if (days === 1) return RELATIVE.format(-1, 'day')
+  return writtenDay(iso, now)
+}
+
 /**
  * A day of the calendar, such as a due date, which the API gives without a
  * time ("2026-10-08"): « 8 oct. », with its year when it is not the year of
@@ -230,5 +248,5 @@ function season(now: number): string {
  * the browser: the formats of the mockup.
  */
 export function useDateFormat() {
-  return { dayMonth, recordedAt, day, writtenDay, calendarDay, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
+  return { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
 }
