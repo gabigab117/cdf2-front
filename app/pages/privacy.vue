@@ -42,6 +42,7 @@ useSitePage({
       <p>Le site ne dépose aucun cookie, ne mesure pas son audience et ne vous demande rien. Ses polices de caractères sont servies par le site lui-même.</p>
       <p>La carte d’un événement ne se charge que si vous cliquez dessus. OpenStreetMap reçoit alors votre adresse IP.</p>
       <p>Comme tout serveur web, le nôtre tient un journal technique des requêtes : adresse IP, date et heure, page demandée, navigateur. Il sert à la sécurité et au dépannage.</p>
+      <p>Si une page échoue sur une erreur du serveur, un rapport technique part par e-mail à l’administrateur du site, par Mailo : les mêmes informations, avec le détail de l’erreur. Le site n’en garde aucune copie.</p>
     </SiteLegalSection>
     <SiteLegalSection title="Membres du bureau">
       <p>Chaque membre du bureau a un compte : e-mail, prénom, nom et fonction, avec un mot de passe qui n’est jamais conservé en clair. Le compte garde aussi sa date de création, celle de sa dernière connexion à l’administration, et celle du dernier lien envoyé pour choisir son mot de passe.</p>
