@@ -261,18 +261,20 @@ export function publicInfoPayload(fields: PublicInfoFields): Pick<EventIn, Publi
 }
 
 /**
- * The board members who may lead the event, by name, after « Aucun ». A lead
- * who has left the board stays among them: otherwise, saving the event would
- * take them off it without anyone choosing so.
+ * The board members to choose from, by name, after the choice of nobody
+ * (« Aucun », « Personne »): the lead of an event, the assignee of a task. The
+ * member chosen so far stays among them, even after leaving the board:
+ * otherwise, saving would take them off without anyone choosing so.
  */
-export function leadOptions(
+export function memberOptions(
   members: readonly BoardMemberOut[],
-  lead: BoardMemberOut | null,
+  current: BoardMemberOut | null,
+  nobody: string,
 ): Option<number | null>[] {
-  const leads = lead && !members.some(member => member.id === lead.id) ? [...members, lead] : members
+  const chosen = current && !members.some(member => member.id === current.id) ? [...members, current] : members
   return [
-    { value: null, label: 'Aucun' },
-    ...leads.map(member => ({ value: member.id, label: memberName(member) })),
+    { value: null, label: nobody },
+    ...chosen.map(member => ({ value: member.id, label: memberName(member) })),
   ]
 }
 

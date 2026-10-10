@@ -18,17 +18,15 @@ const pending = ref(false)
 
 const { saveEvent } = useEventWrites()
 
-// A board counts a handful of members, and a previous edition is among the
-// latest past events: one page of each serves. The form needs neither to be
-// used, its current choices being always among the options.
-const { data: members } = useLazyAsyncData('board:members', (_nuxtApp, { signal }) =>
-  loadData(useApi().GET('/api/board/members', { params: { query: { page_size: 100 } }, signal })),
-)
+// A previous edition is among the latest past events: one page serves. The
+// form needs neither list to be used, its current choices being always among
+// the options.
+const { data: members } = useBoardMembers()
 const { data: pastEvents } = useLazyAsyncData('board:past-events', (_nuxtApp, { signal }) =>
   loadData(useApi().GET('/api/board/events', { params: { query: { period: 'past', page_size: 100 } }, signal })),
 )
 
-const leads = computed(() => leadOptions(members.value?.items ?? [], event?.lead ?? null))
+const leads = computed(() => memberOptions(members.value?.items ?? [], event?.lead ?? null, 'Aucun'))
 const editions = computed(() =>
   previousEditionOptions(pastEvents.value?.items ?? [], event?.previous_edition ?? null, event?.id ?? null),
 )
