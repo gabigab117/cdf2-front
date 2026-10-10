@@ -4,7 +4,8 @@ interface FileFetch {
 }
 
 // Types the browser shows without running anything in the application's origin.
-const INLINE_TYPES: ReadonlySet<string> = new Set(['application/pdf', 'image/jpeg', 'image/png'])
+// The documents are stored as PDF or WebP (D9).
+const INLINE_TYPES: ReadonlySet<string> = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp'])
 
 // Time left to the browser to load an object URL before it is released.
 const REVOKE_DELAY_MS = 60_000

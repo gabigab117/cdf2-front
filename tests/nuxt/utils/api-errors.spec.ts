@@ -64,6 +64,30 @@ describe('toFormErrors', () => {
     })
   })
 
+  it('lays the errors of a multipart form on its fields and its file', () => {
+    /**
+     * Given a 422 about a form that sends a file: a field and the file missing,
+     * the file refused by the service, and the form's schema as a whole
+     * Then each error of a field or a file lands on it, and the last on the form
+     */
+    const error = {
+      detail: [
+        { type: 'missing', loc: ['file', 'file'], msg: 'Ce champ est obligatoire.' },
+        { type: 'missing', loc: ['form', 'category'], msg: 'Ce champ est obligatoire.' },
+        { type: 'validation_error', loc: ['body', 'file'], msg: 'Ce fichier a déjà été déposé.' },
+        { type: 'value_error', loc: ['form', 'payload'], msg: 'Saisissez une valeur valide.' },
+      ],
+    }
+
+    expect(toFormErrors(error)).toEqual({
+      form: ['Saisissez une valeur valide.'],
+      fields: {
+        file: ['Ce champ est obligatoire.', 'Ce fichier a déjà été déposé.'],
+        category: ['Ce champ est obligatoire.'],
+      },
+    })
+  })
+
   it.each([
     ['a refusal with its message', { detail: 'Identifiants invalides.' }],
     ['a body that is not JSON', 'Bad Gateway'],

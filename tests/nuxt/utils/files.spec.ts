@@ -74,6 +74,20 @@ describe('protected files', () => {
     expect(tabOpenedFirst).toBe(true)
   })
 
+  it('opens the WebP of a deposited photo in its tab', async () => {
+    /**
+     * Given a photo, which the server stores as a WebP
+     * When it is opened
+     * Then the browser shows it in its tab
+     */
+    const tab = openTab()
+    const webp = new Blob(['webp'], { type: 'image/webp' })
+
+    await openFile(async () => ({ data: webp }), 'ticket.webp')
+
+    expect(tab.location.href).toBe('blob:http://localhost:3000/file')
+  })
+
   it('compares the type of a file without its parameters', async () => {
     const tab = openTab()
     const png = new Blob(['png'], { type: 'image/png;name=photo.png' })

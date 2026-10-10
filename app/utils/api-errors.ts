@@ -13,6 +13,10 @@ export interface FormErrors {
 // The name every operation of the API gives its JSON body.
 const BODY_PARAMETER = 'payload'
 
+// Where the API locates an error about a field: the JSON body, or, for a
+// multipart form that sends a file, its fields and its files.
+const FIELD_SOURCES: ReadonlySet<string | number> = new Set(['body', 'form', 'file'])
+
 /**
  * Lays the errors of a 422 answer out on a form, or returns null for any other
  * error.
@@ -20,17 +24,19 @@ const BODY_PARAMETER = 'payload'
  * Ninja locates an error of the body's schema under the operation's parameter
  * (["body", "payload", "email"]), while the services locate theirs under the
  * field itself (["body", "email"]), or under the body when no field is at fault:
- * both land on the same field. Only errors about the body are laid on fields; any
- * other one (query string, path…) goes to the form as a whole, so that none is
- * lost.
+ * both land on the same field. A multipart form's fields come without their
+ * parameter (["form", "category"]), and its files under their own name
+ * (["file", "file"]). Only errors about the body or a form are laid on fields;
+ * any other one (query string, path…) goes to the form as a whole, so that none
+ * is lost.
  */
 export function toFormErrors(error: unknown): FormErrors | null {
   if (!isValidationError(error)) return null
   const errors: FormErrors = { form: [], fields: {} }
   for (const { loc, msg } of error.detail) {
-    const [source, ...path] = loc
-    if (source === 'body' && path[0] === BODY_PARAMETER) path.shift()
-    if (source !== 'body' || path.length === 0) errors.form.push(msg)
+    const [source = '', ...path] = loc
+    if (source !== 'file' && path[0] === BODY_PARAMETER) path.shift()
+    if (!FIELD_SOURCES.has(source) || path.length === 0) errors.form.push(msg)
     else (errors.fields[path.join('.')] ??= []).push(msg)
   }
   return errors
