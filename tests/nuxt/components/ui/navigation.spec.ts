@@ -1,5 +1,5 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import UiBreadcrumb from '~/components/ui/Breadcrumb.vue'
 import UiPagination from '~/components/ui/Pagination.vue'
 import UiTabs from '~/components/ui/Tabs.vue'
@@ -57,6 +57,26 @@ describe('UiTabs', () => {
     await tabList.findAll('[role="tab"]')[2]?.trigger('click')
 
     expect(tabList.emitted('update:modelValue')).toEqual([['public']])
+    tabList.unmount()
+  })
+
+  it('keeps the tab selected in sight, when it shows as when another is chosen', async () => {
+    /**
+     * Given a bar that scrolls on a phone, and its last tab chosen by the address
+     * When the tabs show, then the first is chosen
+     * Then each tab chosen is brought into sight, and the page moves only if it must
+     */
+    const reveal = vi.spyOn(Element.prototype, 'scrollIntoView')
+    const tabList = await mountTabs('public')
+
+    await tabList.setProps({ modelValue: 'notes' })
+
+    expect(reveal.mock.contexts.map(tab => (tab as Element).id)).toEqual([
+      tabList.findAll('[role="tab"]')[2]?.attributes('id'),
+      tabList.findAll('[role="tab"]')[0]?.attributes('id'),
+    ])
+    expect(reveal.mock.calls).toEqual([[{ block: 'nearest', inline: 'nearest' }], [{ block: 'nearest', inline: 'nearest' }]])
+    reveal.mockRestore()
     tabList.unmount()
   })
 })

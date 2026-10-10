@@ -39,6 +39,15 @@ function moveFrom(index: number, event: KeyboardEvent): void {
   document.getElementById(tabId(tab.value))?.focus()
 }
 
+// On a phone the bar scrolls: the tab selected stays in sight, even one an
+// address chose (« Voir les 5 documents » opens the last but one).
+function reveal(): void {
+  document.getElementById(tabId(selected.value))?.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+}
+
+onMounted(reveal)
+watch(selected, reveal, { flush: 'post' })
+
 const classes = {
   base: 'inline-flex h-11.5 shrink-0 items-center gap-2 border-b-2 px-3.5 text-ui whitespace-nowrap transition-colors',
   selected: 'border-sable-950 font-semibold text-sable-950',
