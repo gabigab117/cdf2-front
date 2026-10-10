@@ -33,6 +33,7 @@ const tabs = computed(() => [
   { value: 'tasks' as const, label: 'Tâches', count: dashboard.value ? `${dashboard.value.tasks_done}/${dashboard.value.tasks_total}` : undefined },
   { value: 'stations' as const, label: 'Postes', count: dashboard.value ? `${dashboard.value.assigned_count}/${dashboard.value.required_count}` : undefined },
   { value: 'reservations' as const, label: 'Réservations', count: dashboard.value ? seatsCount(dashboard.value) : undefined },
+  { value: 'documents' as const, label: 'Documents', count: dashboard.value ? String(dashboard.value.documents_count) : undefined },
   { value: 'public' as const, label: 'Infos publiques' },
 ])
 
@@ -130,6 +131,7 @@ function show(saved: components['schemas']['EventOut']): void {
         />
         <aside class="flex min-w-0 flex-1 basis-80 flex-col gap-4 md:max-w-100">
           <TasksBlock :event-id="event.id" />
+          <DocumentsRelatedBlock :event-id="event.id" />
         </aside>
       </div>
       <TasksTab
@@ -143,6 +145,11 @@ function show(saved: components['schemas']['EventOut']): void {
       />
       <ReservationsTab
         v-else-if="tab === 'reservations'"
+        :event
+        :page="query.page"
+      />
+      <DocumentsEventTab
+        v-else-if="tab === 'documents'"
         :event
         :page="query.page"
       />

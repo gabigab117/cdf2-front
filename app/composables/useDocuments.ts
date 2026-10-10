@@ -43,6 +43,21 @@ export function useDocumentCounts(query: () => DocumentsQuery) {
   )
 }
 
+/**
+ * A page of an event's documents, for its tab, the latest date first. Lazy: the
+ * page shows its tab while they come.
+ */
+export function useEventDocuments(eventId: number, page: () => number) {
+  return useLazyAsyncData(
+    () => `board:event:${eventId}:documents:${page()}`,
+    (_nuxtApp, { signal }) =>
+      loadData(useApi().GET('/api/board/documents', {
+        params: { query: { event: eventId, page: page(), page_size: DOCUMENTS_PAGE_SIZE } },
+        signal,
+      })),
+  )
+}
+
 /** The key of a document, as its panel reads it. */
 export function documentKey(id: number): string {
   return `board:document:${id}`

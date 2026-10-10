@@ -5,6 +5,7 @@ describe('the board\'s page of an event', () => {
     ['nothing', {}, { tab: 'notes', page: 1 }],
     ['the public information', { onglet: 'infos-publiques' }, { tab: 'public', page: 1 }],
     ['a page of the tasks', { onglet: 'taches', page: '3' }, { tab: 'tasks', page: 3 }],
+    ['the documents', { onglet: 'documents' }, { tab: 'documents', page: 1 }],
     ['a page of the notes', { page: '2' }, { tab: 'notes', page: 2 }],
     ['a tab it does not know', { onglet: 'public' }, { tab: 'notes', page: 1 }],
     ['page 0', { page: '0' }, { tab: 'notes', page: 1 }],
