@@ -71,6 +71,7 @@ Toute la configuration vient de l'environnement (`.env` en local) : le dépôt n
 | `NUXT_LEGAL_PUBLICATION_DIRECTOR` | Nom du directeur ou de la directrice de la publication, cité par les mentions légales. |
 | `NUXT_LEGAL_OFFICE_STREET`, `NUXT_LEGAL_OFFICE_TOWN` | Siège de l'association, puis son code postal et sa commune. |
 | `NUXT_LEGAL_HOST_NAME`, `NUXT_LEGAL_HOST_ADDRESS`, `NUXT_LEGAL_HOST_PHONE` | Raison sociale, adresse et téléphone de l'hébergeur. |
+| `NUXT_LEGAL_HOST_LOCATION` | Pays où se trouve le serveur (« France »). |
 
 Les variables `NUXT_PUBLIC_*` sont écrites dans chaque page servie, pour le navigateur : elles ne contiennent jamais de donnée personnelle. Les variables `NUXT_LEGAL_*` restent privées : seul le rendu serveur des mentions légales les lit, et cette page est servie sans script. Une valeur vide masque la ligne qu'elle remplit.
 

@@ -12,7 +12,7 @@ export default defineVitestConfig({
             legal: {
               publicationDirector: 'Dominique Exemple',
               office: { street: '1 place de la Mairie', town: '00000 Commune' },
-              host: { name: 'Hébergeur Exemple SARL', address: '1 rue de l’Exemple, 00000 Ville', phone: '01 98 76 54 32' },
+              host: { name: 'Hébergeur Exemple SARL', address: '1 rue de l’Exemple, 00000 Ville', phone: '01 98 76 54 32', location: 'France' },
             },
             public: {
               siteUrl: 'https://site.example',

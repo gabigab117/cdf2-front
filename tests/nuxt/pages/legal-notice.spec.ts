@@ -43,6 +43,7 @@ describe('legal notice', () => {
       ['Hébergeur', 'Hébergeur Exemple SARL'],
       ['Adresse', '1 rue de l’Exemple, 00000 Ville'],
       ['Téléphone', '01 98 76 54 32'],
+      ['Localisation du serveur', 'France'],
     ])
     expect(page.text()).toContain('Dominique Exemple')
     expect(page.get('a[href="mailto:contact@example.test"]').text()).toBe('contact@example.test')
@@ -56,7 +57,7 @@ describe('legal notice', () => {
 
     const page = await mountNotice()
 
-    expect(details(page).map(([label]) => label)).toEqual(['Siège', 'E-mail', 'Téléphone', 'Hébergeur', 'Adresse'])
+    expect(details(page).map(([label]) => label)).toEqual(['Siège', 'E-mail', 'Téléphone', 'Hébergeur', 'Adresse', 'Localisation du serveur'])
     expect(page.findAll('h2').map(title => title.text())).not.toContain('Direction de la publication')
   })
 

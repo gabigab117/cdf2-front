@@ -7,7 +7,7 @@ definePageMeta({ path: '/mentions-legales', public: true })
 // without scripts, and the browser never renders it.
 const { legal, public: { contact } } = useRuntimeConfig()
 
-const hasHost = Boolean(legal.host.name || legal.host.address || legal.host.phone)
+const hasHost = Boolean(legal.host.name || legal.host.address || legal.host.phone || legal.host.location)
 
 useSitePage({
   title: 'Mentions légales',
@@ -83,6 +83,12 @@ useSeoMeta({ robots: 'noindex, nofollow' })
           label="Téléphone"
         >
           {{ legal.host.phone }}
+        </SiteLegalDetail>
+        <SiteLegalDetail
+          v-if="legal.host.location"
+          label="Localisation du serveur"
+        >
+          {{ legal.host.location }}
         </SiteLegalDetail>
       </dl>
     </SiteLegalSection>

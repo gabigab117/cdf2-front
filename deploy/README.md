@@ -40,6 +40,7 @@ Le service lit `shared/front.env` (0600), qui reste hors du dépôt. Une variabl
 | `NUXT_LEGAL_PUBLICATION_DIRECTOR` | Directeur ou directrice de la publication, nommé par les mentions légales. |
 | `NUXT_LEGAL_OFFICE_STREET`, `NUXT_LEGAL_OFFICE_TOWN` | Siège de l'association. |
 | `NUXT_LEGAL_HOST_NAME`, `NUXT_LEGAL_HOST_ADDRESS`, `NUXT_LEGAL_HOST_PHONE` | Hébergeur du site : raison sociale, adresse et téléphone. |
+| `NUXT_LEGAL_HOST_LOCATION` | Pays du serveur. |
 
 Les variables `NUXT_PUBLIC_*` sont écrites dans chaque page servie : jamais de donnée personnelle. Les variables `NUXT_LEGAL_*` ne sont lues que par le rendu serveur des mentions légales, servies sans script.
 

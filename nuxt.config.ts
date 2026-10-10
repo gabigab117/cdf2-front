@@ -28,9 +28,10 @@ export default defineNuxtConfig({
       // The association's registered office: its street, then its postcode and
       // town (NUXT_LEGAL_OFFICE_STREET, NUXT_LEGAL_OFFICE_TOWN).
       office: { street: '', town: '' },
-      // The host of the site: its name, its address and its phone
-      // (NUXT_LEGAL_HOST_NAME, NUXT_LEGAL_HOST_ADDRESS, NUXT_LEGAL_HOST_PHONE).
-      host: { name: '', address: '', phone: '' },
+      // The host of the site: its name, its address, its phone, and the country
+      // its server stands in (NUXT_LEGAL_HOST_NAME, NUXT_LEGAL_HOST_ADDRESS,
+      // NUXT_LEGAL_HOST_PHONE, NUXT_LEGAL_HOST_LOCATION).
+      host: { name: '', address: '', phone: '', location: '' },
     },
     // Written into every page, for the browser: never a personal detail. Each
     // comes from the environment (NUXT_PUBLIC_…), the repository holds none.
