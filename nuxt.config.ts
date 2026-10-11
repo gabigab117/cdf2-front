@@ -8,6 +8,12 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'fr' },
+      // The coat of arms in the tabs: the SVG for the browsers that read it, the
+      // ICO for the others. The ICO's sizes stop Chrome from taking it over the SVG.
+      link: [
+        { rel: 'icon', href: '/favicon.ico', sizes: '32x32' },
+        { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
+      ],
     },
   },
 
