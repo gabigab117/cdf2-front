@@ -50,12 +50,11 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
 - **Côté serveur (rendu des pages publiques), le composable ne porte aucun credential** : ni header `Authorization`, ni cookie relayé, ni refresh. Il n'y appelle que des endpoints publics, sur l'URL interne de l'API (runtimeConfig privée : une URL relative ne se résout pas côté serveur). Les données d'une page publique passent par `useAsyncData`, qui les transmet au client sans second appel : le handler renvoie `data` seul, car un `Response` ne passe pas dans le payload. L'URL interne vient de `NUXT_API_INTERNAL_URL`, sans valeur par défaut.
 - **L'access token vit en mémoire** (store Pinia), jamais dans `localStorage`/`sessionStorage` ni dans un cookie lisible par JS. La session se restaure par un refresh silencieux, tenté par le middleware à l'entrée de l'espace connecté (cf. Conventions Nuxt) : c'est ce qui la rétablit après un rechargement sans redemander le mot de passe. Jamais sur une page publique : un visiteur anonyme ne déclenche aucun appel d'authentification.
 - **Fichiers protégés** : jamais un simple `<a href>`, car le navigateur n'enverrait pas le header `Authorization`.
-  - On passe par le composable : `fetch` authentifié → blob (`parseAs: 'blob'`), confié à `downloadFile()` ou `openFile()` (`utils/files.ts`).
-  - Pour un téléchargement, on déclenche ensuite le téléchargement.
-  - Pour une ouverture en ligne, l'URL blob est créée avec le **type renvoyé par le serveur**, jamais déduit côté client.
-    - L'onglet s'ouvre dans le clic, avant l'arrivée du fichier : `openFile()` s'appelle avant tout `await` du gestionnaire, sinon le navigateur bloque l'onglet comme pop-up.
-    - Seuls PDF, JPEG et PNG s'ouvrent en ligne ; tout autre type est téléchargé.
-  - L'URL blob est libérée après usage.
+  - On passe par le composable : `fetch` authentifié → blob (`parseAs: 'blob'`). Un téléchargement est confié à `downloadFile()` (`utils/files.ts`).
+  - **Un original s'affiche dans la page, jamais dans un onglet** : « Ouvrir l'original » ouvre le lecteur du document (`DocumentsViewer`, dans une `UiModal`), qui lit le fichier à chaque ouverture.
+    - L'URL blob est créée avec le **type renvoyé par le serveur**, jamais déduit côté client. `fileView()` dit comment l'afficher : une image (JPEG, PNG, WebP) dans un `<img>`, un PDF dans le lecteur du navigateur (`<iframe>`) quand `navigator.pdfViewerEnabled` le dit. Sinon, comme sur un téléphone sans lecteur PDF, le lecteur invite à télécharger.
+    - Le lecteur PDF de Chrome prend le focus juste après son chargement, et garde Échap pour lui. Le lecteur du document le reprend : c'est la fenêtre qui en est avertie (`blur`), et le focus se rend après ce gestionnaire (`setTimeout`), sinon il reste au PDF (constaté).
+  - L'URL blob est libérée après usage : à la fermeture du lecteur, ou une minute après un téléchargement.
 - **Aucune logique d'autorisation ou de règle métier côté client** : le front affiche les états renvoyés par l'API, il ne les décide jamais (disponibilités, statuts de prêt, totaux de trésorerie). Le rôle exposé par « qui suis-je » sert à adapter la navigation : c'est de l'UX, pas de la sécurité.
 
 ## Conventions Nuxt
@@ -155,6 +154,9 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
   - Elles lisent aussi les valeurs d'un objet nommé `classes`, où un composant de base range ses variantes (`components/ui/`).
 - **Un seul point de rupture**, celui de la maquette : `md` vaut 820 px. En dessous, la barre latérale devient un tiroir et les colonnes secondaires disparaissent.
 - Les états que la maquette ne dessine pas sont composés : un focus visible global (contour azur, celui de l'interrupteur de Photos) et un survol par composant.
+- **Une modale (`UiModal`) s'anime sans JavaScript** : `<dialog>` natif, état de départ en `starting:open:`, et `transition-discrete` pour qu'elle reste affichée, dans la couche supérieure, le temps de disparaître. Rien ne bouge quand le système demande moins d'animations (`motion-reduce:`). Deux pièges :
+  - `open:flex`, jamais `flex` : un `display` posé par une classe l'emporte sur le `display: none` que le navigateur donne à un `<dialog>` fermé, qui resterait affiché ;
+  - elle est `fixed`, avec ses `inset`, même fermée : le navigateur ne la fixe que tant qu'elle est ouverte, et elle retomberait à sa place dans la page pendant qu'elle disparaît.
 - Si une suite de classes apparaît 3 fois, c'est un composant Vue, pas une chaîne copiée-collée.
 - `@apply` avec parcimonie (composants de base uniquement). CSS custom isolé et documenté (impression des pages A4, par exemple).
 - **Pages imprimables** (la convention de prêt) :

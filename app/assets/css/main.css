@@ -190,6 +190,9 @@
   /* Blur behind the public site's sticky header */
   --blur-header: 14px;
 
+  /* A modal window that rises quickly, then settles into place */
+  --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+
   /*
    * The mockup has a single breakpoint: at 820px and below, the board's sidebar
    * gives way to a drawer and secondary columns disappear. Tailwind's `md`
@@ -216,7 +219,8 @@
     outline-offset: 2px;
   }
 
-  /* An open modal drawer keeps the page behind it still. */
+  /* An open modal dialog (the drawer, a document's viewer) keeps the page
+     behind it still. */
   html:has(dialog[open]) {
     overflow: hidden;
   }

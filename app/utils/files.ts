@@ -17,44 +17,27 @@ interface FileFetch {
   data?: Blob
 }
 
-// Types the browser shows without running anything in the application's origin.
+/** How the page shows a file it can show. */
+export type FileView = 'image' | 'pdf'
+
+// Images the page shows without running anything in the application's origin.
 // The documents are stored as PDF or WebP (D9).
-const INLINE_TYPES: ReadonlySet<string> = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp'])
+const IMAGE_TYPES: ReadonlySet<string> = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
 // Time left to the browser to load an object URL before it is released.
 const REVOKE_DELAY_MS = 60_000
 
 /**
- * Opens a protected file in a new tab.
- *
- * To be called from the click handler, before any `await`: the tab opens at once
- * and receives the file once it has arrived, since a tab opened later would no
- * longer follow the click and would be blocked as a pop-up. A file of a type the
- * browser should not show, or one whose tab could not open, is downloaded
- * instead.
- *
- * @returns The API's answer, for the caller to show its error, if any.
+ * How the page shows a protected file, by the type the server sent with it: an
+ * image, a PDF in the browser's own viewer, or nothing, the file being then
+ * only downloaded. A browser without a PDF viewer, as on some phones, would
+ * download the PDF instead of showing it.
  */
-export async function openFile<T extends FileFetch>(load: () => Promise<T>, filename: string): Promise<T> {
-  const tab = window.open('', '_blank')
-  let result: T
-  try {
-    result = await load()
-  }
-  catch (error) {
-    tab?.close()
-    throw error
-  }
-  const file = result.data
-  if (file && tab && INLINE_TYPES.has(mediaType(file))) {
-    // The file's page must not reach back into the application.
-    tab.opener = null
-    tab.location.href = objectUrl(file)
-    return result
-  }
-  tab?.close()
-  if (file) save(file, filename)
-  return result
+export function fileView(file: Blob): FileView | null {
+  const type = mediaType(file)
+  if (IMAGE_TYPES.has(type)) return 'image'
+  if (type === 'application/pdf' && navigator.pdfViewerEnabled) return 'pdf'
+  return null
 }
 
 /**

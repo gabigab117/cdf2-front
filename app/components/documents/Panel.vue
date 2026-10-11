@@ -20,9 +20,10 @@ const emit = defineEmits<{
 }>()
 
 const { data: document, error, refresh } = useDocument(id)
-const { correctDocument, validateDocument, deleteDocument, openDocument, downloadDocument } = useDocumentWrites()
+const { correctDocument, validateDocument, deleteDocument, downloadDocument } = useDocumentWrites()
 
 const editing = ref(startEditing)
+const viewing = ref(false)
 const validating = ref(false)
 const failure = ref<string | null>(null)
 
@@ -62,11 +63,6 @@ function remove(): Promise<string | null> {
   return deleteDocument(id)
 }
 
-// openDocument() opens its tab within the click, before any await.
-async function open(): Promise<void> {
-  if (document.value) failure.value = await openDocument(document.value)
-}
-
 async function download(): Promise<void> {
   if (document.value) failure.value = await downloadDocument(document.value)
 }
@@ -86,21 +82,13 @@ async function download(): Promise<void> {
       </UiStatusPill>
     </template>
     <div class="-mx-6 flex items-center gap-3.5 border-b border-argent-100 px-6 pb-4">
-      <div
-        class="flex h-28 w-21.5 shrink-0 flex-col gap-1.5 rounded-lg bg-white px-2.5 py-3 shadow-float ring-1 ring-argent-200"
-        aria-hidden="true"
-      >
-        <span class="h-1.5 w-3/5 rounded-full bg-sable-950" />
-        <span class="h-1 w-11/12 rounded-full bg-argent-200" />
-        <span class="h-1 w-4/5 rounded-full bg-argent-200" />
-        <span class="h-1 w-5/6 rounded-full bg-argent-200" />
-        <span class="mt-auto h-1.5 w-2/5 self-end rounded-full bg-azur-600" />
-      </div>
+      <DocumentsThumbnail />
       <div class="flex flex-col gap-2">
         <UiButton
           variant="secondary"
           size="sm"
-          @click="open"
+          aria-haspopup="dialog"
+          @click="viewing = true"
         >
           <Eye :size="16" />
           Ouvrir l’original
@@ -115,6 +103,10 @@ async function download(): Promise<void> {
         </UiButton>
       </div>
     </div>
+    <DocumentsViewer
+      v-model:open="viewing"
+      :document
+    />
     <UiCallout
       v-if="toReview"
       tone="ambre"

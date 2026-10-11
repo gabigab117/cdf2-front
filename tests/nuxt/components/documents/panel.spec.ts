@@ -6,6 +6,7 @@ import type { components } from '~/types/api'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
 import { boardDocument, extracted } from '../../helpers/documents'
 import { eventItem, julie, page } from '../../helpers/events'
+import { forgetPdfViewer, pdfViewer } from '../../helpers/files'
 
 type DocumentOut = components['schemas']['DocumentOut']
 
@@ -49,6 +50,7 @@ describe('the panel of a document', () => {
     clearApiMocks()
     clearNuxtData()
     clearNuxtState('now')
+    forgetPdfViewer()
     vi.restoreAllMocks()
     useSessionStore().clear()
   })
@@ -265,12 +267,33 @@ describe('the panel of a document', () => {
     await vi.waitFor(() => expect(downloads).toEqual(['facture-sono.pdf']))
   })
 
-  it('tells why the file could not be read', async () => {
-    mockApi('/api/board/documents/{document_id}/file', { handler: () => apiResponse(404, { detail: 'Introuvable.' }) }, { document_id: 21 })
-    vi.spyOn(window, 'open').mockReturnValue(null)
+  it('opens the original in its viewer, above the page', async () => {
+    /**
+     * Given the panel of a document deposited as a PDF
+     * When « Ouvrir l’original » is clicked
+     * Then its viewer opens in the page, and shows the file
+     */
+    pdfViewer(true)
+    mockApi('/api/board/documents/{document_id}/file', {
+      handler: () => new Response(new Blob(['%PDF-1.4'], { type: 'application/pdf' }), { headers: { 'Content-Type': 'application/pdf' } }),
+    }, { document_id: 21 })
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:http://localhost:3000/file')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
     const panel = await mountPanel(boardDocument())
+    const viewer = panel.get('dialog').element as HTMLDialogElement
+    expect(viewer.open).toBe(false)
 
     await button(panel, 'Ouvrir l’original').trigger('click')
+
+    expect(viewer.open).toBe(true)
+    await vi.waitFor(() => expect(panel.get('dialog iframe').attributes('src')).toBe('blob:http://localhost:3000/file'))
+  })
+
+  it('tells why the file could not be downloaded', async () => {
+    mockApi('/api/board/documents/{document_id}/file', { handler: () => apiResponse(404, { detail: 'Introuvable.' }) }, { document_id: 21 })
+    const panel = await mountPanel(boardDocument())
+
+    await button(panel, 'Télécharger').trigger('click')
 
     await vi.waitFor(() => expect(panel.get('[role="alert"]').text()).toBe('Introuvable.'))
   })

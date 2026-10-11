@@ -1,17 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiResponse, clearApiMocks, mockApi } from '../helpers/api'
-
-interface Tab {
-  opener: unknown
-  location: { href: string }
-  close: ReturnType<typeof vi.fn>
-}
-
-function openTab(): Tab {
-  const tab: Tab = { opener: window, location: { href: '' }, close: vi.fn() }
-  vi.spyOn(window, 'open').mockReturnValue(tab as unknown as Window)
-  return tab
-}
+import { forgetPdfViewer, pdfViewer } from '../helpers/files'
 
 // The links clicked to download a file.
 function clickedLinks(): Array<{ href: string, download: string }> {
@@ -32,123 +20,47 @@ describe('protected files', () => {
   })
 
   afterEach(() => {
-    clearApiMocks()
+    forgetPdfViewer()
     vi.useRealTimers()
     vi.restoreAllMocks()
   })
 
-  it('opens a file with the type the server sent', async () => {
+  it('shows an image of the types the server stores', () => {
     /**
-     * Given a PDF served by the API
-     * When it is opened
-     * Then its tab shows it, from a URL that keeps the server's type
-     * And the tab cannot reach back into the application
+     * Given a photo, which the server stores as a WebP, or an image of the v1
+     * Then the page shows it as an image
      */
-    // No operation serves a file yet: the health check stands in for one.
-    mockApi('/api/health', {
-      method: 'GET',
-      handler: () => new Response('%PDF-1.7', { headers: { 'Content-Type': 'application/pdf' } }),
-    })
-    const tab = openTab()
-
-    await openFile(() => useApi().GET('/api/health', { parseAs: 'blob' }), 'facture.pdf')
-
-    expect(vi.mocked(URL.createObjectURL).mock.calls[0]?.[0]).toMatchObject({ type: 'application/pdf' })
-    expect(tab.location.href).toBe('blob:http://localhost:3000/file')
-    expect(tab.opener).toBeNull()
+    for (const type of ['image/webp', 'image/jpeg', 'image/png']) {
+      expect(fileView(new Blob(['image'], { type }))).toBe('image')
+    }
   })
 
-  it('opens the tab before the file arrives', async () => {
+  it('compares the type of a file without its parameters', () => {
+    expect(fileView(new Blob(['png'], { type: 'image/png;name=photo.png' }))).toBe('image')
+  })
+
+  it('shows a PDF in the browser\'s viewer, when it has one', () => {
     /**
-     * When a file is opened
-     * Then its tab is opened before the file is fetched, within the click
+     * Given a PDF
+     * Then the page shows it in the browser's viewer
+     * But a browser without a PDF viewer, as on some phones, does not show it
      */
-    openTab()
-    let tabOpenedFirst = false
+    pdfViewer(true)
+    expect(fileView(pdf)).toBe('pdf')
 
-    await openFile(async () => {
-      tabOpenedFirst = vi.mocked(window.open).mock.calls.length === 1
-      return { data: pdf }
-    }, 'facture.pdf')
-
-    expect(tabOpenedFirst).toBe(true)
+    pdfViewer(false)
+    expect(fileView(pdf)).toBeNull()
   })
 
-  it('opens the WebP of a deposited photo in its tab', async () => {
-    /**
-     * Given a photo, which the server stores as a WebP
-     * When it is opened
-     * Then the browser shows it in its tab
-     */
-    const tab = openTab()
-    const webp = new Blob(['webp'], { type: 'image/webp' })
-
-    await openFile(async () => ({ data: webp }), 'ticket.webp')
-
-    expect(tab.location.href).toBe('blob:http://localhost:3000/file')
-  })
-
-  it('compares the type of a file without its parameters', async () => {
-    const tab = openTab()
-    const png = new Blob(['png'], { type: 'image/png;name=photo.png' })
-
-    await openFile(async () => ({ data: png }), 'photo.png')
-
-    expect(tab.location.href).toBe('blob:http://localhost:3000/file')
-  })
-
-  it('downloads a file the browser should not show', async () => {
+  it('never shows a file the browser would run', () => {
     /**
      * Given a file of a type the browser would run, such as a web page
-     * When it is opened
-     * Then it is downloaded instead, and its tab closed
+     * Then the page does not show it
      */
-    const tab = openTab()
-    const links = clickedLinks()
-    const page = new Blob(['<script></script>'], { type: 'text/html' })
+    pdfViewer(true)
 
-    await openFile(async () => ({ data: page }), 'page.html')
-
-    expect(tab.location.href).toBe('')
-    expect(tab.close).toHaveBeenCalledOnce()
-    expect(links).toEqual([{ href: 'blob:http://localhost:3000/file', download: 'page.html' }])
-  })
-
-  it('downloads the file when its tab could not open', async () => {
-    vi.spyOn(window, 'open').mockReturnValue(null)
-    const links = clickedLinks()
-
-    await openFile(async () => ({ data: pdf }), 'facture.pdf')
-
-    expect(links).toEqual([{ href: 'blob:http://localhost:3000/file', download: 'facture.pdf' }])
-  })
-
-  it('closes the tab and returns the error when the file cannot be fetched', async () => {
-    /**
-     * Given a file the API refuses
-     * When it is opened
-     * Then its tab is closed, and the caller gets the API's answer
-     */
-    const tab = openTab()
-    const refusal = {
-      data: undefined,
-      error: { detail: 'Not Found' },
-      response: apiResponse(404, { detail: 'Not Found' }),
-    }
-
-    const result = await openFile(async () => refusal, 'facture.pdf')
-
-    expect(result).toBe(refusal)
-    expect(tab.close).toHaveBeenCalledOnce()
-    expect(URL.createObjectURL).not.toHaveBeenCalled()
-  })
-
-  it('closes the tab when the network fails', async () => {
-    const tab = openTab()
-    const failure = new TypeError('Failed to fetch')
-
-    await expect(openFile(() => Promise.reject(failure), 'facture.pdf')).rejects.toBe(failure)
-    expect(tab.close).toHaveBeenCalledOnce()
+    expect(fileView(new Blob(['<script></script>'], { type: 'text/html' }))).toBeNull()
+    expect(fileView(new Blob(['<svg></svg>'], { type: 'image/svg+xml' }))).toBeNull()
   })
 
   it('downloads a file under the given name', async () => {

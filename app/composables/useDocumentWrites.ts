@@ -13,7 +13,7 @@ export interface UploadFields {
   event: number | null
 }
 
-/** A document's file: to open, or to download under its name. */
+/** A document's file: to show, or to download under its name. */
 type DocumentFile = Pick<DocumentOut, 'id' | 'original_name'>
 
 /**
@@ -60,14 +60,15 @@ export function useDocumentWrites() {
     })
   }
 
-  /**
-   * Opens a document's file in a new tab. To be called from the click, before
-   * any `await` (openFile()).
-   *
-   * @returns null once opened, or the message to show.
-   */
-  function openDocument(document: DocumentFile): Promise<string | null> {
-    return fileResult(openFile(() => fetchFile(document), document.original_name))
+  /** @returns the file, of the type the server sent, or the message to show. */
+  async function readDocumentFile(document: DocumentFile): Promise<{ file: Blob } | { failure: string }> {
+    try {
+      const { data, error, response } = await fetchFile(document)
+      return response.ok && data ? { file: data } : { failure: errorMessage(error, response) }
+    }
+    catch (failure) {
+      return { failure: errorMessage(failure) }
+    }
   }
 
   /** @returns null once downloaded, or the message to show. */
@@ -75,7 +76,7 @@ export function useDocumentWrites() {
     return fileResult(downloadFile(() => fetchFile(document), document.original_name))
   }
 
-  return { uploadDocument, correctDocument, validateDocument, deleteDocument, openDocument, downloadDocument }
+  return { uploadDocument, correctDocument, validateDocument, deleteDocument, readDocumentFile, downloadDocument }
 }
 
 async function fileResult(request: Promise<{ error?: unknown, response: Response }>): Promise<string | null> {
