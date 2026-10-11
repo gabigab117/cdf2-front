@@ -89,7 +89,7 @@ describe('the address of the Prêts page', () => {
 })
 
 describe('what a loan tells', () => {
-  const line = { id: 41, equipment: { id: 5, name: 'Bancs pliants', unit_value: null }, quantity: 12, damaged_quantity: 0, missing_quantity: 0 }
+  const line = { id: 41, equipment: { id: 5, name: 'Bancs pliants' }, quantity: 12, damaged_quantity: 0, missing_quantity: 0 }
 
   it('lists its equipment, and how it came back when not whole', () => {
     expect(loanItems([line, { ...line, id: 42, equipment: { ...line.equipment, name: 'Tables' }, quantity: 6 }])).toBe('Bancs pliants (12), Tables (6)')

@@ -10,14 +10,12 @@ interface SummaryLine {
   beyond: string | null
 }
 
-// The summary beside the loan form: whom it lends to and when, its lines, what
-// they are worth, the deposit, and whether all of it is free.
-const { title, subtitle, lines, value, deposit, conflict, available, blocked, pending, action } = defineProps<{
+// The summary beside the loan form: whom it lends to and when, its lines, the
+// deposit, and whether all of it is free.
+const { title, subtitle, lines, deposit, conflict, available, blocked, pending, action } = defineProps<{
   title: string
   subtitle: string
   lines: readonly SummaryLine[]
-  /** « 2 550,00 € », what the equipment would cost to replace. */
-  value: string
   /** « Chèque de 150,00 € (non encaissé) », « Aucune ». */
   deposit: string
   /** What goes beyond what is free, or null. */
@@ -74,14 +72,6 @@ const emit = defineEmits<{
       Aucun matériel ajouté.
     </p>
     <dl class="flex flex-col gap-0.5 border-t border-argent-100 px-5.5 py-3 text-sm">
-      <div class="flex justify-between gap-3 py-1.5">
-        <dt class="text-argent-600">
-          Valeur du matériel
-        </dt>
-        <dd class="font-mono font-medium">
-          {{ value }}
-        </dd>
-      </div>
       <div class="flex justify-between gap-3 py-1.5">
         <dt class="text-argent-600">
           Caution

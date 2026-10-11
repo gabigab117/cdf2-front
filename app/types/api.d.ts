@@ -309,8 +309,8 @@ export interface paths {
         };
         /**
          * Read today's inventory
-         * @description What each equipment offers today, by category: its pieces, those taken
-         *     today and those under repair, with the figures of the inventory.
+         * @description What each equipment offers today, by name: its pieces, those taken today
+         *     and those under repair, with the figures of the inventory.
          */
         get: operations["equipment_api_read_inventory"];
         put?: never;
@@ -1577,55 +1577,26 @@ export interface components {
             taken: number;
         };
         /**
-         * EquipmentCategory
-         * @enum {string}
-         */
-        EquipmentCategory: "furniture" | "marquees" | "sound_and_light" | "kitchen" | "street_and_games";
-        /**
-         * EquipmentCountsOut
-         * @description How many equipment each category holds: the chips of the inventory.
-         */
-        EquipmentCountsOut: {
-            /** Furniture */
-            furniture: number;
-            /** Kitchen */
-            kitchen: number;
-            /** Marquees */
-            marquees: number;
-            /** Sound And Light */
-            sound_and_light: number;
-            /** Street And Games */
-            street_and_games: number;
-            /** Total */
-            total: number;
-        };
-        /**
          * EquipmentIn
          * @description An equipment as the board writes it: whole, every key required.
          *
          *     Its values are checked by the model, whose messages are in French.
          */
         EquipmentIn: {
-            category: components["schemas"]["EquipmentCategory"];
             /** Name */
             name: string;
             /** Repair Note */
             repair_note: string;
             /** Repair Quantity */
             repair_quantity: number;
-            /** Storage Location */
-            storage_location: string;
             /** Total Quantity */
             total_quantity: number;
-            /** Unit Value */
-            unit_value: number | string | null;
         };
         /**
          * EquipmentOut
          * @description An equipment of the inventory.
          */
         EquipmentOut: {
-            category: components["schemas"]["EquipmentCategory"];
             /** Id */
             id: number;
             /** Name */
@@ -1634,12 +1605,8 @@ export interface components {
             repair_note: string;
             /** Repair Quantity */
             repair_quantity: number;
-            /** Storage Location */
-            storage_location: string;
             /** Total Quantity */
             total_quantity: number;
-            /** Unit Value */
-            unit_value: string | null;
         };
         /** ErrorOut */
         ErrorOut: {
@@ -1861,11 +1828,9 @@ export interface components {
         };
         /**
          * InventoryOut
-         * @description What each equipment offers today, in the inventory's order: a bounded
-         *     aggregate (A7).
+         * @description What each equipment offers today, by name: a bounded aggregate (A7).
          */
         InventoryOut: {
-            counts: components["schemas"]["EquipmentCountsOut"];
             /**
              * Day
              * Format: date
@@ -2016,8 +1981,6 @@ export interface components {
             id: number;
             /** Name */
             name: string;
-            /** Unit Value */
-            unit_value: string | null;
         };
         /**
          * LoanEventOut

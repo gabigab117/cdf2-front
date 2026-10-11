@@ -5,16 +5,13 @@ import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
 import type { EquipmentFields } from '~/utils/equipment'
 
-type EquipmentCategory = components['schemas']['EquipmentCategory']
 type EquipmentOut = components['schemas']['EquipmentOut']
 
 // The form of an equipment: a new one, or one to change, such as pieces put
 // back in service. Only an equipment already recorded can be deleted.
-const { equipment = null, category = null, save, remove } = defineProps<{
+const { equipment = null, save, remove } = defineProps<{
   /** The equipment to change, or none for a new one. */
   equipment?: EquipmentOut | null
-  /** The category a new equipment starts in: the chip chosen. */
-  category?: EquipmentCategory | null
   /** Sends the equipment: the errors to show, or null once it is saved. */
   save: (fields: EquipmentFields) => Promise<FormErrors | null>
   /** Deletes the equipment: null once done, or the message to show. */
@@ -23,19 +20,11 @@ const { equipment = null, category = null, save, remove } = defineProps<{
 
 const emit = defineEmits<{ saved: [], cancel: [], deleted: [] }>()
 
-const fields = ref<EquipmentFields>(equipment ? equipmentFields(equipment) : newEquipmentFields(category))
+const fields = ref<EquipmentFields>(equipment ? equipmentFields(equipment) : newEquipmentFields())
 const errors = ref<FormErrors | null>(null)
 const pending = ref(false)
 
-const SHOWN: ReadonlySet<string> = new Set([
-  'name',
-  'category',
-  'storage_location',
-  'total_quantity',
-  'repair_quantity',
-  'unit_value',
-  'repair_note',
-])
+const SHOWN: ReadonlySet<string> = new Set(['name', 'total_quantity', 'repair_quantity', 'repair_note'])
 
 const form = useTemplateRef<HTMLFormElement>('form')
 const trigger = useTemplateRef<ComponentPublicInstance>('trigger')
@@ -99,35 +88,6 @@ async function deleteEquipment(): Promise<void> {
         :invalid
       />
     </UiField>
-    <UiField
-      v-slot="{ id, describedby, invalid }"
-      label="Catégorie"
-      :errors="fieldErrors('category')"
-    >
-      <UiSelect
-        :id
-        v-model="fields.category"
-        :options="EQUIPMENT_CATEGORY_OPTIONS"
-        placeholder="Choisir une catégorie"
-        required
-        :aria-describedby="describedby"
-        :invalid
-      />
-    </UiField>
-    <UiField
-      v-slot="{ id, describedby, invalid }"
-      label="Rangement"
-      optional
-      :errors="fieldErrors('storage_location')"
-    >
-      <UiInput
-        :id
-        v-model="fields.storageLocation"
-        placeholder="Local du comité · rack A"
-        :aria-describedby="describedby"
-        :invalid
-      />
-    </UiField>
     <div class="grid grid-cols-2 gap-3">
       <UiField
         v-slot="{ id, describedby, invalid }"
@@ -160,21 +120,6 @@ async function deleteEquipment(): Promise<void> {
         />
       </UiField>
     </div>
-    <UiField
-      v-slot="{ id, describedby, invalid }"
-      label="Valeur de remplacement"
-      help="Le prix d’une pièce, en euros."
-      optional
-      :errors="fieldErrors('unit_value')"
-    >
-      <UiInput
-        :id
-        v-model="fields.unitValue"
-        inputmode="decimal"
-        :aria-describedby="describedby"
-        :invalid
-      />
-    </UiField>
     <UiField
       v-slot="{ id, describedby, invalid }"
       label="Note de réparation"

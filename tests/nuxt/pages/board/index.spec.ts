@@ -30,7 +30,7 @@ const NOTHING_PENDING: BoardOverviewOut['pending'] = {
 /** No equipment out, none to prepare. */
 const NOTHING_LENT: BoardOverviewOut['loans'] = { out_count: 0, to_prepare_count: 0, next_return: null }
 
-const LINE = { id: 41, equipment: { id: 5, name: 'Barnums 3 × 3 m', unit_value: '250.00' }, quantity: 2, damaged_quantity: 0, missing_quantity: 0 }
+const LINE = { id: 41, equipment: { id: 5, name: 'Barnums 3 × 3 m' }, quantity: 2, damaged_quantity: 0, missing_quantity: 0 }
 
 function overview(
   events = [overviewEvent()],

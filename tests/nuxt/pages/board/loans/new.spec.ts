@@ -14,7 +14,7 @@ mockNuxtImport('navigateTo', () => navigateToMock)
 // tables, all of them free.
 const MARQUEES = availabilityItem({}, { taken: 2, free: 1, conflicts: [{ loan: loanBrief(), quantity: 2 }] })
 const TABLES = availabilityItem(
-  { id: 7, name: 'Tables pliantes 180 cm', category: 'furniture', total_quantity: 24, repair_quantity: 0, unit_value: '60.00', repair_note: '' },
+  { id: 7, name: 'Tables pliantes 180 cm', total_quantity: 24, repair_quantity: 0, repair_note: '' },
   { free: 24 },
 )
 
@@ -121,7 +121,6 @@ describe('the page of a new loan', () => {
     expect(row(view, 'Barnums 3 × 3 m').get('output').text()).toBe('1')
     expect(row(view, 'Barnums 3 × 3 m').get('button[aria-label="Ajouter : Barnums 3 × 3 m"]').attributes('disabled')).toBeDefined()
     expect(readable(view.get('aside').text())).toContain('Tout est disponible sur la période.')
-    expect(readable(view.get('aside').text())).toContain('Valeur du matériel 250,00 €')
   })
 
   it('shows a line beyond what is free, blocks the loan, and brings it back', async () => {

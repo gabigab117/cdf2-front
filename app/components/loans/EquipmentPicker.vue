@@ -2,7 +2,6 @@
 import type { components } from '~/types/api'
 
 type EquipmentAvailabilityOut = components['schemas']['EquipmentAvailabilityOut']
-type EquipmentCategory = components['schemas']['EquipmentCategory']
 
 // The equipment of a loan: what each offers over the loan's days, what takes
 // it, and how many pieces the loan takes. A stepper stops at what is free; a
@@ -18,7 +17,7 @@ const { items, errors = {} } = defineProps<{
 const { calendarPeriod } = useDateFormat()
 const now = useNow()
 
-type Filter = 'all' | 'picked' | EquipmentCategory
+type Filter = 'all' | 'picked'
 
 const filter = ref<Filter>('all')
 
@@ -35,17 +34,10 @@ function quantityOf(id: number): number {
 const chips = computed(() => [
   { value: 'all' as const, label: 'Tout', count: items.length },
   { value: 'picked' as const, label: 'Ajoutés', count: items.filter(item => quantityOf(item.equipment.id) > 0).length },
-  ...EQUIPMENT_CATEGORY_VALUES.map(category => ({
-    value: category,
-    label: EQUIPMENT_CATEGORIES[category].label,
-    count: items.filter(item => item.equipment.category === category).length,
-  })),
 ])
 
 function shown(item: EquipmentAvailabilityOut): boolean {
-  if (filter.value === 'all') return true
-  if (filter.value === 'picked') return quantityOf(item.equipment.id) > 0
-  return item.equipment.category === filter.value
+  return filter.value === 'all' || quantityOf(item.equipment.id) > 0
 }
 
 const rows = computed(() =>
@@ -87,7 +79,7 @@ function setQuantity(id: number, quantity: number): void {
   <div class="flex flex-col">
     <div
       role="group"
-      aria-label="Catégories"
+      aria-label="Filtre du matériel"
       class="flex flex-wrap gap-1.5 px-5.5 pb-4"
     >
       <UiFilterChip

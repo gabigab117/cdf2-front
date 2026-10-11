@@ -10,11 +10,8 @@ export function equipmentOut(changes: Partial<EquipmentOut> = {}): EquipmentOut 
   return {
     id: 5,
     name: 'Barnums 3 × 3 m',
-    category: 'marquees',
-    storage_location: 'Garage communal',
     total_quantity: 4,
     repair_quantity: 1,
-    unit_value: '250.00',
     repair_note: 'Toile déchirée sur un côté.',
     ...changes,
   }
@@ -44,9 +41,8 @@ export function loanBrief(changes: Partial<LoanBriefOut> = {}): LoanBriefOut {
   }
 }
 
-/** Today's inventory of some equipment, its figures and counts worked out. */
+/** Today's inventory of some equipment, its figures worked out. */
 export function inventoryOut(items: EquipmentAvailabilityOut[], day = '2026-10-01'): InventoryOut {
-  const count = (category: string) => items.filter(item => item.equipment.category === category).length
   return {
     day,
     items,
@@ -54,14 +50,6 @@ export function inventoryOut(items: EquipmentAvailabilityOut[], day = '2026-10-0
       references: items.length,
       taken_today: items.filter(item => item.taken > 0).length,
       pieces_under_repair: items.reduce((sum, item) => sum + item.equipment.repair_quantity, 0),
-    },
-    counts: {
-      total: items.length,
-      furniture: count('furniture'),
-      marquees: count('marquees'),
-      sound_and_light: count('sound_and_light'),
-      kitchen: count('kitchen'),
-      street_and_games: count('street_and_games'),
     },
   }
 }
@@ -101,7 +89,7 @@ export function loanOut(changes: Partial<LoanOut> = {}): LoanOut {
     deposit_amount: '150.00',
     event: null,
     notes: '',
-    lines: [{ id: 41, equipment: { id: 5, name: 'Barnums 3 × 3 m', unit_value: '250.00' }, quantity: 2, damaged_quantity: 0, missing_quantity: 0 }],
+    lines: [{ id: 41, equipment: { id: 5, name: 'Barnums 3 × 3 m' }, quantity: 2, damaged_quantity: 0, missing_quantity: 0 }],
     created_by: null,
     created_at: '2026-10-01T08:00:00Z',
     returned_at: null,

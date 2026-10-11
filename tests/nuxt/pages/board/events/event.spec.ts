@@ -113,7 +113,7 @@ describe('the board\'s page of an event', () => {
     useNow().value = Date.parse('2026-10-01T10:00:00+02:00')
     const reservation = {
       ...loanBrief({ id: 31, number: null, display_name: 'Halloween des enfants', purpose: '', borrower_type: 'committee', state: 'committee', start_date: '2026-10-30', end_date: '2026-11-01' }),
-      lines: [{ id: 41, equipment: { id: 5, name: 'Barnums 3 × 3 m', unit_value: '250.00' }, quantity: 2, damaged_quantity: 0, missing_quantity: 0 }],
+      lines: [{ id: 41, equipment: { id: 5, name: 'Barnums 3 × 3 m' }, quantity: 2, damaged_quantity: 0, missing_quantity: 0 }],
     }
     mockApi(EVENT, { handler: () => apiResponse(200, boardEvent()) }, { event_id: 12 })
     mockApi('/api/board/events/{event_id}/dashboard', { handler: () => apiResponse(200, { notes_count: 6, tasks_done: 9, tasks_total: 14, next_tasks: [], recently_done_tasks: [], assigned_count: 4, required_count: 7, reserved_seats: 42, capacity: 80, documents_count: 4, documents: [], equipment_count: 1, committee_loan: reservation }) }, { event_id: 12 })

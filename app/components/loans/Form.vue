@@ -89,10 +89,6 @@ const summaryLines = computed(() =>
   })),
 )
 
-const value = computed(() =>
-  amount(picked.value.reduce((sum, { item, quantity }) => sum + quantity * Number(item.equipment.unit_value ?? 0), 0)),
-)
-
 const depositLabel = computed(() => {
   if (committee.value) return 'Aucune, usage interne'
   const typed = amountInput(fields.value.deposit)
@@ -392,7 +388,6 @@ async function submit(): Promise<void> {
         :title
         :subtitle="`${look.label} · ${period}`"
         :lines="summaryLines"
-        :value
         :deposit="depositLabel"
         :conflict
         :available="!conflict && picked.length > 0 && !datesWrong"

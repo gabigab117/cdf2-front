@@ -17,7 +17,6 @@ const rows = computed(() =>
   items.map(({ equipment, taken, free }) => ({
     id: equipment.id,
     name: equipment.name,
-    place: equipment.storage_location,
     total: equipment.total_quantity,
     // A dash, faded, for none: the counts that matter stand out.
     taken: taken || '—',
@@ -63,10 +62,7 @@ const grid = 'grid-cols-equipment-narrow md:grid-cols-equipment'
             class="grid items-center gap-3.5 px-5 py-3"
             :class="grid"
           >
-            <span class="flex min-w-0 flex-col">
-              <span class="truncate text-ui font-semibold text-sable-950">{{ row.name }}</span>
-              <span class="truncate text-caption text-argent-600">{{ row.place }}</span>
-            </span>
+            <span class="min-w-0 truncate text-ui font-semibold text-sable-950">{{ row.name }}</span>
             <span class="text-right font-mono text-sm max-md:hidden">{{ row.total }}</span>
             <span
               class="text-right font-mono text-sm max-md:hidden"

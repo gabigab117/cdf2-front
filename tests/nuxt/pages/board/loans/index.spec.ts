@@ -15,7 +15,7 @@ mockNuxtImport('navigateTo', () => navigateToMock)
 
 const COUNTS = { total: 3, to_prepare: 1, confirmed: 0, out: 1, overdue: 0, committee: 1, returned: 0, cancelled: 0 }
 
-const LINE = { id: 41, equipment: { id: 5, name: 'Barnums 3 × 3 m', unit_value: '250.00' }, quantity: 2, damaged_quantity: 0, missing_quantity: 0 }
+const LINE = { id: 41, equipment: { id: 5, name: 'Barnums 3 × 3 m' }, quantity: 2, damaged_quantity: 0, missing_quantity: 0 }
 
 function item(changes: Partial<LoanItemOut> = {}): LoanItemOut {
   return { ...loanBrief(), lines: [LINE], ...changes }
