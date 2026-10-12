@@ -36,9 +36,9 @@ describe('privacy page', () => {
     expect(page.text()).toContain('La convention de prêt, imprimée depuis l’espace du bureau, reprend ce nom, ce téléphone et cet objet ; les remarques n’y figurent pas.')
     expect(page.text()).toContain('Ces e-mails passent par Mailo, qui en reçoit le texte et l’adresse du membre.')
     expect(page.findAll('tbody tr').map(row => [row.get('th').text(), row.get('td').text()])).toEqual([
-      ['Compte d’un membre du bureau', 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés, ses notes, ses tâches et les documents qu’elle a déposés ou validés. Il est supprimé si elle le demande : ses notes, ses tâches et ses documents restent, sans son nom.'],
+      ['Compte d’un membre du bureau', 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés, ses notes, ses tâches et les documents qu’elle a déposés ou validés. Il est supprimé si elle le demande : ses notes, ses tâches et ses documents restent, sans son nom, sauf dans le texte d’une attestation sur l’honneur qu’elle a faite.'],
       ['Notes et tâches du bureau', 'Supprimées avec leur événement, ou à la main : une note par son auteur'],
-      ['Documents du bureau', 'Gardés pour la gestion de l’association, factures comprises ; un membre du bureau peut en supprimer un'],
+      ['Documents du bureau', 'Gardés pour la gestion de l’association, factures et attestations sur l’honneur comprises ; un membre du bureau peut en supprimer un'],
       ['Noms des bénévoles affectés aux postes', 'Effacés 2 ans après l’événement'],
       ['Noms et remarques des réservations', 'Effacés 3 mois après l’événement, les totaux conservés'],
       ['Téléphone d’un emprunteur', 'Effacé 3 mois après le retour du matériel, ou après la date de retour prévue d’un prêt annulé'],

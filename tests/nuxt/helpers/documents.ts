@@ -46,6 +46,7 @@ export function documentItem(changes: Partial<DocumentItemOut> = {}): DocumentIt
     title: 'Facture — Location sono',
     category: 'invoice',
     status: 'to_review',
+    source: 'upload',
     event: { id: 12, title: 'Halloween des enfants' },
     amount: '380.00',
     date: '2026-09-28',

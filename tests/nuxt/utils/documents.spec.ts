@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { boardDocument, extracted } from '../helpers/documents'
+import { boardDocument, documentItem, extracted } from '../helpers/documents'
 import { julie } from '../helpers/events'
 
 describe('parseDocumentsQuery', () => {
@@ -73,6 +73,43 @@ describe('depositLine', () => {
     expect(depositLine(boardDocument())).toBe('facture-sono.pdf · déposé par Julie R.')
     expect(depositLine(boardDocument({ uploaded_by: null }))).toBe('facture-sono.pdf · déposé par un ancien membre')
     expect(depositLine(boardDocument({ source: 'v1_import', uploaded_by: null }))).toBe('facture-sono.pdf · repris de l’ancien site')
+  })
+
+  it('tells a sworn statement, and who made it', () => {
+    expect(depositLine(boardDocument({ source: 'sworn_statement' }))).toBe('Attestation sur l’honneur · faite par Julie R.')
+  })
+})
+
+describe('documentKind', () => {
+  it('names the category of a row, and tells a sworn statement', () => {
+    expect(documentKind(documentItem())).toBe('Facture')
+    expect(documentKind(documentItem({ source: 'sworn_statement' }))).toBe('Facture · attestation')
+    expect(documentKind(documentItem({ category: 'misc', source: 'v1_import' }))).toBe('Divers')
+  })
+})
+
+describe('statementLocation', () => {
+  it('leads to the statement, for the event the deposit comes from', () => {
+    expect(statementLocation(12)).toEqual({ path: '/bureau/documents/attestation', query: { evenement: '12' } })
+    expect(statementLocation(null)).toEqual({ path: '/bureau/documents/attestation' })
+  })
+})
+
+describe('statementPayload', () => {
+  it('sends the statement, its amount read the French way', () => {
+    const fields = { supplier: 'Carrefour', purchaseDate: '2026-10-12', purchase: 'Boissons', amount: '1 234,50', event: 12 }
+
+    expect(statementPayload(fields)).toEqual({
+      supplier: 'Carrefour', purchase_date: '2026-10-12', purchase: 'Boissons', amount: '1234.50', event: 12,
+    })
+    expect(statementPayload({ ...fields, amount: ' ', event: null })).toMatchObject({ amount: '', event: null })
+  })
+})
+
+describe('statementFieldLabel', () => {
+  it('names a field of a statement', () => {
+    expect(statementFieldLabel('purchase_date')).toBe('Date de l’achat')
+    expect(statementFieldLabel('unknown')).toBe('unknown')
   })
 })
 

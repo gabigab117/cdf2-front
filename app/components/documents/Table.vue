@@ -55,7 +55,7 @@ const columns = computed(() => (eventColumn ? 'grid-cols-documents-narrow md:gri
             <span class="flex min-w-0 flex-col gap-0.5">
               <span class="truncate text-ui font-semibold text-sable-950">{{ document.title }}</span>
               <span class="flex min-w-0 items-center gap-2 text-label text-argent-600">
-                <span>{{ DOCUMENT_CATEGORIES[document.category].label }}</span>
+                <span>{{ documentKind(document) }}</span>
                 <span
                   v-if="document.status === 'to_review'"
                   class="inline-flex items-center gap-1.5 font-medium whitespace-nowrap text-azur-600"

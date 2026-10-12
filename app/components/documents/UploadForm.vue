@@ -37,6 +37,8 @@ const zone = useTemplateRef<{ choose: () => void }>('zone')
 const form = useTemplateRef<HTMLFormElement>('form')
 
 const eventOptions = computed(() => [{ value: null, label: `${NO_EVENT_LABEL} (aucun événement)` }, ...events.value])
+// Without a receipt to deposit, a sworn statement stands in for it (D14), for the same event.
+const statement = computed(() => statementLocation(event))
 
 function fieldErrors(path: string): readonly string[] | undefined {
   return errors.value?.fields[path]
@@ -90,6 +92,14 @@ defineExpose({ choose })
     >
       Glissez un PDF ou une photo de ticket ici, ou
     </UiDropZone>
+    <UiButton
+      v-if="!file"
+      variant="link"
+      class="self-start"
+      :to="statement"
+    >
+      Pas de ticket ? Faire une attestation sur l’honneur
+    </UiButton>
     <UiCard v-if="file">
       <form
         ref="form"

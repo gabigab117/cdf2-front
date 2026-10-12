@@ -4,6 +4,7 @@ import type { Written } from '~/utils/api-errors'
 type DocumentIn = components['schemas']['DocumentIn']
 type DocumentOut = components['schemas']['DocumentOut']
 type DocumentCategory = components['schemas']['DocumentCategory']
+type SwornStatementIn = components['schemas']['SwornStatementIn']
 type UploadBody = paths['/api/board/documents']['post']['requestBody']['content']['multipart/form-data']
 
 /** How the member classifies the file they deposit. */
@@ -35,6 +36,14 @@ export function useDocumentWrites() {
     // openapi-typescript types a file as a string: the form data goes as it
     // is, openapi-fetch leaving its Content-Type, and boundary, to the browser.
     return formWrite(api.POST('/api/board/documents', { body: form as unknown as UploadBody }))
+  }
+
+  /**
+   * Attests a purchase whose receipt was lost, on the member's honour: its PDF
+   * is filed as an invoice, which awaits review.
+   */
+  function attestPurchase(payload: SwornStatementIn): Promise<Written<DocumentOut>> {
+    return formWrite(api.POST('/api/board/documents/statements', { body: payload }))
   }
 
   /** Rewrites a document whole: the « Corriger » form. */
@@ -76,7 +85,7 @@ export function useDocumentWrites() {
     return fileResult(downloadFile(() => fetchFile(document), document.original_name))
   }
 
-  return { uploadDocument, correctDocument, validateDocument, deleteDocument, readDocumentFile, downloadDocument }
+  return { uploadDocument, attestPurchase, correctDocument, validateDocument, deleteDocument, readDocumentFile, downloadDocument }
 }
 
 async function fileResult(request: Promise<{ error?: unknown, response: Response }>): Promise<string | null> {

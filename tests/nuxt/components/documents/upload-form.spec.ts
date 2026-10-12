@@ -137,6 +137,20 @@ describe('the deposit of a document', () => {
     expect(form.emitted('uploaded')).toBeUndefined()
   })
 
+  it('offers a sworn statement for the same event, until a file is chosen', async () => {
+    /**
+     * Given the form of Halloween's page, without a file
+     * Then a link leads to the statement of a purchase whose receipt was lost, for Halloween
+     * And it goes once a file is dropped
+     */
+    const form = await mountForm(12)
+
+    const link = form.get('a[href="/bureau/documents/attestation?evenement=12"]')
+    expect(link.text()).toBe('Pas de ticket ? Faire une attestation sur l’honneur')
+    await drop(form)
+    expect(form.find('a[href^="/bureau/documents/attestation"]').exists()).toBe(false)
+  })
+
   it('forgets the file the member takes back', async () => {
     const form = await mountForm()
     await drop(form)

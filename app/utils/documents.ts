@@ -7,13 +7,18 @@ import type { Option } from '~/utils/event-form'
 type DocumentCategory = components['schemas']['DocumentCategory']
 type DocumentCountsOut = components['schemas']['DocumentCountsOut']
 type DocumentIn = components['schemas']['DocumentIn']
+type DocumentItemOut = components['schemas']['DocumentItemOut']
 type DocumentOut = components['schemas']['DocumentOut']
+type SwornStatementIn = components['schemas']['SwornStatementIn']
 
 /** The Documents page, where the board deposits, reviews and finds its documents. */
 export const DOCUMENTS_PATH = '/bureau/documents'
 
 /** Where a document is deposited from the « Nouveau » menu, or from an event. */
 export const NEW_DOCUMENT_PATH = `${DOCUMENTS_PATH}/nouveau`
+
+/** Where a member attests a purchase whose receipt was lost (D14). */
+export const STATEMENT_PATH = `${DOCUMENTS_PATH}/attestation`
 
 /** How many documents a page of a list holds. */
 export const DOCUMENTS_PAGE_SIZE = 25
@@ -153,11 +158,46 @@ export function validationAction(document: Pick<DocumentOut, 'category' | 'extra
   }
 }
 
-/** « facture-sono.pdf · déposé par Gabriel T. », or the file taken over from the v1. */
+/**
+ * « facture-sono.pdf · déposé par Gabriel T. », « Attestation sur l’honneur ·
+ * faite par Gabriel T. », or the file taken over from the v1.
+ */
 export function depositLine(document: DocumentOut): string {
   if (document.source === 'v1_import') return `${document.original_name} · repris de l’ancien site`
   const who = document.uploaded_by ? memberShortName(document.uploaded_by) : 'un ancien membre'
+  if (document.source === 'sworn_statement') return `Attestation sur l’honneur · faite par ${who}`
   return `${document.original_name} · déposé par ${who}`
+}
+
+/** What a row tells under its title: « Facture », or « Facture · attestation » for a sworn statement. */
+export function documentKind(document: Pick<DocumentItemOut, 'category' | 'source'>): string {
+  const label = DOCUMENT_CATEGORIES[document.category].label
+  return document.source === 'sworn_statement' ? `${label} · attestation` : label
+}
+
+/** The page of a sworn statement, for the event the deposit comes from. */
+export function statementLocation(event: number | null): RouteLocationRaw {
+  return event === null ? { path: STATEMENT_PATH } : { path: STATEMENT_PATH, query: { evenement: String(event) } }
+}
+
+/** What the form of a sworn statement edits: the amount as typed, « 23,40 ». */
+export interface StatementFields {
+  supplier: string
+  purchaseDate: string
+  purchase: string
+  amount: string
+  event: number | null
+}
+
+/** The statement to send. An amount left blank goes empty: the API tells it is missing. */
+export function statementPayload(fields: StatementFields): SwornStatementIn {
+  return {
+    supplier: fields.supplier,
+    purchase_date: fields.purchaseDate,
+    purchase: fields.purchase,
+    amount: amountInput(fields.amount) ?? '',
+    event: fields.event,
+  }
 }
 
 /** A task the minutes list, as their form edits it. */
@@ -264,6 +304,19 @@ const DOCUMENT_FIELD_LABELS: Readonly<Record<string, string>> = {
   'extracted.abstract': 'Résumé',
   'extracted.decisions': 'Décisions',
   'extracted.key_date': 'Date repérée',
+}
+
+const STATEMENT_FIELD_LABELS: Readonly<Record<string, string>> = {
+  supplier: 'Fournisseur',
+  purchase_date: 'Date de l’achat',
+  purchase: 'Ce qui a été acheté',
+  amount: 'Montant TTC',
+  event: 'Événement',
+}
+
+/** The name of a field of a sworn statement, for an error its form cannot show under it. */
+export function statementFieldLabel(path: string): string {
+  return STATEMENT_FIELD_LABELS[path] ?? path
 }
 
 /**

@@ -235,6 +235,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/documents/statements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Attest a purchase whose receipt was lost
+         * @description Attest a purchase on the honour of the member who paid it (D14): its PDF
+         *     is filed as an invoice paid on the day of the purchase, which awaits review.
+         */
+        post: operations["documents_api_make_statement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/documents/{document_id}": {
         parameters: {
             query?: never;
@@ -1476,6 +1497,7 @@ export interface components {
             event: components["schemas"]["DocumentEventOut"] | null;
             /** Id */
             id: number;
+            source: components["schemas"]["DocumentSource"];
             status: components["schemas"]["DocumentStatus"];
             /** Title */
             title: string;
@@ -1545,7 +1567,7 @@ export interface components {
          * DocumentSource
          * @enum {string}
          */
-        DocumentSource: "upload" | "v1_import";
+        DocumentSource: "upload" | "v1_import" | "sworn_statement";
         /**
          * DocumentStatus
          * @enum {string}
@@ -2798,6 +2820,28 @@ export interface components {
             required_count: number;
         };
         /**
+         * SwornStatementIn
+         * @description A purchase paid for the committee whose receipt was lost, as the member
+         *     who paid attests it on their honour (D14): every key required.
+         *
+         *     Its values are checked by the service, with the model's messages.
+         */
+        SwornStatementIn: {
+            /** Amount */
+            amount: number | string;
+            /** Event */
+            event: number | null;
+            /** Purchase */
+            purchase: string;
+            /**
+             * Purchase Date
+             * Format: date
+             */
+            purchase_date: string;
+            /** Supplier */
+            supplier: string;
+        };
+        /**
          * TaskIn
          * @description A task as the board writes it: whole, every key required.
          *
@@ -3534,6 +3578,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DocumentCountsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    documents_api_make_statement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SwornStatementIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
                 };
             };
             /** @description Unauthorized */

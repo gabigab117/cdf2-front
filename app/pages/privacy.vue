@@ -8,10 +8,10 @@ const { contact } = useRuntimeConfig().public
 const RETENTION_PERIODS: ReadonlyArray<{ data: string, period: string }> = [
   {
     data: 'Compte d’un membre du bureau',
-    period: 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés, ses notes, ses tâches et les documents qu’elle a déposés ou validés. Il est supprimé si elle le demande : ses notes, ses tâches et ses documents restent, sans son nom.',
+    period: 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés, ses notes, ses tâches et les documents qu’elle a déposés ou validés. Il est supprimé si elle le demande : ses notes, ses tâches et ses documents restent, sans son nom, sauf dans le texte d’une attestation sur l’honneur qu’elle a faite.',
   },
   { data: 'Notes et tâches du bureau', period: 'Supprimées avec leur événement, ou à la main : une note par son auteur' },
-  { data: 'Documents du bureau', period: 'Gardés pour la gestion de l’association, factures comprises ; un membre du bureau peut en supprimer un' },
+  { data: 'Documents du bureau', period: 'Gardés pour la gestion de l’association, factures et attestations sur l’honneur comprises ; un membre du bureau peut en supprimer un' },
   { data: 'Noms des bénévoles affectés aux postes', period: 'Effacés 2 ans après l’événement' },
   { data: 'Noms et remarques des réservations', period: 'Effacés 3 mois après l’événement, les totaux conservés' },
   { data: 'Téléphone d’un emprunteur', period: 'Effacé 3 mois après le retour du matériel, ou après la date de retour prévue d’un prêt annulé' },
@@ -54,6 +54,7 @@ useSitePage({
     <SiteLegalSection title="Documents du bureau">
       <p>Le bureau dépose les documents du comité : factures, commandes, comptes rendus de réunion, courriers. Ils peuvent porter des noms, comme celui d’un fournisseur, d’un emprunteur ou d’un membre présent à une réunion. Seul le bureau les lit : aucun n’est publié sur le site, et chacun ne s’ouvre qu’à un membre connecté.</p>
       <p>Chaque document porte le nom du membre qui l’a déposé, et de celui qui l’a validé. Une photo déposée perd ses métadonnées, la position où elle a été prise comprise. Les documents sont gardés pour la gestion de l’association ; un membre du bureau peut en supprimer un.</p>
+      <p>Quand le ticket de caisse d’un achat est perdu, le membre qui l’a payé peut en faire une attestation sur l’honneur, rangée parmi les factures. Elle écrit son prénom, son nom et sa fonction au bureau. C’est une pièce comptable : elle est gardée comme une facture, ce nom compris, même si son compte est supprimé.</p>
       <p>Un document déposé est annoncé par e-mail aux membres du bureau que l’administrateur du site a choisis, sauf à celui qui l’a déposé. Le message donne le titre et la catégorie du document, le nom du membre qui l’a déposé et la date du dépôt, avec un lien qui demande de se connecter : il ne contient ni le fichier ni son contenu. Il passe par Mailo, qui en reçoit le texte et l’adresse de chaque destinataire. Le site n’en garde aucune copie.</p>
     </SiteLegalSection>
     <SiteLegalSection title="Bénévoles et réservations">
