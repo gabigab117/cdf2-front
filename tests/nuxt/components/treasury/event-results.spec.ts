@@ -3,7 +3,7 @@ import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, describe, expect, it } from 'vitest'
 import TreasuryEventResults from '~/components/treasury/EventResults.vue'
 import type { LedgerFilter } from '~/utils/treasury'
-import { fiscalYearResults } from '../../helpers/treasury'
+import { fiscalYearResults, NO_TOTALS } from '../../helpers/treasury'
 
 function location(filter: LedgerFilter) {
   return { query: treasuryQuery({ year: 2026, filter, page: 1 }) }
@@ -49,7 +49,7 @@ describe('the result of each event', () => {
     const coins = fiscalYearResults({
       totals: { income: '0.00', expense: '0.50', result: '-0.50', count: 1 },
       events: [{ event: { id: 3, title: 'Brocante', starts_at: '2026-09-13T05:00:00Z' }, income: '0.00', expense: '0.50', result: '-0.50', count: 1 }],
-      general: { income: '0.00', expense: '0.00', result: '0.00', count: 0 },
+      general: NO_TOTALS,
     })
 
     const results = await mountSuspended(TreasuryEventResults, { props: { results: coins, filter: null, location } })
@@ -60,7 +60,7 @@ describe('the result of each event', () => {
   })
 
   it('says when the fiscal year has no line', async () => {
-    const empty = fiscalYearResults({ totals: { income: '0.00', expense: '0.00', result: '0.00', count: 0 }, events: [] })
+    const empty = fiscalYearResults({ totals: NO_TOTALS, events: [] })
 
     const results = await mountSuspended(TreasuryEventResults, { props: { results: empty, filter: null, location } })
 

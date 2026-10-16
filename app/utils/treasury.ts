@@ -59,13 +59,6 @@ export const CATEGORY_LABELS: Readonly<Record<LedgerCategory, string>> = {
   misc: 'Divers',
 }
 
-/** How the committee pays an advance back, in the order of the form. */
-export const REIMBURSEMENT_METHOD_OPTIONS: ReadonlyArray<Option<ReimbursementMethod>> = [
-  { value: 'cash', label: 'Espèces' },
-  { value: 'cheque', label: 'Chèque' },
-  { value: 'transfer', label: 'Virement' },
-]
-
 /** « par virement »: how an advance was paid back, within a sentence. */
 export const REIMBURSED_BY: Readonly<Record<ReimbursementMethod, string>> = {
   cash: 'en espèces',
@@ -87,6 +80,10 @@ export const PAYMENT_METHOD_LABELS: Readonly<Record<LedgerPaymentMethod, string>
   direct_debit: 'Prélèvement',
   advance: 'Avancé par un membre',
 }
+
+/** How the committee pays an advance back, in the order of the form. */
+export const REIMBURSEMENT_METHOD_OPTIONS: ReadonlyArray<Option<ReimbursementMethod>> = (['cash', 'cheque', 'transfer'] as const)
+  .map(method => ({ value: method, label: PAYMENT_METHOD_LABELS[method] }))
 
 // An income is never advanced by a member: the API refuses it.
 const KIND_PAYMENT_METHODS: Readonly<Record<LedgerEntryKind, readonly LedgerPaymentMethod[]>> = {
@@ -196,6 +193,7 @@ const ENTRY_FIELD_LABELS: Readonly<Record<string, string>> = {
   category: 'Catégorie',
   payment_method: 'Moyen de paiement',
   advanced_by: 'Avancé par',
+  reimbursement_method: 'Moyen de remboursement',
   event: 'Événement',
   supplier: 'Fournisseur',
   note: 'Note',
@@ -244,7 +242,7 @@ export type LedgerFilter = number | 'general' | null
  */
 export type PendingLines = 'receipts' | 'advances'
 
-/** What the journal of pending lines is called, and what it says when it has none. */
+/** What a list of pending lines is called, and what it says when it has none: the journal's, the report's. */
 export const PENDING_LINES_TEXTS: Readonly<Record<PendingLines, { title: string, empty: string }>> = {
   receipts: { title: 'Justificatifs manquants', empty: 'Tous les justificatifs sont joints.' },
   advances: { title: 'Avances à rembourser', empty: 'Aucune avance à rembourser.' },
@@ -256,6 +254,7 @@ export interface TreasuryQuery {
   year: number | null
   filter: LedgerFilter
   page: number
+  /** Every year's pending lines, in place of a fiscal year's. */
   pending?: PendingLines | null
 }
 
@@ -286,9 +285,12 @@ export function shownYear(query: TreasuryQuery, now: number): number {
   return query.year ?? parisCalendar(now).year
 }
 
-/** The span of a fiscal year's figures: the current one runs until today. */
-export function yearSpan(year: number, now: number): string {
-  return year === parisCalendar(now).year ? 'Depuis le 1er janvier' : `Du 1er janvier au 31 décembre ${year}`
+/**
+ * The span of a fiscal year's figures: a past one runs to its end, the current
+ * one until today, as `current` tells it (« Arrêté au 16/10/2026 » on the report).
+ */
+export function yearSpan(year: number, now: number, current = 'Depuis le 1er janvier'): string {
+  return year === parisCalendar(now).year ? current : `Du 1er janvier au 31 décembre ${year}`
 }
 
 /** The address of a fiscal year, filter and page: the defaults are left out. */
@@ -302,7 +304,7 @@ export function treasuryQuery({ year, filter, page, pending = null }: TreasuryQu
   }
 }
 
-/** The journal of a fiscal year, with a filter, on the Trésorerie page or its own. */
+/** A page of the treasury for a fiscal year, a filter and a page, the defaults left out. */
 export function ledgerLocation(path: string, query: TreasuryQuery): RouteLocationRaw {
   return { path, query: treasuryQuery(query) }
 }

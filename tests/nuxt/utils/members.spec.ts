@@ -20,6 +20,11 @@ describe('the names of the board members', () => {
     expect(memberShortName(named)).toBe(name)
   })
 
+  it('signs with a member in passing, or a former member once the account is gone', () => {
+    expect(memberSignature(member)).toBe('Julie R.')
+    expect(memberSignature(null)).toBe('Ancien membre')
+  })
+
   it.each([
     ['by their first name', member, 'Bonjour Julie'],
     ['alone, without a first name', { ...member, first_name: '' }, 'Bonjour'],

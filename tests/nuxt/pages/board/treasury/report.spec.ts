@@ -4,7 +4,7 @@ import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ReportPage from '~/pages/board/treasury/report.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
-import { generalMeetingReport } from '../../../helpers/treasury'
+import { generalMeetingReport, NO_TOTALS } from '../../../helpers/treasury'
 
 function readable(text: string): string {
   return text.replace(/[\u202F\u00A0]/g, ' ')
@@ -79,12 +79,11 @@ describe('the report for the general meeting', () => {
   })
 
   it('tells a past fiscal year whole, and what it does not have', async () => {
-    const empty = { income: '0.00', expense: '0.00', result: '0.00', count: 0 }
     mockApi('/api/board/treasury/report', { handler: () => apiResponse(200, generalMeetingReport({
       year: 2025,
-      totals: empty,
+      totals: NO_TOTALS,
       events: [],
-      general: empty,
+      general: NO_TOTALS,
       income_categories: [],
       expense_categories: [],
       missing_receipts: [],

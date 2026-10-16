@@ -17,7 +17,7 @@ const rows = computed(() => [
   { label: 'Fournisseur', value: entry.supplier || '—' },
   {
     label: 'Saisie',
-    value: `${entry.created_by ? memberShortName(entry.created_by) : 'Ancien membre'}, le ${recordedAt(entry.created_at)}`,
+    value: `${memberSignature(entry.created_by)}, le ${recordedAt(entry.created_at)}`,
   },
 ])
 </script>

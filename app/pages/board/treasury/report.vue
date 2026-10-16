@@ -33,38 +33,41 @@ const breadcrumb = computed(() => [
   { label: 'Trésorerie', to: ledgerLocation(TREASURY_PATH, { year: query.value.year, filter: null, page: 1 }) },
   { label: 'Bilan pour l’AG' },
 ])
-// The current fiscal year is stopped at today; a past one runs to its end.
-const span = computed(() => (year.value === parisCalendar(now.value).year
-  ? `Arrêté au ${today.value}`
-  : `Du 1er janvier au 31 décembre ${year.value}`))
 
-const totals = computed(() => (report.value ? [{ key: 'totals', cells: results(report.value.totals) }] : []))
-const events = computed(() => {
+// The sheet, once the report comes: each table's rows, then its total.
+const sheet = computed(() => {
   const shown = report.value
-  if (!shown) return []
-  return [
-    ...shown.events.map(result => ({ key: result.event.id, cells: [result.event.title, ...results(result)] })),
-    ...(shown.general.count > 0 ? [{ key: 'general', cells: [GENERAL_LABEL, ...results(shown.general)] }] : []),
-  ]
+  if (!shown) return null
+  const totals = results(shown.totals)
+  return {
+    year: shown.year,
+    span: yearSpan(shown.year, now.value, `Arrêté au ${today.value}`),
+    totals: [{ key: 'totals', cells: totals }],
+    events: {
+      rows: [
+        ...shown.events.map(result => ({ key: result.event.id, cells: [result.event.title, ...results(result)] })),
+        ...(shown.general.count > 0 ? [{ key: 'general', cells: [GENERAL_LABEL, ...results(shown.general)] }] : []),
+      ],
+      total: ['Total', ...totals],
+    },
+    incomes: categories(shown.income_categories, shown.totals.income),
+    expenses: categories(shown.expense_categories, shown.totals.expense),
+    missing: shown.missing_receipts.map(entry => ({
+      key: entry.id,
+      cells: [calendarNumeric(entry.date), entry.label, entry.event?.title ?? GENERAL_LABEL, amount(entry.amount)],
+    })),
+  }
 })
-const eventsTotal = computed(() => (report.value ? ['Total', ...results(report.value.totals)] : null))
-const incomes = computed(() => categories(report.value?.income_categories ?? []))
-const expenses = computed(() => categories(report.value?.expense_categories ?? []))
-const incomesTotal = computed(() => (report.value ? ['Total', '', amount(report.value.totals.income)] : null))
-const expensesTotal = computed(() => (report.value ? ['Total', '', amount(report.value.totals.expense)] : null))
-const missing = computed(() =>
-  (report.value?.missing_receipts ?? []).map(entry => ({
-    key: entry.id,
-    cells: [calendarNumeric(entry.date), entry.label, entry.event?.title ?? GENERAL_LABEL, amount(entry.amount)],
-  })),
-)
 
-function results({ income, expense, result }: Pick<LedgerTotalsOut, 'income' | 'expense' | 'result'>): string[] {
+function results({ income, expense, result }: LedgerTotalsOut): string[] {
   return [amount(income), amount(expense), signed(result)]
 }
 
-function categories(totals: readonly LedgerCategoryTotalOut[]) {
-  return totals.map(total => ({ key: total.category, cells: [CATEGORY_LABELS[total.category], String(total.count), amount(total.total)] }))
+function categories(totals: readonly LedgerCategoryTotalOut[], sum: string) {
+  return {
+    rows: totals.map(total => ({ key: total.category, cells: [CATEGORY_LABELS[total.category], String(total.count), amount(total.total)] })),
+    total: ['Total', '', amount(sum)],
+  }
 }
 
 function print(): void {
@@ -79,7 +82,7 @@ function print(): void {
       to="#board-top-bar-action"
     >
       <BoardTopBarButton
-        v-if="report"
+        v-if="sheet"
         :icon="Printer"
         label="Imprimer / Enregistrer en PDF"
         @click="print"
@@ -91,7 +94,7 @@ function print(): void {
       back
     />
     <div
-      v-if="report"
+      v-if="sheet"
       class="overflow-x-auto print:overflow-visible"
     >
       <article
@@ -103,72 +106,48 @@ function print(): void {
             {{ SITE_NAME }}
           </p>
           <h1 class="text-lg font-bold uppercase">
-            Bilan financier de l’exercice {{ report.year }}
+            Bilan financier de l’exercice {{ sheet.year }}
           </h1>
           <p class="text-xs">
-            {{ span }}
+            {{ sheet.span }}
           </p>
         </header>
         <TreasuryReportSection title="Résultat de l’exercice">
           <TreasuryReportTable
             :columns="RESULT_COLUMNS"
-            :rows="totals"
+            :rows="sheet.totals"
           />
         </TreasuryReportSection>
         <TreasuryReportSection title="Résultat par événement">
           <TreasuryReportTable
-            v-if="events.length > 0"
             :columns="EVENT_COLUMNS"
-            :rows="events"
-            :total="eventsTotal"
+            :rows="sheet.events.rows"
+            :total="sheet.events.total"
+            empty="Aucune ligne pour cet exercice."
           />
-          <p
-            v-else
-            class="text-caption"
-          >
-            Aucune ligne pour cet exercice.
-          </p>
         </TreasuryReportSection>
         <TreasuryReportSection title="Recettes par catégorie">
           <TreasuryReportTable
-            v-if="incomes.length > 0"
             :columns="CATEGORY_COLUMNS"
-            :rows="incomes"
-            :total="incomesTotal"
+            :rows="sheet.incomes.rows"
+            :total="sheet.incomes.total"
+            empty="Aucune recette pour cet exercice."
           />
-          <p
-            v-else
-            class="text-caption"
-          >
-            Aucune recette pour cet exercice.
-          </p>
         </TreasuryReportSection>
         <TreasuryReportSection title="Dépenses par catégorie">
           <TreasuryReportTable
-            v-if="expenses.length > 0"
             :columns="CATEGORY_COLUMNS"
-            :rows="expenses"
-            :total="expensesTotal"
+            :rows="sheet.expenses.rows"
+            :total="sheet.expenses.total"
+            empty="Aucune dépense pour cet exercice."
           />
-          <p
-            v-else
-            class="text-caption"
-          >
-            Aucune dépense pour cet exercice.
-          </p>
         </TreasuryReportSection>
-        <TreasuryReportSection title="Justificatifs manquants">
+        <TreasuryReportSection :title="PENDING_LINES_TEXTS.receipts.title">
           <TreasuryReportTable
-            v-if="missing.length > 0"
             :columns="MISSING_COLUMNS"
-            :rows="missing"
+            :rows="sheet.missing"
+            :empty="PENDING_LINES_TEXTS.receipts.empty"
           />
-          <p
-            v-else
-            class="text-caption"
-          >
-            Tous les justificatifs sont joints.
-          </p>
         </TreasuryReportSection>
         <p class="mt-3 text-right text-xs text-sable-600">
           Édité le {{ today }} depuis l’espace du bureau.

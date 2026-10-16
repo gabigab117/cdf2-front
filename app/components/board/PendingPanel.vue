@@ -72,7 +72,7 @@ const advances = computed(() =>
     key: entry.id,
     to: entryPath(entry.id),
     title: entry.label,
-    line: [calendarDay(entry.date, now.value), amount(entry.amount), entry.advanced_by ? memberShortName(entry.advanced_by) : 'Ancien membre'].join(' · '),
+    line: [calendarDay(entry.date, now.value), amount(entry.amount), memberSignature(entry.advanced_by)].join(' · '),
   })),
 )
 const allAdvances = computed(() => {

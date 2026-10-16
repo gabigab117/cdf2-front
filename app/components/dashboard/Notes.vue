@@ -19,7 +19,7 @@ const now = useNow()
 const items = computed(() =>
   notes.map(note => ({
     id: note.id,
-    author: authorName(note.author),
+    author: memberSignature(note.author),
     // « Halloween des enfants · il y a 2 h », or the time alone for a general note.
     meta: [note.event?.title, ago(note.created_at, now.value)].filter(Boolean).join(' · '),
     text: note.text,

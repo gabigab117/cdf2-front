@@ -34,7 +34,7 @@ function location(filter: LedgerFilter) {
 }
 
 const ledgerLink = computed(() => ledgerLocation(LEDGER_PATH, { ...query.value, page: 1 }))
-// The report of the fiscal year shown.
+// The report tells the whole fiscal year shown: the journal's filter is left out.
 const reportLink = computed(() => ledgerLocation(REPORT_PATH, { year: query.value.year, filter: null, page: 1 }))
 
 // A line recorded shows first in the journal of its year, the filter left out.

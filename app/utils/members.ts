@@ -16,6 +16,14 @@ export function memberShortName(member: Named): string {
 }
 
 /**
+ * How a note, a line or an advance names its member: « Julie R. », or « Ancien
+ * membre » once the account is deleted.
+ */
+export function memberSignature(member: Named | null): string {
+  return member ? memberShortName(member) : 'Ancien membre'
+}
+
+/**
  * « Bonjour Julie », or « Bonjour » alone for a member without a first name,
  * or while the member is not known yet.
  */

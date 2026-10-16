@@ -16,7 +16,7 @@ const { author, writtenAt, lead = false, size = 'md' } = defineProps<{
 const { writtenDay } = useDateFormat()
 const now = useNow()
 
-const name = computed(() => authorName(author))
+const name = computed(() => memberSignature(author))
 const day = computed(() => writtenDay(writtenAt, now.value))
 </script>
 

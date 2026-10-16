@@ -5,6 +5,7 @@ type FiscalYearResultsOut = components['schemas']['FiscalYearResultsOut']
 type GeneralMeetingReportOut = components['schemas']['GeneralMeetingReportOut']
 type LedgerEntryOut = components['schemas']['LedgerEntryOut']
 type LedgerTotalsOut = components['schemas']['LedgerTotalsOut']
+type PendingOut = components['schemas']['PendingOut']
 type UnpaidInvoiceOut = components['schemas']['UnpaidInvoiceOut']
 
 /** The drinks of the brocante's bar, advanced by Julie, as the API gives a line. */
@@ -44,9 +45,20 @@ export const NOTHING_TO_PAY = {
   advances: { count: 0, total: '0.00', items: [] },
 }
 
+/** Nothing awaits the board: no document to review, no loan late or to prepare, nothing in the treasury. */
+export const NOTHING_PENDING: PendingOut = {
+  total: 0,
+  documents: { counts: { total: 0, invoice: 0, order: 0, minutes: 0, misc: 0 }, items: [] },
+  loans: { overdue: 0, to_prepare: 0, items: [] },
+  ...NOTHING_TO_PAY,
+}
+
 function totals(income: string, expense: string, result: string, count: number): LedgerTotalsOut {
   return { income, expense, result, count }
 }
+
+/** A fiscal year without any line. */
+export const NO_TOTALS = totals('0.00', '0.00', '0.00', 0)
 
 /** The results of the mockup's fiscal year, 2026, two of its events kept. */
 export function fiscalYearResults(changes: Partial<FiscalYearResultsOut> = {}): FiscalYearResultsOut {

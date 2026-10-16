@@ -1,7 +1,6 @@
 import type { components } from '~/types/api'
 
 type NoteTag = components['schemas']['NoteTag']
-type BoardMemberOut = components['schemas']['BoardMemberOut']
 
 /** What a member writes: a text, and a tag and a file to join for a note. */
 export interface NoteDraft {
@@ -23,11 +22,6 @@ export const NOTE_TAG_OPTIONS: ReadonlyArray<{ value: NoteTag | null, label: str
   { value: null, label: 'Sans étiquette' },
   ...Object.entries(NOTE_TAGS).map(([value, { label }]) => ({ value: value as NoteTag, label })),
 ]
-
-/** How a note names its author: « Julie R. », or « Ancien membre » once the account is deleted. */
-export function authorName(author: BoardMemberOut | null): string {
-  return author ? memberShortName(author) : 'Ancien membre'
-}
 
 const NOTE_FIELD_LABELS: Readonly<Record<string, string>> = {
   file: 'Pièce jointe',

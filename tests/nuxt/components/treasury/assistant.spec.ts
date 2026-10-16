@@ -5,7 +5,7 @@ import TreasuryAssistant from '~/components/treasury/Assistant.vue'
 import type { components } from '~/types/api'
 import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
 import { julie } from '../../helpers/events'
-import { ledgerEntry, unpaidInvoice } from '../../helpers/treasury'
+import { ledgerEntry, NOTHING_PENDING, unpaidInvoice } from '../../helpers/treasury'
 
 type LedgerEntryOut = components['schemas']['LedgerEntryOut']
 type UnpaidInvoiceOut = components['schemas']['UnpaidInvoiceOut']
@@ -13,12 +13,10 @@ type UnpaidInvoiceOut = components['schemas']['UnpaidInvoiceOut']
 function mockPending(receipts: LedgerEntryOut[], receiptsCount: number, invoices: UnpaidInvoiceOut[], invoicesCount = invoices.length) {
   mockApi('/api/board/overview', { handler: () => apiResponse(200, {
     pending: {
+      ...NOTHING_PENDING,
       total: receiptsCount + invoicesCount,
-      documents: { counts: { total: 0, invoice: 0, order: 0, minutes: 0, misc: 0 }, items: [] },
-      loans: { overdue: 0, to_prepare: 0, items: [] },
       receipts: { count: receiptsCount, items: receipts },
       invoices: { count: invoicesCount, items: invoices },
-      advances: { count: 0, total: '0.00', items: [] },
     },
   }) })
 }

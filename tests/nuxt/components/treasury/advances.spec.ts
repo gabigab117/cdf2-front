@@ -4,19 +4,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import TreasuryAdvances from '~/components/treasury/Advances.vue'
 import type { components } from '~/types/api'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
-import { ledgerEntry, NOTHING_TO_PAY } from '../../helpers/treasury'
+import { ledgerEntry, NOTHING_PENDING } from '../../helpers/treasury'
 
 type LedgerEntryOut = components['schemas']['LedgerEntryOut']
 
 function mockAdvances(items: LedgerEntryOut[], count = items.length, total = '286.30') {
   mockApi('/api/board/overview', { handler: () => apiResponse(200, {
-    pending: {
-      total: count,
-      documents: { counts: { total: 0, invoice: 0, order: 0, minutes: 0, misc: 0 }, items: [] },
-      loans: { overdue: 0, to_prepare: 0, items: [] },
-      ...NOTHING_TO_PAY,
-      advances: { count, total, items },
-    },
+    pending: { ...NOTHING_PENDING, total: count, advances: { count, total, items } },
   }) })
 }
 

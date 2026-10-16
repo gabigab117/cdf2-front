@@ -12,7 +12,6 @@ const { entry } = defineProps<{ entry: LedgerEntryOut }>()
 const emit = defineEmits<{ saved: [entry: LedgerEntryOut], cancel: [] }>()
 
 const SHOWN: ReadonlySet<string> = new Set(['reimbursed_on'])
-const FIELD_LABELS: Readonly<Record<string, string>> = { reimbursed_on: 'Remboursée le', reimbursement_method: 'Moyen de remboursement' }
 
 const now = useNow()
 const { markReimbursed } = useTreasuryWrites()
@@ -28,7 +27,7 @@ async function submit(): Promise<void> {
   pending.value = true
   const result = await markReimbursed(entry.id, { reimbursed_on: reimbursedOn.value, reimbursement_method: method.value })
   pending.value = false
-  if (result.errors) return refuse(placeErrors(result.errors, SHOWN, path => FIELD_LABELS[path] ?? path))
+  if (result.errors) return refuse(placeErrors(result.errors, SHOWN, entryFieldLabel))
   emit('saved', result.data)
 }
 

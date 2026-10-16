@@ -21,7 +21,7 @@ const items = computed(() =>
   (advances.value?.items ?? []).map(entry => ({
     entry,
     to: entryPath(entry.id),
-    line: `${entry.advanced_by ? memberShortName(entry.advanced_by) : 'Ancien membre'} · ${calendarDay(entry.date, now.value)}`,
+    line: `${memberSignature(entry.advanced_by)} · ${calendarDay(entry.date, now.value)}`,
     amount: amount(entry.amount),
   })),
 )

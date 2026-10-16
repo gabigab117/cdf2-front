@@ -3,21 +3,12 @@ import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import BoardPendingPanel from '~/components/board/PendingPanel.vue'
 import type { components } from '~/types/api'
-import { ledgerEntry, unpaidInvoice } from '../../helpers/treasury'
+import { ledgerEntry, NOTHING_PENDING, NOTHING_TO_PAY, unpaidInvoice } from '../../helpers/treasury'
 
 type PendingOut = components['schemas']['PendingOut']
 
-const NO_ADVANCE: PendingOut['advances'] = { count: 0, total: '0.00', items: [] }
-
-function pending(receipts: PendingOut['receipts'], invoices: PendingOut['invoices'], advances = NO_ADVANCE): PendingOut {
-  return {
-    total: receipts.count + invoices.count + advances.count,
-    documents: { counts: { total: 0, invoice: 0, order: 0, minutes: 0, misc: 0 }, items: [] },
-    loans: { overdue: 0, to_prepare: 0, items: [] },
-    receipts,
-    invoices,
-    advances,
-  }
+function pending(receipts: PendingOut['receipts'], invoices: PendingOut['invoices'], advances: PendingOut['advances'] = NOTHING_TO_PAY.advances): PendingOut {
+  return { ...NOTHING_PENDING, total: receipts.count + invoices.count + advances.count, receipts, invoices, advances }
 }
 
 function readable(text: string): string {
