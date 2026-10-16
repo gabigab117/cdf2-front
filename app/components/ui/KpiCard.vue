@@ -3,11 +3,15 @@ import type { Component } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 import { NuxtLink } from '#components'
 
-const { label, value, tone = 'light', icon, to } = defineProps<{
+const { label, value, tone = 'light', figure = 'count', accent = false, icon, to } = defineProps<{
   label: string
   value: string
   /** White, azur for what awaits an action, black for the next event. */
   tone?: 'light' | 'azur' | 'dark'
+  /** A count in the display font, or an amount in the mono font, as the treasury writes it. */
+  figure?: 'count' | 'amount'
+  /** The value in azur, as the treasury's income. */
+  accent?: boolean
   /** Shown in a box across from the label. */
   icon?: Component
   /** The page the figure sums up: the whole card links to it. */
@@ -30,6 +34,11 @@ const classes = {
     azur: 'bg-white/14',
     dark: 'bg-sable-700',
   },
+  figure: {
+    count: 'font-display text-kpi font-bold',
+    amount: 'font-mono text-headline font-semibold',
+  },
+  accent: 'text-azur-700',
 }
 
 const root = computed(() => (to ? NuxtLink : 'div'))
@@ -59,7 +68,7 @@ const root = computed(() => (to ? NuxtLink : 'div'))
       </span>
       <slot name="aside" />
     </span>
-    <span class="font-display text-kpi font-bold">{{ value }}</span>
+    <span :class="[classes.figure[figure], { [classes.accent]: accent }]">{{ value }}</span>
     <!-- A block: a progress bar may stand in it. -->
     <div
       v-if="$slots.default"

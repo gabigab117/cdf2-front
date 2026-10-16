@@ -252,16 +252,6 @@ export function documentFields(document: DocumentOut): DocumentFields {
   }
 }
 
-/**
- * The amount as the API reads it: « 1 234,50 » becomes "1234.50" (a space of
- * any kind, the non-breaking ones included, is a `\s`). A text that is not a
- * number goes as it is: the API tells what is wrong with it.
- */
-export function amountInput(text: string): string | null {
-  const amount = text.replace(/[\s€]/g, '').replace(',', '.')
-  return amount === '' ? null : amount
-}
-
 /** The document to send, whole: empty texts are no date, no amount. */
 export function documentPayload(fields: DocumentFields): DocumentIn {
   return {

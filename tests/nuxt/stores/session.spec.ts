@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiResponse, clearApiMocks, mockApi } from '../helpers/api'
 
 const member = {
+  id: 1,
   email: 'camille.martin@example.test',
   first_name: 'Camille',
   last_name: 'Martin',

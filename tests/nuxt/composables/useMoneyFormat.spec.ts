@@ -19,4 +19,17 @@ describe('useMoneyFormat', () => {
   it('writes a dash for no amount', () => {
     expect(amount(null)).toBe('—')
   })
+
+  it('writes an amount with its sign, as the treasury does', () => {
+    /**
+     * Given what comes in, what goes out, and nothing
+     * Then each reads with its sign, a minus sign rather than a hyphen
+     */
+    const { signed } = useMoneyFormat()
+
+    expect(signed('1862.50')).toBe('+1\u202F862,50\u00A0€')
+    expect(signed(-47.85)).toBe('−47,85\u00A0€')
+    expect(signed('0.00')).toBe('+0,00\u00A0€')
+    expect(signed(null)).toBe('—')
+  })
 })

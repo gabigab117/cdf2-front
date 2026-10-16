@@ -271,11 +271,16 @@ export function memberOptions(
   current: BoardMemberOut | null,
   nobody: string,
 ): Option<number | null>[] {
+  return [{ value: null, label: nobody }, ...boardMemberOptions(members, current)]
+}
+
+/**
+ * The board members to choose from, by name, the member chosen so far kept
+ * among them even after leaving the board: who advanced an expense.
+ */
+export function boardMemberOptions(members: readonly BoardMemberOut[], current: BoardMemberOut | null): Option<number>[] {
   const chosen = current && !members.some(member => member.id === current.id) ? [...members, current] : members
-  return [
-    { value: null, label: nobody },
-    ...chosen.map(member => ({ value: member.id, label: memberName(member) })),
-  ]
+  return chosen.map(member => ({ value: member.id, label: memberName(member) }))
 }
 
 /**

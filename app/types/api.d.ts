@@ -1094,6 +1094,76 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/treasury/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the ledger entries
+         * @description The journal, by page, the latest entry first.
+         */
+        get: operations["treasury_api_list_entries"];
+        put?: never;
+        /**
+         * Record a ledger entry
+         * @description Record an entry, from the form of the journal: a field left empty is not sent.
+         */
+        post: operations["treasury_api_record"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/treasury/entries/{entry_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a ledger entry */
+        get: operations["treasury_api_read_entry"];
+        /**
+         * Correct a ledger entry
+         * @description Rewrite an entry whole: its receipt and its reimbursement stay as they are.
+         */
+        put: operations["treasury_api_correct"];
+        post?: never;
+        /**
+         * Delete a ledger entry
+         * @description Delete an entry: its receipt stays among the documents.
+         */
+        delete: operations["treasury_api_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/treasury/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the results of a fiscal year
+         * @description What a fiscal year brought in and cost: in all, for each event that has
+         *     entries in it, the first to start first, then for the general running.
+         */
+        get: operations["treasury_api_read_results"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -1817,6 +1887,25 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** FiscalYearQuery */
+        FiscalYearQuery: {
+            /** Year */
+            year: number;
+        };
+        /**
+         * FiscalYearResultsOut
+         * @description A fiscal year's totals, by event then without one: a bounded aggregate (A7).
+         */
+        FiscalYearResultsOut: {
+            /** Events */
+            events: components["schemas"]["LedgerEventResultOut"][];
+            general: components["schemas"]["LedgerTotalsOut"];
+            totals: components["schemas"]["LedgerTotalsOut"];
+            /** Year */
+            year: number;
+            /** Years */
+            years: number[];
+        };
         /**
          * GeneralTasksOut
          * @description The tasks without an event (D10), as the dashboard's block shows them.
@@ -1899,6 +1988,145 @@ export interface components {
             id: number;
             /** Text */
             text: string;
+        };
+        /**
+         * LedgerCategory
+         * @description What an entry is for: each kind has its own categories, « Divers » both.
+         * @enum {string}
+         */
+        LedgerCategory: "food" | "drinks" | "equipment_rental" | "decoration" | "prizes" | "insurance" | "bank_fees" | "bar" | "pitches" | "tickets" | "grant" | "membership_fees" | "donations" | "misc";
+        /**
+         * LedgerEntryFilters
+         * @description The entries the journal keeps: every filter given applies.
+         */
+        LedgerEntryFilters: {
+            /** Event */
+            event?: number | null;
+            /**
+             * General
+             * @default false
+             */
+            general: boolean;
+            /** Year */
+            year?: number | null;
+        };
+        /**
+         * LedgerEntryIn
+         * @description A ledger entry as the board corrects it: whole, every key required.
+         *
+         *     Its values are checked by the model and the service, whose messages are in
+         *     French. Its amount is positive: its kind tells income from expense.
+         */
+        LedgerEntryIn: {
+            /** Advanced By */
+            advanced_by: number | null;
+            /** Amount */
+            amount: number | string;
+            category: components["schemas"]["LedgerCategory"];
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Event */
+            event: number | null;
+            kind: components["schemas"]["LedgerEntryKind"];
+            /** Label */
+            label: string;
+            /** Note */
+            note: string;
+            payment_method: components["schemas"]["LedgerPaymentMethod"];
+            /** Supplier */
+            supplier: string;
+        };
+        /**
+         * LedgerEntryKind
+         * @enum {string}
+         */
+        LedgerEntryKind: "income" | "expense";
+        /**
+         * LedgerEntryOut
+         * @description An entry of the journal, as its line and its page show it.
+         */
+        LedgerEntryOut: {
+            advanced_by: components["schemas"]["BoardMemberOut"] | null;
+            /** Amount */
+            amount: string;
+            category: components["schemas"]["LedgerCategory"];
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            created_by: components["schemas"]["BoardMemberOut"] | null;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            event: components["schemas"]["LedgerEventOut"] | null;
+            /** Id */
+            id: number;
+            kind: components["schemas"]["LedgerEntryKind"];
+            /** Label */
+            label: string;
+            /** Note */
+            note: string;
+            payment_method: components["schemas"]["LedgerPaymentMethod"];
+            /** Reimbursed On */
+            reimbursed_on: string | null;
+            reimbursement_method: components["schemas"]["ReimbursementMethod"] | null;
+            /** Supplier */
+            supplier: string;
+        };
+        /**
+         * LedgerEventOut
+         * @description The event of an entry, or of a result.
+         */
+        LedgerEventOut: {
+            /** Id */
+            id: number;
+            /**
+             * Starts At
+             * Format: date-time
+             */
+            starts_at: string;
+            /** Title */
+            title: string;
+        };
+        /**
+         * LedgerEventResultOut
+         * @description The totals of an event that has entries in the fiscal year.
+         */
+        LedgerEventResultOut: {
+            /** Count */
+            count: number;
+            event: components["schemas"]["LedgerEventOut"];
+            /** Expense */
+            expense: string;
+            /** Income */
+            income: string;
+            /** Result */
+            result: string;
+        };
+        /**
+         * LedgerPaymentMethod
+         * @enum {string}
+         */
+        LedgerPaymentMethod: "association_card" | "cash" | "cheque" | "transfer" | "direct_debit" | "advance";
+        /**
+         * LedgerTotalsOut
+         * @description What came in and went out, the result, and over how many entries.
+         */
+        LedgerTotalsOut: {
+            /** Count */
+            count: number;
+            /** Expense */
+            expense: string;
+            /** Income */
+            income: string;
+            /** Result */
+            result: string;
         };
         /**
          * LoanAgreementOut
@@ -2245,12 +2473,47 @@ export interface components {
             email: string;
             /** First Name */
             first_name: string;
+            /** Id */
+            id: number;
             /** Is Superuser */
             is_superuser: boolean;
             /** Last Name */
             last_name: string;
             /** Position */
             position: string;
+        };
+        /**
+         * NewLedgerEntryIn
+         * @description A ledger entry as the board records it, from a form: a field left empty
+         *     is not sent, and takes its default.
+         */
+        NewLedgerEntryIn: {
+            /** Advanced By */
+            advanced_by?: number | null;
+            /** Amount */
+            amount: number | string;
+            category: components["schemas"]["LedgerCategory"];
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Event */
+            event?: number | null;
+            kind: components["schemas"]["LedgerEntryKind"];
+            /** Label */
+            label: string;
+            /**
+             * Note
+             * @default
+             */
+            note: string;
+            payment_method: components["schemas"]["LedgerPaymentMethod"];
+            /**
+             * Supplier
+             * @default
+             */
+            supplier: string;
         };
         /**
          * NoteDocumentOut
@@ -2411,6 +2674,13 @@ export interface components {
             count: number;
             /** Items */
             items: components["schemas"]["EventItemOut"][];
+        };
+        /** PagedLedgerEntryOut */
+        PagedLedgerEntryOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["LedgerEntryOut"][];
         };
         /** PagedLoanItemOut */
         PagedLoanItemOut: {
@@ -2645,6 +2915,12 @@ export interface components {
             /** Title */
             title: string;
         };
+        /**
+         * ReimbursementMethod
+         * @description How the committee paid an advance back to its member.
+         * @enum {string}
+         */
+        ReimbursementMethod: "cash" | "cheque" | "transfer";
         /** ReplyIn */
         ReplyIn: {
             /** Text */
@@ -6977,6 +7253,393 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_list_entries: {
+        parameters: {
+            query?: {
+                year?: number | null;
+                event?: number | null;
+                general?: boolean;
+                page?: number;
+                page_size?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedLedgerEntryOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_record: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": {
+                    /** Advanced By */
+                    advanced_by?: number | null;
+                    /** Amount */
+                    amount: number | string;
+                    /**
+                     * LedgerCategory
+                     * @description What an entry is for: each kind has its own categories, « Divers » both.
+                     * @enum {string}
+                     */
+                    category: "food" | "drinks" | "equipment_rental" | "decoration" | "prizes" | "insurance" | "bank_fees" | "bar" | "pitches" | "tickets" | "grant" | "membership_fees" | "donations" | "misc";
+                    /**
+                     * Date
+                     * Format: date
+                     */
+                    date: string;
+                    /** Event */
+                    event?: number | null;
+                    /**
+                     * LedgerEntryKind
+                     * @enum {string}
+                     */
+                    kind: "income" | "expense";
+                    /** Label */
+                    label: string;
+                    /**
+                     * Note
+                     * @default
+                     */
+                    note?: string;
+                    /**
+                     * LedgerPaymentMethod
+                     * @enum {string}
+                     */
+                    payment_method: "association_card" | "cash" | "cheque" | "transfer" | "direct_debit" | "advance";
+                    /**
+                     * Supplier
+                     * @default
+                     */
+                    supplier?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LedgerEntryOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_read_entry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LedgerEntryOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_correct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LedgerEntryIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LedgerEntryOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_read_results: {
+        parameters: {
+            query: {
+                year: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FiscalYearResultsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

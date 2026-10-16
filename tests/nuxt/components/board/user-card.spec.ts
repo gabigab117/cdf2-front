@@ -7,6 +7,7 @@ const { navigateToMock } = vi.hoisted(() => ({ navigateToMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
 
 const member = {
+  id: 1,
   email: 'camille.martin@example.test',
   first_name: 'Camille',
   last_name: 'Martin',

@@ -32,6 +32,7 @@ describe('BoardTopBar', () => {
       ['Tâche', '/bureau/taches/nouvelle'],
       ['Document', '/bureau/documents/nouveau'],
       ['Prêt', '/bureau/prets/nouveau'],
+      ['Dépense ou recette', '/bureau/tresorerie#nouvelle-ligne'],
     ])
   })
 

@@ -111,6 +111,11 @@ function calendarDay(date: string, now: number): string {
   return writtenDay(`${date}T12:00:00Z`, now)
 }
 
+/** A day of the calendar in full, as a sentence opens: « Samedi 12 septembre 2026 ». */
+function calendarLong(date: string): string {
+  return longDay(`${date}T12:00:00Z`, { year: true, sentence: true })
+}
+
 /**
  * A day of the calendar in figures, as a form to sign writes it: « 16/10/2026 ».
  */
@@ -281,5 +286,5 @@ function season(now: number): string {
  * the browser: the formats of the mockup.
  */
 export function useDateFormat() {
-  return { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarNumeric, calendarWeekday, calendarPeriod, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
+  return { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarLong, calendarNumeric, calendarWeekday, calendarPeriod, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
 }

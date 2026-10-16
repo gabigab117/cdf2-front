@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRightLeft, Bell, CalendarDays, FileText, ListChecks, Menu, Plus } from '@lucide/vue'
+import { ArrowRightLeft, Bell, CalendarDays, FileText, ListChecks, Menu, Plus, Wallet } from '@lucide/vue'
 import type { Component } from 'vue'
 
 // On a computer the bar holds the bell, then the « Nouveau » menu, or the
@@ -29,6 +29,7 @@ const NEW_ENTRIES: readonly Entry[] = [
   { label: 'Tâche', to: NEW_TASK_PATH, icon: ListChecks },
   { label: 'Document', to: NEW_DOCUMENT_PATH, icon: FileText },
   { label: 'Prêt', to: NEW_LOAN_PATH, icon: ArrowRightLeft },
+  { label: 'Dépense ou recette', to: `${TREASURY_PATH}#${NEW_LINE_ANCHOR}`, icon: Wallet },
 ]
 </script>
 

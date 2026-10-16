@@ -101,7 +101,7 @@ describe('BoardNav', () => {
 
   it('shows « Membres » to the superuser alone', async () => {
     const session = useSessionStore()
-    session.member = { email: 'gabriel@example.fr', first_name: 'Gabriel', last_name: 'T.', position: '', is_superuser: false }
+    session.member = { id: 1, email: 'gabriel@example.fr', first_name: 'Gabriel', last_name: 'T.', position: '', is_superuser: false }
 
     const nav = await mountSuspended(BoardNav, { route: '/bureau' })
     expect(nav.find('a[href="/bureau/membres"]').exists()).toBe(false)
