@@ -79,6 +79,7 @@ describe('useDateFormat', () => {
 
     expect(calendarInWords('2026-10-28', now)).toBe('28 octobre')
     expect(calendarInWords('2027-01-01', now)).toBe('1er janvier 2027')
+    expect(calendarInWords('2026-09-30', now, { weekday: true })).toBe('mercredi 30 septembre')
   })
 
   it.each([

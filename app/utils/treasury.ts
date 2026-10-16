@@ -18,6 +18,9 @@ export const LEDGER_PATH = `${TREASURY_PATH}/journal`
 /** The form of a new line, on the Trésorerie page: the « Nouveau » menu leads to it. */
 export const NEW_LINE_ANCHOR = 'nouvelle-ligne'
 
+/** An expense entered on a phone, its ticket taken in photo. */
+export const NEW_EXPENSE_PATH = `${TREASURY_PATH}/nouvelle`
+
 /** The page of a line: its detail, its correction and its deletion. */
 export function entryPath(id: number): string {
   return `${TREASURY_PATH}/ecritures/${id}`

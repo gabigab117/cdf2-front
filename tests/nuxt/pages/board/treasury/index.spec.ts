@@ -63,6 +63,8 @@ describe('the Trésorerie page', () => {
     ])
     expect(treasury.text()).toContain('19 lignes')
     expect(treasury.get('a[href="/bureau/tresorerie/journal"]').text()).toBe('Voir tout le journal de l’exercice')
+    // On a phone, a ticket is taken in photo.
+    expect(treasury.get('a[href="/bureau/tresorerie/nouvelle"]').text()).toBe('Photographier un ticket')
   })
 
   it('shows the result of each event, whose rows filter the journal of the year shown', async () => {

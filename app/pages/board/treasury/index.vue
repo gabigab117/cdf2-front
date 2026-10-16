@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Camera } from '@lucide/vue'
 import type { EntryFields, LedgerFilter } from '~/utils/treasury'
 
 definePageMeta({ path: '/bureau/tresorerie' })
@@ -60,6 +61,19 @@ async function record(fields: EntryFields, receipt: File | null) {
         Un seul journal de recettes et de dépenses. Chaque ligne peut être rattachée à un événement.
       </p>
     </div>
+    <UiButton
+      :to="NEW_EXPENSE_PATH"
+      variant="accent"
+      size="lg"
+      block
+      class="md:hidden"
+    >
+      <Camera
+        :size="18"
+        aria-hidden="true"
+      />
+      Photographier un ticket
+    </UiButton>
     <div class="grid grid-cols-kpis gap-3.5">
       <UiKpiCard
         label="Recettes"

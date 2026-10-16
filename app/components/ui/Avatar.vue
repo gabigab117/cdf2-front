@@ -4,8 +4,8 @@ const { name, size = 'md', tone = 'azur' } = defineProps<{
   name: string
   /** 32 or 36 px. */
   size?: 'sm' | 'md'
-  /** Azur for the signed-in member, softer tones for the others. */
-  tone?: 'azur' | 'soft' | 'neutral'
+  /** Azur for the signed-in member, softer tones for the others, white on an amber banner. */
+  tone?: 'azur' | 'soft' | 'neutral' | 'ambre'
 }>()
 
 const classes = {
@@ -18,6 +18,7 @@ const classes = {
     azur: 'bg-azur-600 text-white',
     soft: 'bg-azur-100 text-azur-700',
     neutral: 'bg-argent-100 text-sable-800',
+    ambre: 'bg-white text-ambre-800',
   },
 }
 

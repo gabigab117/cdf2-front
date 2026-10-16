@@ -1,5 +1,7 @@
 <script setup lang="ts">
-const { label, size = 'md', surface = 'light' } = defineProps<{
+import type { RouteLocationRaw } from 'vue-router'
+
+const { label, size = 'md', surface = 'light', to } = defineProps<{
   /** What the button does: an icon alone says nothing to a screen reader. */
   label: string
   /** 44 or 36 px square. */
@@ -9,6 +11,8 @@ const { label, size = 'md', surface = 'light' } = defineProps<{
    * notes' input zone keeps a plain button, without a frame.
    */
   surface?: 'light' | 'dark' | 'plain'
+  /** A page of the board: the button becomes a link to it, as a way back. */
+  to?: RouteLocationRaw
 }>()
 
 const classes = {
@@ -28,7 +32,16 @@ const buttonClasses = computed(() => [classes.base, classes.size[size], classes.
 </script>
 
 <template>
+  <NuxtLink
+    v-if="to"
+    :to
+    :aria-label="label"
+    :class="buttonClasses"
+  >
+    <slot />
+  </NuxtLink>
   <button
+    v-else
     type="button"
     :aria-label="label"
     :class="buttonClasses"

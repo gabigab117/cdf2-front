@@ -94,6 +94,9 @@
   --text-page: 2.75rem;                      /* 44px: board page titles */
   --text-page--line-height: 1;
   --text-page--letter-spacing: -0.035em;
+  --text-ticket: 3rem;                       /* 48px: the amount of a ticket entered on a phone */
+  --text-ticket--line-height: 1;
+  --text-ticket--letter-spacing: -0.04em;
 
   /* The public site's own sizes (home page and event page) */
   --text-intro: 1.1875rem;                   /* 19px: the hero's text, an event's summary */

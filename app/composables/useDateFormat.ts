@@ -134,11 +134,12 @@ function calendarWeekday(date: string, now: number): string {
 
 /**
  * A day of the calendar with its month in full, such as the due date of an
- * invoice: « 28 octobre », with its year when it is not the year of `now`.
+ * invoice: « 28 octobre », or with its weekday, as the day of a ticket:
+ * « mercredi 30 septembre »; with its year when it is not the year of `now`.
  */
-function calendarInWords(date: string, now: number): string {
+function calendarInWords(date: string, now: number, { weekday = false }: { weekday?: boolean } = {}): string {
   const iso = `${date}T12:00:00Z`
-  return longDay(iso, { weekday: 'none', year: parisCalendar(iso).year !== parisCalendar(now).year })
+  return longDay(iso, { weekday: weekday ? 'long' : 'none', year: parisCalendar(iso).year !== parisCalendar(now).year })
 }
 
 /**
