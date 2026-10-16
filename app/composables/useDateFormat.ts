@@ -133,6 +133,15 @@ function calendarWeekday(date: string, now: number): string {
 }
 
 /**
+ * A day of the calendar with its month in full, such as the due date of an
+ * invoice: « 28 octobre », with its year when it is not the year of `now`.
+ */
+function calendarInWords(date: string, now: number): string {
+  const iso = `${date}T12:00:00Z`
+  return longDay(iso, { weekday: 'none', year: parisCalendar(iso).year !== parisCalendar(now).year })
+}
+
+/**
  * The days of a loan, both counted: « du ven. 16 au dim. 18 oct. », « du
  * ven. 30 oct. au dim. 1er nov. », « ven. 16 oct. » for a single day, with the
  * year when it is not the year of `now`.
@@ -286,5 +295,5 @@ function season(now: number): string {
  * the browser: the formats of the mockup.
  */
 export function useDateFormat() {
-  return { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarLong, calendarNumeric, calendarWeekday, calendarPeriod, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
+  return { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarLong, calendarNumeric, calendarWeekday, calendarInWords, calendarPeriod, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
 }

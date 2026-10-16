@@ -4,12 +4,13 @@ import BoardTopBar from '~/components/board/TopBar.vue'
 import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
 import { documentItem } from '../../helpers/documents'
 import { loanBrief } from '../../helpers/equipment'
+import { NOTHING_TO_PAY } from '../../helpers/treasury'
 
 const NO_LOAN = { overdue: 0, to_prepare: 0, items: [] }
 
 function mockPending(total: number, items = [documentItem()], counted = total, loans: object = NO_LOAN) {
   mockApi('/api/board/overview', { handler: () => apiResponse(200, {
-    pending: { total, documents: { counts: { total: counted, invoice: counted, order: 0, minutes: 0, misc: 0 }, items }, loans },
+    pending: { total, documents: { counts: { total: counted, invoice: counted, order: 0, minutes: 0, misc: 0 }, items }, loans, ...NOTHING_TO_PAY },
   }) })
 }
 

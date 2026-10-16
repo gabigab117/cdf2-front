@@ -31,7 +31,12 @@ const form = useTemplateRef<HTMLFormElement>('form')
 const trigger = useTemplateRef<ComponentPublicInstance>('trigger')
 const { confirming, pending: deleting, failure, ask, dismiss, confirm } = useConfirmation(trigger)
 
-const question = computed(() => `Supprimer le document « ${document.title} » et son fichier ?`)
+// A document that proves a line of the treasury leaves it without one.
+const question = computed(() => {
+  const asked = `Supprimer le document « ${document.title} » et son fichier ?`
+  const entry = document.ledger_entry
+  return entry ? `${asked} Il justifie la ligne « ${entry.label} » de la trésorerie, qui restera sans justificatif.` : asked
+})
 
 const category = computed(() => fields.value.category)
 const isInvoice = computed(() => category.value === 'invoice')

@@ -9,6 +9,9 @@ const DOCUMENT = 'Facture — Parcours du bureau'
 // The borrower of the loans the journey records, then cancels.
 const BORROWER = 'Parcours du bureau'
 
+// The expense the journey records with its receipt, then deletes with it.
+const EXPENSE = 'Ticket — Parcours du bureau'
+
 // A day some days ahead, as a date field takes it.
 function daysAhead(days: number): string {
   return new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10)
@@ -21,7 +24,7 @@ const MEMBER = {
   name: 'Camille Martin',
 }
 
-test('a board member signs in, keeps their session over a reload, staffs a station, validates a document, records a loan in conflict, then signs out', async ({ page, goto }) => {
+test('a board member signs in, keeps their session over a reload, staffs a station, validates a document, records a loan in conflict, records an expense with its receipt, then signs out', async ({ page, goto }) => {
   await test.step('signing in brings the member to the page they asked for', async () => {
     await goto('/bureau/documents', { waitUntil: 'hydration' })
     await expect(page).toHaveURL('/connexion?redirect=/bureau/documents')
@@ -142,7 +145,8 @@ test('a board member signs in, keeps their session over a reload, staffs a stati
     await expect(panel.getByText('380,00')).toBeVisible()
     await expect(rows).toContainText('À vérifier')
 
-    await panel.getByRole('button', { name: 'Valider la facture' }).click()
+    // Not paid yet: the invoice is validated alone, and stays to pay.
+    await panel.getByRole('button', { name: 'Valider et créer l’écriture' }).click()
     await expect(panel.getByText('Validée par Camille M.')).toBeVisible()
     await expect(rows).not.toContainText('À vérifier')
 
@@ -221,6 +225,71 @@ test('a board member signs in, keeps their session over a reload, staffs a stati
     await confirmed.first().getByRole('link').click()
     await cancelShown()
     await expect(confirmed).toHaveCount(0)
+  })
+
+  await test.step('an expense is recorded with its receipt, which then opens from its line', async () => {
+    const navigation = page.getByRole('navigation', { name: 'Espace bureau' })
+    const lines = page.getByRole('link', { name: new RegExp(EXPENSE) })
+
+    // A journey cut short leaves its line behind, which a new try deletes first,
+    // once the journal has come.
+    const journal = page.waitForResponse(response => response.url().includes('/api/board/treasury/entries') && response.ok())
+    await navigation.getByRole('link', { name: 'Trésorerie' }).click()
+    await expect(page).toHaveURL('/bureau/tresorerie')
+    await journal
+    await expect(page.locator('[aria-busy="true"]')).toHaveCount(0)
+    for (let left = await lines.count(); left > 0; left -= 1) {
+      await lines.first().click()
+      await page.getByRole('button', { name: 'Supprimer' }).click()
+      await page.getByRole('button', { name: 'Supprimer définitivement' }).click()
+      await expect(page).toHaveURL(/\/bureau\/tresorerie\?/)
+      await expect(lines).toHaveCount(left - 1)
+    }
+
+    const form = page.getByRole('region', { name: 'Nouvelle ligne' })
+    await form.getByLabel('Libellé').fill(EXPENSE)
+    await form.getByLabel('Montant').fill('12,50')
+    // The events of the demonstration follow the day they were written: found by name.
+    const halloween = await form.getByLabel('Événement').locator('option', { hasText: 'Halloween des enfants' }).getAttribute('value')
+    await form.getByLabel('Événement').selectOption(halloween!)
+    // A file of its own on every try: the same file twice is refused.
+    await form.locator('input[type="file"]').setInputFiles({
+      name: 'ticket-parcours.pdf',
+      mimeType: 'application/pdf',
+      buffer: Buffer.from(`%PDF-1.4\n% ${Date.now()}\n%%EOF\n`),
+    })
+    await form.getByRole('button', { name: 'Ajouter la dépense' }).click()
+
+    await expect(lines).toHaveCount(1)
+    await expect(lines.first()).toContainText('−12,50')
+    await expect(lines.first().getByRole('img', { name: 'Justificatif joint' })).toBeVisible()
+
+    await lines.first().click()
+    await expect(page.getByRole('heading', { level: 1, name: EXPENSE })).toBeVisible()
+    await page.getByRole('button', { name: 'Ouvrir le justificatif' }).click()
+    await expect(page.getByRole('dialog')).toBeVisible()
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+
+    // The line goes, its receipt stays among the documents, which the journey deletes too.
+    await page.getByRole('button', { name: 'Supprimer' }).click()
+    await page.getByRole('button', { name: 'Supprimer définitivement' }).click()
+    await expect(page).toHaveURL(/\/bureau\/tresorerie\?/)
+    await expect(lines).toHaveCount(0)
+
+    await navigation.getByRole('link', { name: /^Documents/ }).click()
+    const receipts = page.getByRole('listitem').filter({ hasText: EXPENSE })
+    const panel = page.getByRole('complementary', { name: EXPENSE })
+    await page.getByLabel('Rechercher dans les documents').fill(EXPENSE)
+    await expect(page).toHaveURL(/recherche=/)
+    await expect(receipts.first()).toBeVisible()
+    for (let left = await receipts.count(); left > 0; left -= 1) {
+      await receipts.first().getByRole('link').click()
+      await panel.getByRole('button', { name: 'Corriger' }).click()
+      await panel.getByRole('button', { name: 'Supprimer' }).click()
+      await panel.getByRole('button', { name: 'Supprimer définitivement' }).click()
+      await expect(receipts).toHaveCount(left - 1)
+    }
   })
 
   await test.step('signing out closes the session for good', async () => {

@@ -10,7 +10,8 @@ type DocumentOut = components['schemas']['DocumentOut']
 // closes, what it shows staying while it fades out.
 const open = defineModel<boolean>('open', { default: false })
 
-const { document } = defineProps<{ document: DocumentOut }>()
+// What it reads of a document: a ledger entry's receipt gives no more.
+const { document } = defineProps<{ document: Pick<DocumentOut, 'id' | 'title' | 'original_name' | 'size'> }>()
 
 const { readDocumentFile, downloadDocument } = useDocumentWrites()
 

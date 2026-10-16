@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Plus } from '@lucide/vue'
+import { Paperclip, Plus, X } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
 import type { EntryFields } from '~/utils/treasury'
@@ -9,11 +9,11 @@ type LedgerEntryKind = components['schemas']['LedgerEntryKind']
 
 // A line of the journal, as the « Nouvelle ligne » card records it and the page
 // of a line corrects it.
-const { title, initial, save, advancer = null, full = false, submitLabel, clearsAfterSave = false, cancelable = false } = defineProps<{
+const { title, initial, save, advancer = null, full = false, submitLabel, clearsAfterSave = false, cancelable = false, attachable = false } = defineProps<{
   title: string
   initial: EntryFields
-  /** Sends the line: the errors to show, or null once it is saved. */
-  save: (fields: EntryFields) => Promise<FormErrors | null>
+  /** Sends the line, and the file of its receipt if any: the errors to show, or null once it is saved. */
+  save: (fields: EntryFields, receipt: File | null) => Promise<FormErrors | null>
   /** Who advanced the line being corrected, a member who may have left the board since. */
   advancer?: BoardMemberOut | null
   /** The supplier and the note too, which the card of a new line leaves out. */
@@ -24,6 +24,8 @@ const { title, initial, save, advancer = null, full = false, submitLabel, clears
   clearsAfterSave?: boolean
   /** « Annuler » beside the button, for a correction. */
   cancelable?: boolean
+  /** « Joindre le justificatif »: a file sent with the line, filed among the documents. */
+  attachable?: boolean
 }>()
 
 const emit = defineEmits<{ cancel: [] }>()
@@ -44,7 +46,10 @@ const { data: members } = useBoardMembers()
 
 const titleId = useId()
 const form = useTemplateRef<HTMLFormElement>('form')
+const picker = useTemplateRef<HTMLInputElement>('picker')
 const fields = ref<EntryFields>({ ...initial })
+// A file is kept as it is: nothing in it is to be watched.
+const receipt = shallowRef<File | null>(null)
 const errors = ref<FormErrors | null>(null)
 const pending = ref(false)
 const shown = computed<ReadonlySet<string>>(() => new Set([
@@ -84,11 +89,20 @@ function fieldErrors(path: string): readonly string[] | undefined {
 async function submit(): Promise<void> {
   if (!isEntryComplete(fields.value)) return refuse({ form: [INCOMPLETE], fields: {} })
   pending.value = true
-  const result = await save(fields.value)
+  const result = await save(fields.value, receipt.value)
   pending.value = false
   if (result) return refuse(placeErrors(result, shown.value, entryFieldLabel))
   errors.value = null
-  if (clearsAfterSave) fields.value = { ...fields.value, label: '', amount: '' }
+  if (!clearsAfterSave) return
+  fields.value = { ...fields.value, label: '', amount: '' }
+  receipt.value = null
+}
+
+function picked(event: Event): void {
+  const input = event.target as HTMLInputElement
+  receipt.value = input.files?.[0] ?? null
+  // The same file chosen again is a new choice.
+  input.value = ''
 }
 
 // The refusal takes the focus, as in every form of the board.
@@ -282,24 +296,66 @@ async function refuse(refusal: FormErrors): Promise<void> {
           </UiField>
         </div>
         <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
-          <div
-            v-if="errors?.form.length"
-            role="alert"
-            tabindex="-1"
-            class="flex items-start gap-2 text-sm text-ambre-800"
-          >
-            <span
-              class="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-ambre-50 text-xs font-bold text-ambre-700"
-              aria-hidden="true"
-            >!</span>
-            <span class="flex flex-col">
+          <div class="flex flex-col items-start gap-2.5">
+            <div
+              v-if="errors?.form.length"
+              role="alert"
+              tabindex="-1"
+              class="flex items-start gap-2 text-sm text-ambre-800"
+            >
               <span
-                v-for="message in errors.form"
-                :key="message"
-              >{{ message }}</span>
-            </span>
+                class="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-ambre-50 text-xs font-bold text-ambre-700"
+                aria-hidden="true"
+              >!</span>
+              <span class="flex flex-col">
+                <span
+                  v-for="message in errors.form"
+                  :key="message"
+                >{{ message }}</span>
+              </span>
+            </div>
+            <template v-if="attachable">
+              <span
+                v-if="receipt"
+                class="inline-flex h-10 max-w-full items-center gap-2 rounded-control border border-argent-250 bg-argent-25 pr-1 pl-3 text-sm text-sable-800"
+              >
+                <Paperclip
+                  :size="16"
+                  aria-hidden="true"
+                  class="shrink-0 text-azur-600"
+                />
+                <span class="truncate">{{ receipt.name }}</span>
+                <UiIconButton
+                  size="sm"
+                  label="Retirer le justificatif"
+                  @click="receipt = null"
+                >
+                  <X :size="16" />
+                </UiIconButton>
+              </span>
+              <UiButton
+                v-else
+                variant="dashed"
+                size="sm"
+                @click="picker?.click()"
+              >
+                <Paperclip
+                  :size="16"
+                  aria-hidden="true"
+                />
+                Joindre le justificatif
+              </UiButton>
+              <input
+                ref="picker"
+                type="file"
+                class="sr-only"
+                tabindex="-1"
+                aria-label="Justificatif"
+                :accept="DOCUMENT_TYPES"
+                @change="picked"
+              >
+            </template>
           </div>
-          <span v-else />
           <div class="flex flex-wrap items-center gap-2">
             <UiButton
               v-if="cancelable"

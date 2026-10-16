@@ -72,7 +72,7 @@ describe('the Trésorerie page', () => {
 
     await vi.waitFor(() => expect(treasury.find('a[href="/bureau/tresorerie/ecritures/4"]').exists()).toBe(true))
     const row = treasury.get('a[href="/bureau/tresorerie/ecritures/4"]')
-    expect(readable(row.text())).toBe('12 sept.Courses buvetteBoissonsBrocanteAvancé par Julie R.−286,30 €')
+    expect(readable(row.text())).toBe('12 sept.Courses buvetteBoissonsBrocanteAvancé par Julie R.−286,30 €!')
   })
 
   it('filters the journal by the event of the address', async () => {
@@ -102,7 +102,7 @@ describe('the Trésorerie page', () => {
     await treasury.get('input[inputmode="decimal"]').setValue('286,30')
     await treasury.get('form').trigger('submit')
 
-    await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith({ query: { exercice: '2026', evenement: undefined, page: undefined } }))
+    await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith({ query: { exercice: '2026', evenement: undefined, page: undefined, justificatif: undefined } }))
     expect(sent.find(request => request.method === 'POST')?.body).toEqual({
       date: '2026-10-01',
       kind: 'expense',

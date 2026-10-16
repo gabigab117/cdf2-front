@@ -6,6 +6,7 @@ import type { FormErrors } from '~/utils/api-errors'
 import type { EntryFields } from '~/utils/treasury'
 import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
 import { eventItem, julie, page } from '../../helpers/events'
+import { chooseFile } from '../../helpers/files'
 
 const marc = { id: 9, first_name: 'Marc', last_name: 'Durand', email: 'marc.durand@example.test' }
 
@@ -143,6 +144,26 @@ describe('the form of a line', () => {
     expect(save.mock.calls[0]![0]).toMatchObject({ label: 'Courses buvette', amount: '286,30', kind: 'expense', category: 'food' })
     await vi.waitFor(() => expect((form.get('input[inputmode="decimal"]').element as HTMLInputElement).value).toBe(''))
     expect((form.get('input[placeholder="Ex. Courses buvette"]').element as HTMLInputElement).value).toBe('')
+  })
+
+  it('sends the receipt chosen with the line, and leaves it out once removed', async () => {
+    const save = vi.fn((_fields: EntryFields, _receipt: File | null) => Promise.resolve(null))
+    const form = await mountForm({ save, attachable: true })
+    const ticket = new File(['%PDF-1.4'], 'ticket.pdf', { type: 'application/pdf' })
+    const input = form.get('input[type="file"]')
+
+    await chooseFile(input, ticket)
+    expect(form.text()).toContain('ticket.pdf')
+    await form.get('button[aria-label="Retirer le justificatif"]').trigger('click')
+    expect(form.text()).toContain('Joindre le justificatif')
+    await chooseFile(input, ticket)
+    await form.get('input[placeholder="Ex. Courses buvette"]').setValue('Courses')
+    await form.get('input[inputmode="decimal"]').setValue('12')
+    await form.get('form').trigger('submit')
+
+    await vi.waitFor(() => expect(save).toHaveBeenCalledOnce())
+    expect(save.mock.calls[0]![1]).toBe(ticket)
+    await vi.waitFor(() => expect(form.text()).toContain('Joindre le justificatif'))
   })
 
   it('shows the refusals of the API under their fields, and the others on the form', async () => {

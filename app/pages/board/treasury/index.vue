@@ -34,8 +34,8 @@ function location(filter: LedgerFilter) {
 const ledgerLink = computed(() => ledgerLocation(LEDGER_PATH, { ...query.value, page: 1 }))
 
 // A line recorded shows first in the journal of its year, the filter left out.
-async function record(fields: EntryFields) {
-  const result = await recordEntry(fields)
+async function record(fields: EntryFields, receipt: File | null) {
+  const result = await recordEntry(fields, receipt)
   if (result.errors) return result.errors
   highlighted.value = result.data.id
   await navigateTo(yearLocation(Number(result.data.date.slice(0, 4))))
@@ -92,24 +92,31 @@ async function record(fields: EntryFields) {
       :initial="newLine"
       :save="record"
       clears-after-save
+      attachable
     />
-    <TreasuryLedger
-      :year
-      :results="results ?? null"
-      :page="page ?? null"
-      :filter="query.filter"
-      :location
-      :error="error?.message ?? null"
-      :loading="status === 'pending'"
-      :highlighted
-      @retry="refreshEntries()"
-    >
-      <NuxtLink
-        :to="ledgerLink"
-        class="block border-t border-argent-100 px-5.5 py-3.5 text-sm font-medium text-azur-600 hover:text-azur-700"
+    <div class="flex flex-wrap items-start gap-5">
+      <TreasuryLedger
+        class="min-w-0 flex-1 basis-155"
+        :year
+        :results="results ?? null"
+        :page="page ?? null"
+        :filter="query.filter"
+        :location
+        :error="error?.message ?? null"
+        :loading="status === 'pending'"
+        :highlighted
+        @retry="refreshEntries()"
       >
-        Voir tout le journal de l’exercice
-      </NuxtLink>
-    </TreasuryLedger>
+        <NuxtLink
+          :to="ledgerLink"
+          class="block border-t border-argent-100 px-5.5 py-3.5 text-sm font-medium text-azur-600 hover:text-azur-700"
+        >
+          Voir tout le journal de l’exercice
+        </NuxtLink>
+      </TreasuryLedger>
+      <div class="flex min-w-0 flex-1 basis-85 flex-col gap-5 md:max-w-105">
+        <TreasuryAssistant />
+      </div>
+    </div>
   </div>
 </template>

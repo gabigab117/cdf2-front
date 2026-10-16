@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import BoardNav from '~/components/board/Nav.vue'
 import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
 import { eventItem, page } from '../../helpers/events'
+import { NOTHING_TO_PAY } from '../../helpers/treasury'
 
 describe('BoardNav', () => {
   beforeEach(() => {
@@ -73,6 +74,7 @@ describe('BoardNav', () => {
         total: 4,
         documents: { counts: { total: 4, invoice: 2, order: 1, minutes: 1, misc: 0 }, items: [] },
         loans: { overdue: 0, to_prepare: 0, items: [] },
+        ...NOTHING_TO_PAY,
       },
     }) })
 
@@ -89,6 +91,7 @@ describe('BoardNav', () => {
         total: 3,
         documents: { counts: { total: 0, invoice: 0, order: 0, minutes: 0, misc: 0 }, items: [] },
         loans: { overdue: 1, to_prepare: 2, items: [] },
+        ...NOTHING_TO_PAY,
       },
     }) })
 

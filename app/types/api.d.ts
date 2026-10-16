@@ -1109,7 +1109,8 @@ export interface paths {
         put?: never;
         /**
          * Record a ledger entry
-         * @description Record an entry, from the form of the journal: a field left empty is not sent.
+         * @description Record an entry, from the form of the journal: a field left empty is not
+         *     sent. A file sent with it is its receipt, filed among the documents.
          */
         post: operations["treasury_api_record"];
         delete?: never;
@@ -1138,6 +1139,70 @@ export interface paths {
          * @description Delete an entry: its receipt stays among the documents.
          */
         delete: operations["treasury_api_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/treasury/entries/{entry_id}/receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Join the receipt of a ledger entry
+         * @description « Joindre le justificatif »: the document that proves an entry that has
+         *     none, filed among the documents.
+         */
+        post: operations["treasury_api_join_receipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/treasury/invoices/{document_id}/attach": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Attach an invoice to the expense it proves
+         * @description « Ligne déjà saisie »: an invoice becomes the receipt of an expense
+         *     entered without one, rather than an expense recorded twice.
+         */
+        post: operations["treasury_api_attach_invoice_to_expense"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/treasury/invoices/{document_id}/expense": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record the expense of an invoice
+         * @description « Valider et créer l'écriture », « Marquer payée »: the expense of an
+         *     invoice at the date it was paid, the invoice as its receipt, validated if it
+         *     awaited review.
+         */
+        post: operations["treasury_api_record_invoice_expense"];
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1573,6 +1638,26 @@ export interface components {
             title: string;
         };
         /**
+         * DocumentLedgerEntryOut
+         * @description The ledger entry a document proves (phase 6).
+         */
+        DocumentLedgerEntryOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Id */
+            id: number;
+            /** Label */
+            label: string;
+        };
+        /**
          * DocumentListFilters
          * @description The filters of the list, which also keeps a single category.
          */
@@ -1612,6 +1697,7 @@ export interface components {
             id: number;
             /** Issuer */
             issuer: string;
+            ledger_entry: components["schemas"]["DocumentLedgerEntryOut"] | null;
             /** Mime Type */
             mime_type: string;
             /** Note */
@@ -1973,6 +2059,32 @@ export interface components {
             sent: boolean;
         };
         /**
+         * InvoiceAttachIn
+         * @description The expense, already entered, an invoice proves.
+         */
+        InvoiceAttachIn: {
+            /** Entry */
+            entry: number;
+        };
+        /**
+         * InvoiceExpenseIn
+         * @description What an invoice does not tell of its expense, as the member types it:
+         *     every key required.
+         */
+        InvoiceExpenseIn: {
+            /** Advanced By */
+            advanced_by: number | null;
+            category: components["schemas"]["LedgerCategory"];
+            /** Label */
+            label: string;
+            /**
+             * Paid On
+             * Format: date
+             */
+            paid_on: string;
+            payment_method: components["schemas"]["LedgerPaymentMethod"];
+        };
+        /**
          * LatestNoteOut
          * @description A note of the board, as the dashboard lists the latest.
          */
@@ -2007,6 +2119,7 @@ export interface components {
              * @default false
              */
             general: boolean;
+            receipt_state?: components["schemas"]["LedgerReceiptState"] | null;
             /** Year */
             year?: number | null;
         };
@@ -2053,6 +2166,7 @@ export interface components {
             /** Amount */
             amount: string;
             category: components["schemas"]["LedgerCategory"];
+            contact: components["schemas"]["BoardMemberOut"] | null;
             /**
              * Created At
              * Format: date-time
@@ -2073,6 +2187,8 @@ export interface components {
             /** Note */
             note: string;
             payment_method: components["schemas"]["LedgerPaymentMethod"];
+            receipt: components["schemas"]["LedgerReceiptOut"] | null;
+            receipt_state: components["schemas"]["LedgerReceiptState"];
             /** Reimbursed On */
             reimbursed_on: string | null;
             reimbursement_method: components["schemas"]["ReimbursementMethod"] | null;
@@ -2114,6 +2230,27 @@ export interface components {
          * @enum {string}
          */
         LedgerPaymentMethod: "association_card" | "cash" | "cheque" | "transfer" | "direct_debit" | "advance";
+        /**
+         * LedgerReceiptOut
+         * @description The document that proves an entry, as its viewer opens it.
+         */
+        LedgerReceiptOut: {
+            /** Id */
+            id: number;
+            /** Original Name */
+            original_name: string;
+            /** Size */
+            size: number;
+            /** Title */
+            title: string;
+        };
+        /**
+         * LedgerReceiptState
+         * @description Where the receipt of an entry stands, worked out (6.2): an expense needs
+         *     one, but for its bank fees; an income needs none.
+         * @enum {string}
+         */
+        LedgerReceiptState: "attached" | "missing" | "not_required";
         /**
          * LedgerTotalsOut
          * @description What came in and went out, the result, and over how many entries.
@@ -2759,6 +2896,16 @@ export interface components {
             items: components["schemas"]["DocumentItemOut"][];
         };
         /**
+         * PendingInvoicesOut
+         * @description The invoices to pay (6.2), those taken over from the v1 left aside.
+         */
+        PendingInvoicesOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["UnpaidInvoiceOut"][];
+        };
+        /**
          * PendingLoansOut
          * @description The loans that call for the board: late, then to prepare.
          */
@@ -2776,9 +2923,21 @@ export interface components {
          */
         PendingOut: {
             documents: components["schemas"]["PendingDocumentsOut"];
+            invoices: components["schemas"]["PendingInvoicesOut"];
             loans: components["schemas"]["PendingLoansOut"];
+            receipts: components["schemas"]["PendingReceiptsOut"];
             /** Total */
             total: number;
+        };
+        /**
+         * PendingReceiptsOut
+         * @description The expenses whose receipt is missing (6.2).
+         */
+        PendingReceiptsOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["LedgerEntryOut"][];
         };
         /**
          * PracticalInfoIcon
@@ -3176,6 +3335,24 @@ export interface components {
             reservations: number;
             /** Seats */
             seats: number;
+        };
+        /**
+         * UnpaidInvoiceOut
+         * @description An invoice « à régler », as the bell and the treasury assistant name it.
+         */
+        UnpaidInvoiceOut: {
+            /** Amount */
+            amount: string | null;
+            /** Due Date */
+            due_date: string | null;
+            /** Id */
+            id: number;
+            /** Issuer */
+            issuer: string;
+            /** Overdue */
+            overdue: boolean;
+            /** Title */
+            title: string;
         };
         /** ValidationErrorItem */
         ValidationErrorItem: {
@@ -7277,6 +7454,7 @@ export interface operations {
                 year?: number | null;
                 event?: number | null;
                 general?: boolean;
+                receipt_state?: components["schemas"]["LedgerReceiptState"] | null;
                 page?: number;
                 page_size?: number | null;
             };
@@ -7333,7 +7511,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/x-www-form-urlencoded": {
+                "multipart/form-data": {
                     /** Advanced By */
                     advanced_by?: number | null;
                     /** Amount */
@@ -7351,6 +7529,8 @@ export interface operations {
                     date: string;
                     /** Event */
                     event?: number | null;
+                    /** File */
+                    file?: string | null;
                     /**
                      * LedgerEntryKind
                      * @enum {string}
@@ -7570,6 +7750,225 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_join_receipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * File
+                     * Format: binary
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LedgerEntryOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_attach_invoice_to_expense: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceAttachIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_record_invoice_expense: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InvoiceExpenseIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
             };
             /** @description Unauthorized */
             401: {

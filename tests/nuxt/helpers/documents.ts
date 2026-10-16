@@ -35,6 +35,7 @@ export function boardDocument(changes: Partial<DocumentOut> = {}): DocumentOut {
     validated_by: null,
     validated_at: null,
     created_at: '2026-09-28T08:00:00Z',
+    ledger_entry: null,
     ...changes,
   }
 }

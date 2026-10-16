@@ -144,18 +144,28 @@ export function validationText(document: DocumentOut): string {
 }
 
 /**
- * The action that validates a document awaiting review: the invoice and the
- * order are validated alone until the treasury (phase 6) and the stock
- * (phase 7); minutes create the tasks they list.
+ * The action that validates a document awaiting review: an invoice creates its
+ * expense once paid (A18), the order is validated alone until the stock
+ * (phase 7), minutes create the tasks they list.
  */
 export function validationAction(document: Pick<DocumentOut, 'category' | 'extracted'>): string {
   const tasks = listedTasks(document)
   switch (document.category) {
-    case 'invoice': return 'Valider la facture'
+    case 'invoice': return 'Valider et créer l’écriture'
     case 'order': return 'Valider la commande'
     case 'minutes': return tasks > 1 ? `Créer les ${tasks} tâches` : tasks === 1 ? 'Créer la tâche' : 'Valider le compte rendu'
     case 'misc': return 'Valider le document'
   }
+}
+
+/**
+ * What a validated invoice still calls for in the treasury (A18): « Marquer
+ * payée », or « Créer l’écriture » when it is paid already; nothing once it
+ * has its entry.
+ */
+export function paymentAction(document: Pick<DocumentOut, 'category' | 'status' | 'paid_on' | 'ledger_entry'>): string | null {
+  if (document.category !== 'invoice' || document.status !== 'validated' || document.ledger_entry) return null
+  return document.paid_on ? 'Créer l’écriture' : 'Marquer payée'
 }
 
 /**

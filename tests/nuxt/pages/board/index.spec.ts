@@ -8,6 +8,7 @@ import { julie, overviewEvent } from '../../helpers/events'
 import { documentItem } from '../../helpers/documents'
 import { loanBrief } from '../../helpers/equipment'
 import { boardTask } from '../../helpers/tasks'
+import { NOTHING_TO_PAY } from '../../helpers/treasury'
 
 type BoardOverviewOut = components['schemas']['BoardOverviewOut']
 
@@ -25,6 +26,7 @@ const NOTHING_PENDING: BoardOverviewOut['pending'] = {
   total: 0,
   documents: { counts: { total: 0, invoice: 0, order: 0, minutes: 0, misc: 0 }, items: [] },
   loans: NO_PENDING_LOAN,
+  ...NOTHING_TO_PAY,
 }
 
 /** No equipment out, none to prepare. */
@@ -234,7 +236,7 @@ describe('the dashboard', () => {
      * Then the azur card counts them, by category, and leads to the documents to review
      */
     const counts = { total: 4, invoice: 2, order: 1, minutes: 1, misc: 0 }
-    mockOverview(overview([], 0, [], NO_GENERAL_TASK, { total: 4, documents: { counts, items: [] }, loans: NO_PENDING_LOAN }))
+    mockOverview(overview([], 0, [], NO_GENERAL_TASK, { total: 4, documents: { counts, items: [] }, loans: NO_PENDING_LOAN, ...NOTHING_TO_PAY }))
 
     const dashboard = await mountDashboard()
 

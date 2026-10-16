@@ -163,6 +163,11 @@ export async function formWrite<T>(request: Promise<ApiResult<T>>): Promise<Writ
   }
 }
 
+/** Every message of a refusal in one line, for a write that has no field to show them under. */
+export function refusalText(refusal: FormErrors): string {
+  return [...refusal.form, ...Object.values(refusal.fields).flat()].join(' ')
+}
+
 /**
  * Sends a write that has no form of its own, such as a deletion: null once
  * done, or the message to show. A refusal of the API's rules, such as a
@@ -173,7 +178,7 @@ export async function plainWrite(request: Promise<ApiResult<unknown>>): Promise<
     const { error, response } = await request
     if (response.ok) return null
     const refusal = toFormErrors(error)
-    return refusal ? [...refusal.form, ...Object.values(refusal.fields).flat()].join(' ') : errorMessage(error, response)
+    return refusal ? refusalText(refusal) : errorMessage(error, response)
   }
   catch (failure) {
     return errorMessage(failure)

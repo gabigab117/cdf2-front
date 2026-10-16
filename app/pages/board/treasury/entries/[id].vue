@@ -108,6 +108,11 @@ async function remove(): Promise<void> {
           </div>
         </template>
       </UiCard>
+      <TreasuryReceipt
+        v-if="!editing"
+        :entry
+        @changed="entry = $event"
+      />
       <UiConfirmation
         v-if="confirming"
         :question

@@ -5,7 +5,8 @@ import type { DocumentFields } from '~/utils/documents'
 
 // The panel of a document beside the list: what it tells, its file, and its
 // review. A document awaiting review is completed (« Corriger »), then
-// validated; a validated one stays correctable, as an invoice paid later.
+// validated; a validated one stays correctable. An invoice paid becomes an
+// expense of the treasury, which its panel creates (A18).
 const { id, startEditing = false } = defineProps<{
   id: number
   /** Open on its form: the document just deposited, to complete. */
@@ -21,14 +22,26 @@ const emit = defineEmits<{
 
 const { data: document, error, refresh } = useDocument(id)
 const { correctDocument, validateDocument, deleteDocument, downloadDocument } = useDocumentWrites()
+const { writtenDay } = useDateFormat()
+const now = useNow()
 
 const editing = ref(startEditing)
+// The action that opened the expense of the invoice, while its form shows.
+const paying = ref<string | null>(null)
 const viewing = ref(false)
 const validating = ref(false)
 const failure = ref<string | null>(null)
 
 const look = computed(() => (document.value ? DOCUMENT_CATEGORIES[document.value.category] : null))
 const toReview = computed(() => document.value?.status === 'to_review')
+const payment = computed(() => (document.value ? paymentAction(document.value) : null))
+// « Validée par Sophie L. · écriture créée le 29 sept. »
+const validated = computed(() => {
+  if (!document.value) return ''
+  const entry = document.value.ledger_entry
+  const created = entry ? ` · écriture créée le ${writtenDay(entry.created_at, now.value)}` : ''
+  return `${validationText(document.value)}${created}`
+})
 
 async function correct(fields: DocumentFields): Promise<FormErrors | null> {
   const result = await correctDocument(id, documentPayload(fields))
@@ -44,6 +57,12 @@ function corrected(): void {
 }
 
 async function validate(): Promise<void> {
+  // An invoice paid is validated with its expense, whose form asks what the
+  // invoice does not tell.
+  if (document.value?.category === 'invoice' && document.value.paid_on) {
+    paying.value = validationAction(document.value)
+    return
+  }
   validating.value = true
   const result = await validateDocument(id)
   validating.value = false
@@ -56,6 +75,12 @@ async function validate(): Promise<void> {
   }
   failure.value = null
   document.value = result.data
+  emit('changed')
+}
+
+function paid(written: NonNullable<typeof document.value>): void {
+  paying.value = null
+  document.value = written
   emit('changed')
 }
 
@@ -118,7 +143,18 @@ async function download(): Promise<void> {
       v-else
       :icon="Check"
     >
-      {{ validationText(document) }}
+      {{ validated }}
+      <template
+        v-if="document.ledger_entry"
+        #actions
+      >
+        <UiButton
+          variant="link"
+          :to="entryPath(document.ledger_entry.id)"
+        >
+          Voir la ligne
+        </UiButton>
+      </template>
     </UiCallout>
     <p
       v-if="failure"
@@ -127,8 +163,15 @@ async function download(): Promise<void> {
     >
       {{ failure }}
     </p>
+    <DocumentsInvoiceExpense
+      v-if="paying"
+      :document
+      :action="paying"
+      @done="paid"
+      @cancel="paying = null"
+    />
     <DocumentsForm
-      v-if="editing"
+      v-else-if="editing"
       :document
       :save="correct"
       :remove
@@ -141,7 +184,7 @@ async function download(): Promise<void> {
       :document
     />
     <template
-      v-if="!editing"
+      v-if="!editing && !paying"
       #footer
     >
       <UiButton
@@ -154,6 +197,16 @@ async function download(): Promise<void> {
       >
         <Check :size="18" />
         {{ validationAction(document) }}
+      </UiButton>
+      <UiButton
+        v-else-if="payment"
+        variant="accent"
+        size="lg"
+        block
+        @click="paying = payment"
+      >
+        <Check :size="18" />
+        {{ payment }}
       </UiButton>
       <UiButton
         variant="secondary"

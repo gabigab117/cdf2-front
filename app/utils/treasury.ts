@@ -7,6 +7,7 @@ type LedgerEntryIn = components['schemas']['LedgerEntryIn']
 type LedgerEntryKind = components['schemas']['LedgerEntryKind']
 type LedgerEntryOut = components['schemas']['LedgerEntryOut']
 type LedgerPaymentMethod = components['schemas']['LedgerPaymentMethod']
+type LedgerReceiptState = components['schemas']['LedgerReceiptState']
 
 /** The Trésorerie page: its figures, its form and the latest lines of its journal. */
 export const TREASURY_PATH = '/bureau/tresorerie'
@@ -176,11 +177,29 @@ const ENTRY_FIELD_LABELS: Readonly<Record<string, string>> = {
   event: 'Événement',
   supplier: 'Fournisseur',
   note: 'Note',
+  file: 'Justificatif',
 }
 
 /** The name of a field of a line, for an error its form cannot show under it. */
 export function entryFieldLabel(path: string): string {
   return ENTRY_FIELD_LABELS[path] ?? path
+}
+
+/** What the column « Justificatif » tells of a line, read aloud. */
+export const RECEIPT_STATE_LABELS: Readonly<Record<LedgerReceiptState, string>> = {
+  attached: 'Justificatif joint',
+  missing: 'Justificatif manquant',
+  not_required: 'Justificatif sans objet',
+}
+
+/** « courses buvette »: a label within a sentence, its capital lowered, unless it opens an acronym. */
+export function inSentence(label: string): string {
+  return /^\p{Lu}\p{Ll}/u.test(label) ? label.charAt(0).toLowerCase() + label.slice(1) : label
+}
+
+/** A message to write from the member's own mail client (A3): to, subject and text filled in. */
+export function mailtoLink(to: string, subject: string, body: string): string {
+  return `mailto:${to}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 }
 
 /** What a line brings in, or takes out with a minus: the API writes amounts above zero. */
@@ -203,10 +222,18 @@ export interface TreasuryQuery {
   year: number | null
   filter: LedgerFilter
   page: number
+  /** Every year's lines whose receipt is missing, in place of a fiscal year's. */
+  missing?: boolean
 }
 
 // The word of the address for the lines without an event: `?evenement=aucun`.
 const GENERAL = 'aucun'
+
+// The words of the address for the receipts missing: `?justificatif=manquant`.
+const MISSING = 'manquant'
+
+/** Every year's lines whose receipt is missing, as the bell leads to them. */
+export const MISSING_RECEIPTS_LOCATION: RouteLocationRaw = { path: LEDGER_PATH, query: { justificatif: MISSING } }
 
 /** The lines without an event, as the journal names them. */
 export const GENERAL_LABEL = 'Hors événement'
@@ -218,6 +245,7 @@ export function parseTreasuryQuery(query: LocationQuery): TreasuryQuery {
     year: queryId(query.exercice),
     filter: event === GENERAL ? 'general' : queryId(event),
     page: queryId(query.page) ?? 1,
+    missing: query.justificatif === MISSING,
   }
 }
 
@@ -232,11 +260,12 @@ export function yearSpan(year: number, now: number): string {
 }
 
 /** The address of a fiscal year, filter and page: the defaults are left out. */
-export function treasuryQuery({ year, filter, page }: TreasuryQuery): LocationQueryRaw {
+export function treasuryQuery({ year, filter, page, missing = false }: TreasuryQuery): LocationQueryRaw {
   return {
     exercice: year === null ? undefined : String(year),
     evenement: filter === null ? undefined : filter === 'general' ? GENERAL : String(filter),
     page: page > 1 ? String(page) : undefined,
+    justificatif: missing ? MISSING : undefined,
   }
 }
 
@@ -255,8 +284,16 @@ export function yearLocation(year: number): RouteLocationRaw {
   return { query: treasuryQuery({ year, filter: null, page: 1 }) }
 }
 
-/** The query of the journal's API: the year, and an event or the lines without one. */
-export function ledgerFilters(year: number, filter: LedgerFilter): { year: number, event?: number, general?: boolean } {
+/**
+ * The query of the journal's API: the year, and an event or the lines without
+ * one; or every year's lines whose receipt is missing.
+ */
+export function ledgerFilters(
+  year: number,
+  filter: LedgerFilter,
+  missing = false,
+): { year?: number, event?: number, general?: boolean, receipt_state?: 'missing' } {
+  if (missing) return { receipt_state: 'missing' }
   if (filter === 'general') return { year, general: true }
   return filter === null ? { year } : { year, event: filter }
 }

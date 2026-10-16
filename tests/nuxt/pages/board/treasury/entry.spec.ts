@@ -108,7 +108,7 @@ describe('the page of a line', () => {
     await view.findAll('button').find(button => button.text() === 'Supprimer définitivement')!.trigger('click')
     await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith({
       path: '/bureau/tresorerie',
-      query: { exercice: '2026', evenement: undefined, page: undefined },
+      query: { exercice: '2026', evenement: undefined, page: undefined, justificatif: undefined },
     }))
   })
 

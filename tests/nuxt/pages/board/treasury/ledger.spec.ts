@@ -42,4 +42,24 @@ describe('the page of the whole journal', () => {
     expect(ledger.find('a[href="/bureau/tresorerie/journal?exercice=2026&evenement=3"]').exists()).toBe(true)
     expect(ledger.get('nav[aria-label="Fil d’Ariane"] a').attributes('href')).toBe('/bureau/tresorerie?exercice=2026')
   })
+
+  it('lists every year’s lines missing their receipt, without the chips of a year', async () => {
+    mockApi('/api/board/treasury/entries', { method: 'GET', handler: () => apiResponse(200, page([ledgerEntry()])) })
+    const sent = recordRequests()
+
+    const ledger = await mountSuspended(LedgerPage, { route: '/bureau/tresorerie/journal?justificatif=manquant' })
+
+    await vi.waitFor(() => expect(sent.map(request => request.url)).toContain('/api/board/treasury/entries?receipt_state=missing&page=1&page_size=25'))
+    expect(ledger.get('h1').text()).toBe('Justificatifs manquants')
+    expect(ledger.find('nav[aria-label="Filtrer par événement"]').exists()).toBe(false)
+    expect(ledger.find('select[aria-label="Exercice"]').exists()).toBe(false)
+  })
+
+  it('says when every receipt is joined', async () => {
+    mockApi('/api/board/treasury/entries', { method: 'GET', handler: () => apiResponse(200, page([])) })
+
+    const ledger = await mountSuspended(LedgerPage, { route: '/bureau/tresorerie/journal?justificatif=manquant' })
+
+    await vi.waitFor(() => expect(ledger.text()).toContain('Tous les justificatifs sont joints.'))
+  })
 })

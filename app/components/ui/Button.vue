@@ -13,9 +13,10 @@ const {
 } = defineProps<{
   /**
    * Black for the main action, azur for a validation, bordered or plain text
-   * for the others, dashed to add a line to a list, white on a dark surface.
+   * for the others, dashed to add a line to a list, white on a dark surface,
+   * or dark and bordered within a dark panel.
    */
-  variant?: 'primary' | 'accent' | 'secondary' | 'link' | 'dashed' | 'inverse'
+  variant?: 'primary' | 'accent' | 'secondary' | 'link' | 'dashed' | 'inverse' | 'dark'
   /**
    * 38, 44 or 48 px high, or 52 px and round for the calls of the public site.
    * Plain text has no height of its own.
@@ -45,6 +46,7 @@ const classes = {
     link: 'text-sm font-medium text-azur-600 hover:text-azur-700 disabled:text-argent-400',
     dashed: 'border border-dashed border-argent-300 bg-white text-sable-600 hover:bg-argent-25 disabled:text-argent-400',
     inverse: 'bg-white text-sable-950 hover:bg-argent-100 disabled:text-argent-400',
+    dark: 'border border-sable-650 bg-sable-850 text-white hover:bg-sable-750 disabled:text-argent-400',
   },
   size: {
     sm: 'h-9.5 rounded-control px-3.5 text-note font-medium',

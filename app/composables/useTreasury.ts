@@ -15,19 +15,23 @@ export interface LedgerPage {
   filter: LedgerFilter
   page: number
   size: number
+  /** Every year's lines whose receipt is missing, in place of the year's. */
+  missing?: boolean
 }
 
 /** A page of the journal, the latest line first. Lazy. */
 export function useLedgerEntries(query: () => LedgerPage) {
   return useLazyAsyncData(
     () => {
-      const { year, filter, page, size } = query()
-      return `board:treasury:entries:${year}:${filter ?? 'all'}:${page}:${size}`
+      const { year, filter, page, size, missing = false } = query()
+      return missing
+        ? `board:treasury:entries:missing:${page}:${size}`
+        : `board:treasury:entries:${year}:${filter ?? 'all'}:${page}:${size}`
     },
     (_nuxtApp, { signal }) => {
-      const { year, filter, page, size } = query()
+      const { year, filter, page, size, missing } = query()
       return loadData(useApi().GET('/api/board/treasury/entries', {
-        params: { query: { ...ledgerFilters(year, filter), page, page_size: size } },
+        params: { query: { ...ledgerFilters(year, filter, missing), page, page_size: size } },
         signal,
       }))
     },
@@ -38,4 +42,14 @@ export function useLedgerEntries(query: () => LedgerPage) {
 export function useLedgerEntry(id: number) {
   return useLazyAsyncData(`board:treasury:entry:${id}`, (_nuxtApp, { signal }) =>
     loadData(useApi().GET('/api/board/treasury/entries/{entry_id}', { params: { path: { entry_id: id } }, signal })))
+}
+
+/**
+ * Every expense whose receipt is missing, for the invoice that would prove one
+ * (« Ligne déjà saisie »). A hundred cover what the committee leaves undone:
+ * one page serves.
+ */
+export function useMissingReceipts() {
+  return useLazyAsyncData('board:treasury:missing-receipts', (_nuxtApp, { signal }) =>
+    loadData(useApi().GET('/api/board/treasury/entries', { params: { query: { receipt_state: 'missing', page_size: 100 } }, signal })))
 }

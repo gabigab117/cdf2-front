@@ -7,6 +7,7 @@ import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpe
 import { boardDocument, extracted } from '../../helpers/documents'
 import { eventItem, julie, page } from '../../helpers/events'
 import { forgetPdfViewer, pdfViewer } from '../../helpers/files'
+import { ledgerEntry } from '../../helpers/treasury'
 
 type DocumentOut = components['schemas']['DocumentOut']
 
@@ -78,7 +79,7 @@ describe('the panel of a document', () => {
       'Événement Halloween des enfants',
       'Montant TTC 380,00 €',
     ])
-    expect(button(panel, 'Valider la facture').exists()).toBe(true)
+    expect(button(panel, 'Valider et créer l’écriture').exists()).toBe(true)
     expect(button(panel, 'Corriger').exists()).toBe(true)
   })
 
@@ -162,7 +163,7 @@ describe('the panel of a document', () => {
     const panel = await mountPanel(boardDocument({ status: 'validated', validated_by: julie, validated_at: '2026-09-29T10:00:00Z' }))
 
     expect(panel.text()).toContain('Validée par Julie R.')
-    expect(panel.text()).not.toContain('Valider la facture')
+    expect(panel.text()).not.toContain('Valider et créer l’écriture')
     expect(button(panel, 'Corriger').exists()).toBe(true)
   })
 
@@ -173,10 +174,96 @@ describe('the panel of a document', () => {
     }, { document_id: 21 })
     const panel = await mountPanel(boardDocument())
 
-    await button(panel, 'Valider la facture').trigger('click')
+    await button(panel, 'Valider et créer l’écriture').trigger('click')
 
     await vi.waitFor(() => expect(panel.text()).toContain('Validée par Julie R.'))
     expect(panel.emitted('changed')).toHaveLength(1)
+  })
+
+  it('validates a paid invoice with its expense, from the form that asks what the invoice does not tell', async () => {
+    /**
+     * Given the invoice of Animation 60, awaiting review, paid on 29 September
+     * When a member validates it and creates its entry, of « Location de matériel »
+     * by transfer
+     * Then the expense goes to the API, and the panel shows the invoice
+     * validated, its entry created, with a link to the line
+     */
+    mockApi('/api/board/treasury/entries', { method: 'GET', handler: () => apiResponse(200, page([])) })
+    mockApi('/api/board/treasury/invoices/{document_id}/expense', {
+      method: 'POST',
+      handler: () => apiResponse(200, boardDocument({
+        status: 'validated',
+        validated_by: julie,
+        validated_at: '2026-10-01T08:00:00Z',
+        paid_on: '2026-09-29',
+        ledger_entry: { id: 31, date: '2026-09-29', label: 'Facture — Location sono', created_at: '2026-09-29T09:00:00Z' },
+      })),
+    }, { document_id: 21 })
+    const sent = recordRequests()
+    const panel = await mountPanel(boardDocument({ paid_on: '2026-09-29' }))
+
+    await button(panel, 'Valider et créer l’écriture').trigger('click')
+    expect(panel.text()).toContain('Dépense de la facture')
+    await panel.get('select[required]').setValue('equipment_rental')
+    await panel.findAll('select[required]')[1]!.setValue('transfer')
+    await panel.get('form').trigger('submit')
+
+    await vi.waitFor(() => expect(panel.text()).toContain('Validée par Julie R. · écriture créée le 29 sept.'))
+    expect(sent.find(request => request.method === 'POST')).toEqual({
+      method: 'POST',
+      url: '/api/board/treasury/invoices/21/expense',
+      body: { paid_on: '2026-09-29', label: 'Facture — Location sono', category: 'equipment_rental', payment_method: 'transfer', advanced_by: null },
+    })
+    expect(panel.get('a[href="/bureau/tresorerie/ecritures/31"]').text()).toBe('Voir la ligne')
+    expect(panel.emitted('changed')).toHaveLength(1)
+  })
+
+  it('offers to mark paid a validated invoice, or to create the entry of one paid already', async () => {
+    const validated = { status: 'validated' as const, validated_by: julie, validated_at: '2026-09-29T10:00:00Z' }
+    mockApi('/api/board/treasury/entries', { method: 'GET', handler: () => apiResponse(200, page([])) })
+
+    const unpaid = await mountPanel(boardDocument(validated))
+    expect(button(unpaid, 'Marquer payée').exists()).toBe(true)
+    unpaid.unmount()
+
+    const paid = await mountPanel(boardDocument({ ...validated, paid_on: '2026-09-20' }))
+    expect(button(paid, 'Créer l’écriture').exists()).toBe(true)
+  })
+
+  it('attaches an invoice to the expense entered before it came, the one of the same amount offered first', async () => {
+    /**
+     * Given an invoice of 380,00 €, validated and not paid, and two expenses
+     * missing their receipt, one of 380,00 €
+     * When a member marks it paid as the receipt of a line already entered
+     * Then the line of the same amount is chosen, and the invoice is attached to it
+     */
+    mockApi('/api/board/treasury/entries', { method: 'GET', handler: () => apiResponse(200, page([
+      ledgerEntry({ id: 40, label: 'Courses', amount: '12.50' }),
+      ledgerEntry({ id: 41, label: 'Sono', amount: '380.00' }),
+    ])) })
+    mockApi('/api/board/treasury/invoices/{document_id}/attach', {
+      method: 'POST',
+      handler: () => apiResponse(200, boardDocument({ status: 'validated', paid_on: '2026-09-12', ledger_entry: { id: 41, date: '2026-09-12', label: 'Sono', created_at: '2026-09-12T16:00:00Z' } })),
+    }, { document_id: 21 })
+    const sent = recordRequests()
+    const panel = await mountPanel(boardDocument({ status: 'validated', validated_by: julie, validated_at: '2026-09-29T10:00:00Z' }))
+
+    await button(panel, 'Marquer payée').trigger('click')
+    await panel.get('input[value="existing"]').setValue(true)
+    await vi.waitFor(() => expect(panel.find('select[required]').exists()).toBe(true))
+    await panel.get('form').trigger('submit')
+
+    await vi.waitFor(() => expect(sent.find(request => request.method === 'POST')?.body).toEqual({ entry: 41 }))
+  })
+
+  it('warns that deleting the receipt of a line leaves the line without one', async () => {
+    const entry = { id: 31, date: '2026-09-29', label: 'Sono', created_at: '2026-09-29T09:00:00Z' }
+    const panel = await mountPanel(boardDocument({ status: 'validated', validated_by: julie, validated_at: '2026-09-29T10:00:00Z', ledger_entry: entry }))
+
+    await button(panel, 'Corriger').trigger('click')
+    await panel.findAll('button').find(candidate => candidate.text() === 'Supprimer')!.trigger('click')
+
+    expect(panel.text()).toContain('Il justifie la ligne « Sono » de la trésorerie, qui restera sans justificatif.')
   })
 
   it('tells why minutes could not be validated, a task by its number', async () => {

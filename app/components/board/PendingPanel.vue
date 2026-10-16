@@ -4,17 +4,21 @@ import type { components } from '~/types/api'
 type PendingOut = components['schemas']['PendingOut']
 
 // The « À traiter » panel the bell opens (A6): what awaits the board, each item
-// leading to where it is dealt with. The documents to review, then the loans
-// late or to prepare; the stock and the receipts join with their phases.
+// leading to where it is dealt with. The documents to review, the loans late or
+// to prepare, then what the treasury leaves to do; the stock joins with its
+// phase.
 const { pending } = defineProps<{ pending: PendingOut | null }>()
 
+const { amount } = useMoneyFormat()
 const { calendarDay, calendarWeekday } = useDateFormat()
 const now = useNow()
 
 const total = computed(() => pending?.total ?? 0)
+
 const documents = computed(() =>
   (pending?.documents.items ?? []).map(document => ({
-    id: document.id,
+    key: document.id,
+    to: documentLocation(document.id),
     title: document.title,
     line: `${DOCUMENT_CATEGORIES[document.category].label} · ${calendarDay(document.date, now.value)}`,
   })),
@@ -22,26 +26,66 @@ const documents = computed(() =>
 const documentsCount = computed(() => pending?.documents.counts.total ?? 0)
 // The panel lists the latest: the count leads to them all.
 const allDocuments = computed(() =>
-  documentsCount.value > documents.value.length ? `Voir les ${documentsCount.value} documents à vérifier` : null,
+  documentsCount.value > documents.value.length
+    ? { label: `Voir les ${documentsCount.value} documents à vérifier`, to: TO_REVIEW_LOCATION }
+    : null,
 )
 
 // The loans late, then those to prepare, under their own titles.
 const loans = computed(() =>
   (pending?.loans.items ?? []).map(loan => ({
-    id: loan.id,
     state: loan.state,
+    key: loan.id,
+    to: loanLocation(loan.id),
     title: loan.purpose ? `${loan.display_name} — ${loan.purpose}` : loan.display_name,
     line: loanHeadline(loan, parisDate(now.value), date => calendarWeekday(date, now.value)),
   })),
 )
-const loanSections = computed(() =>
-  [
+const loansCount = computed(() => (pending ? pending.loans.overdue + pending.loans.to_prepare : 0))
+const loanSections = computed(() => {
+  const sections = [
     { id: 'pending-overdue-loans', title: 'Prêts en retard', items: loans.value.filter(loan => loan.state === 'overdue') },
     { id: 'pending-loans-to-prepare', title: 'Prêts à préparer', items: loans.value.filter(loan => loan.state === 'to_prepare') },
-  ].filter(section => section.items.length > 0),
+  ].filter(section => section.items.length > 0)
+  const more = loansCount.value > loans.value.length ? { label: `Voir les ${loansCount.value} prêts à traiter`, to: LOANS_PATH } : null
+  // The link to them all follows the last of their sections.
+  return sections.map((section, index) => ({ ...section, more: index === sections.length - 1 ? more : null }))
+})
+
+// The expenses missing their receipt, the oldest first.
+const receipts = computed(() =>
+  (pending?.receipts.items ?? []).map(entry => ({
+    key: entry.id,
+    to: entryPath(entry.id),
+    title: entry.label,
+    line: [calendarDay(entry.date, now.value), amount(entry.amount), entry.contact && memberShortName(entry.contact)].filter(Boolean).join(' · '),
+  })),
 )
-const loansCount = computed(() => (pending ? pending.loans.overdue + pending.loans.to_prepare : 0))
-const allLoans = computed(() => (loansCount.value > loans.value.length ? `Voir les ${loansCount.value} prêts à traiter` : null))
+const allReceipts = computed(() => {
+  const count = pending?.receipts.count ?? 0
+  return count > receipts.value.length ? { label: `Voir les ${count} justificatifs manquants`, to: MISSING_RECEIPTS_LOCATION } : null
+})
+
+// The invoices to pay, the first due first.
+const invoices = computed(() =>
+  (pending?.invoices.items ?? []).map(invoice => ({
+    key: invoice.id,
+    to: documentLocation(invoice.id),
+    title: invoice.issuer || invoice.title,
+    line: [invoice.amount === null ? null : amount(invoice.amount), dueText(invoice)].filter(Boolean).join(' · '),
+  })),
+)
+const otherInvoices = computed(() => {
+  const others = (pending?.invoices.count ?? 0) - invoices.value.length
+  if (others < 1) return null
+  return { label: others === 1 ? 'Et 1 autre facture' : `Et ${others} autres factures` }
+})
+
+function dueText({ due_date, overdue }: { due_date: string | null, overdue: boolean }): string {
+  if (due_date === null) return 'sans échéance'
+  const day = calendarDay(due_date, now.value)
+  return overdue ? `échéance dépassée le ${day}` : `avant le ${day}`
+}
 </script>
 
 <template>
@@ -55,74 +99,34 @@ const allLoans = computed(() => (loansCount.value > loans.value.length ? `Voir l
     >
       Rien à traiter pour l’instant.
     </p>
-    <section
+    <BoardPendingSection
       v-if="documents.length > 0"
-      aria-labelledby="pending-documents"
-      class="flex flex-col"
-    >
-      <h3
-        id="pending-documents"
-        class="px-3 pt-1 pb-1.5 text-overline font-semibold text-argent-600 uppercase"
-      >
-        Documents à vérifier
-      </h3>
-      <ul class="flex flex-col">
-        <li
-          v-for="document in documents"
-          :key="document.id"
-        >
-          <NuxtLink
-            :to="documentLocation(document.id)"
-            class="flex flex-col gap-0.5 rounded-field px-3 py-2 transition-colors hover:bg-argent-100"
-          >
-            <span class="truncate text-ui font-medium text-sable-950">{{ document.title }}</span>
-            <span class="text-label text-argent-600">{{ document.line }}</span>
-          </NuxtLink>
-        </li>
-      </ul>
-      <UiButton
-        v-if="allDocuments"
-        variant="link"
-        class="mx-3 my-2 self-start"
-        :to="TO_REVIEW_LOCATION"
-      >
-        {{ allDocuments }}
-      </UiButton>
-    </section>
-    <section
+      id="pending-documents"
+      title="Documents à vérifier"
+      :items="documents"
+      :more="allDocuments"
+    />
+    <BoardPendingSection
       v-for="section in loanSections"
+      :id="section.id"
       :key="section.id"
-      :aria-labelledby="section.id"
-      class="flex flex-col"
-    >
-      <h3
-        :id="section.id"
-        class="px-3 pt-1 pb-1.5 text-overline font-semibold text-argent-600 uppercase"
-      >
-        {{ section.title }}
-      </h3>
-      <ul class="flex flex-col">
-        <li
-          v-for="loan in section.items"
-          :key="loan.id"
-        >
-          <NuxtLink
-            :to="loanLocation(loan.id)"
-            class="flex flex-col gap-0.5 rounded-field px-3 py-2 transition-colors hover:bg-argent-100"
-          >
-            <span class="truncate text-ui font-medium text-sable-950">{{ loan.title }}</span>
-            <span class="text-label text-argent-600">{{ loan.line }}</span>
-          </NuxtLink>
-        </li>
-      </ul>
-    </section>
-    <UiButton
-      v-if="allLoans"
-      variant="link"
-      class="mx-3 my-2 self-start"
-      :to="LOANS_PATH"
-    >
-      {{ allLoans }}
-    </UiButton>
+      :title="section.title"
+      :items="section.items"
+      :more="section.more"
+    />
+    <BoardPendingSection
+      v-if="receipts.length > 0"
+      id="pending-receipts"
+      title="Justificatifs manquants"
+      :items="receipts"
+      :more="allReceipts"
+    />
+    <BoardPendingSection
+      v-if="invoices.length > 0"
+      id="pending-invoices"
+      title="Factures à régler"
+      :items="invoices"
+      :more="otherInvoices"
+    />
   </div>
 </template>

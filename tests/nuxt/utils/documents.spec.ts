@@ -59,7 +59,7 @@ describe('validationAction', () => {
   it('validates an invoice, an order, or any other paper alone, and minutes with their tasks', () => {
     const task = { title: 'Valider le devis', assignee: null }
 
-    expect(validationAction(boardDocument())).toBe('Valider la facture')
+    expect(validationAction(boardDocument())).toBe('Valider et créer l’écriture')
     expect(validationAction(boardDocument({ category: 'order' }))).toBe('Valider la commande')
     expect(validationAction(boardDocument({ category: 'misc' }))).toBe('Valider le document')
     expect(validationAction(boardDocument({ category: 'minutes', extracted: extracted() }))).toBe('Valider le compte rendu')
@@ -146,6 +146,19 @@ describe('documentPayload', () => {
     const document = boardDocument({ amount: '380.00', due_date: '2026-10-28' })
 
     expect(documentPayload(documentFields(document))).toMatchObject({ amount: '380.00', due_date: '2026-10-28', title: document.title })
+  })
+})
+
+describe('paymentAction', () => {
+  it('asks to mark an invoice paid, or to create the entry of one paid, until it has its entry', () => {
+    const validated = boardDocument({ status: 'validated' })
+    const entry = { id: 31, date: '2026-09-29', label: 'Sono', created_at: '2026-09-29T09:00:00Z' }
+
+    expect(paymentAction(validated)).toBe('Marquer payée')
+    expect(paymentAction({ ...validated, paid_on: '2026-09-29' })).toBe('Créer l’écriture')
+    expect(paymentAction({ ...validated, ledger_entry: entry })).toBeNull()
+    expect(paymentAction(boardDocument())).toBeNull()
+    expect(paymentAction({ ...validated, category: 'order' })).toBeNull()
   })
 })
 

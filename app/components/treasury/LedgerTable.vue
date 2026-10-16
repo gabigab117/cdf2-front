@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Paperclip } from '@lucide/vue'
 import type { components } from '~/types/api'
 
 type LedgerEntryOut = components['schemas']['LedgerEntryOut']
@@ -28,6 +29,7 @@ const COLUMNS = 'grid-cols-ledger-narrow md:grid-cols-ledger'
       <span class="max-md:hidden">Événement</span>
       <span class="max-md:hidden">Paiement</span>
       <span class="text-right">Montant</span>
+      <span class="text-center">Just.</span>
     </div>
     <ul class="divide-y divide-argent-100">
       <li
@@ -62,6 +64,27 @@ const COLUMNS = 'grid-cols-ledger-narrow md:grid-cols-ledger'
               class="text-right"
               :entry
             />
+            <span class="flex justify-center">
+              <Paperclip
+                v-if="entry.receipt_state === 'attached'"
+                :size="16"
+                role="img"
+                :aria-label="RECEIPT_STATE_LABELS.attached"
+                class="text-azur-600"
+              />
+              <span
+                v-else-if="entry.receipt_state === 'missing'"
+                role="img"
+                :aria-label="RECEIPT_STATE_LABELS.missing"
+                class="inline-flex size-5.5 items-center justify-center rounded-full bg-ambre-50 text-note font-bold text-ambre-700"
+              >!</span>
+              <span
+                v-else
+                role="img"
+                :aria-label="RECEIPT_STATE_LABELS.not_required"
+                class="text-argent-400"
+              >—</span>
+            </span>
           </span>
         </UiSelectableRow>
       </li>

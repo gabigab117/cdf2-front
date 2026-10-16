@@ -4,6 +4,7 @@ import { julie } from './events'
 type FiscalYearResultsOut = components['schemas']['FiscalYearResultsOut']
 type LedgerEntryOut = components['schemas']['LedgerEntryOut']
 type LedgerTotalsOut = components['schemas']['LedgerTotalsOut']
+type UnpaidInvoiceOut = components['schemas']['UnpaidInvoiceOut']
 
 /** The drinks of the brocante's bar, advanced by Julie, as the API gives a line. */
 export function ledgerEntry(changes: Partial<LedgerEntryOut> = {}): LedgerEntryOut {
@@ -23,8 +24,22 @@ export function ledgerEntry(changes: Partial<LedgerEntryOut> = {}): LedgerEntryO
     note: '',
     created_by: julie,
     created_at: '2026-09-12T16:00:00Z',
+    receipt: null,
+    receipt_state: 'missing',
+    contact: julie,
     ...changes,
   }
+}
+
+/** The sound system's invoice, validated and still to pay, as the bell lists it. */
+export function unpaidInvoice(changes: Partial<UnpaidInvoiceOut> = {}): UnpaidInvoiceOut {
+  return { id: 21, title: 'Facture — Location sono', issuer: 'Animation 60', amount: '380.00', due_date: '2026-10-28', overdue: false, ...changes }
+}
+
+/** Nothing the treasury leaves to the board: no receipt missing, no invoice to pay. */
+export const NOTHING_TO_PAY = {
+  receipts: { count: 0, items: [] },
+  invoices: { count: 0, items: [] },
 }
 
 function totals(income: string, expense: string, result: string, count: number): LedgerTotalsOut {
