@@ -26,7 +26,8 @@ const events = useEventChoices()
 const { calendarInWords } = useDateFormat()
 const { recordEntry } = useTreasuryWrites()
 
-const fields = ref<EntryFields>(newEntryFields('expense', parisDate(now.value)))
+const today = computed(() => parisDate(now.value))
+const fields = ref<EntryFields>(newEntryFields('expense', today.value))
 // A file is kept as it is: nothing in it is to be watched.
 const photo = shallowRef<File | null>(null)
 const preview = ref<string | null>(null)
@@ -36,13 +37,15 @@ const picker = useTemplateRef<HTMLInputElement>('picker')
 const alert = useTemplateRef<HTMLElement>('alert')
 
 const categories = categoryOptions('expense')
-const today = computed(() => parisDate(now.value))
 const eventOptions = computed(() => [{ value: null, label: 'Aucun — hors événement' }, ...events.value])
 // « TTC · mercredi 30 septembre »
 const day = computed(() => (fields.value.date ? `TTC · ${calendarInWords(fields.value.date, now.value, { weekday: true })}` : 'TTC'))
 // The amount's field fits what it holds, « 0,00 » at least: the euro sign follows it.
 const amountSize = computed(() => Math.max(fields.value.amount.length, 4))
-const photoText = computed(() => (photo.value ? 'Elle sera jointe à la dépense.' : 'Elle servira de justificatif.'))
+// What the card of the photo says, and its button.
+const photoCopy = computed(() => (photo.value
+  ? { text: 'Elle sera jointe à la dépense.', action: 'Reprendre' }
+  : { text: 'Elle servira de justificatif.', action: 'Prendre' }))
 const advance = computed(() => fields.value.paymentMethod === 'advance')
 const advancer = computed(() => (session.member ? memberName(session.member) : null))
 
@@ -127,13 +130,13 @@ async function refuse(messages: string[]): Promise<void> {
       </span>
       <div class="flex min-w-0 flex-1 flex-col gap-0.5">
         <span class="text-ui font-semibold">Photo du ticket</span>
-        <span class="text-note text-argent-600">{{ photoText }}</span>
+        <span class="text-note text-argent-600">{{ photoCopy.text }}</span>
       </div>
       <UiButton
         variant="secondary"
         @click="picker?.click()"
       >
-        {{ photo ? 'Reprendre' : 'Prendre' }}
+        {{ photoCopy.action }}
       </UiButton>
       <input
         ref="picker"
@@ -216,10 +219,7 @@ async function refuse(messages: string[]): Promise<void> {
       tabindex="-1"
       class="flex items-start gap-2 px-1 text-sm text-ambre-800"
     >
-      <span
-        class="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-ambre-50 text-xs font-bold text-ambre-700"
-        aria-hidden="true"
-      >!</span>
+      <UiErrorMark />
       <span class="flex flex-col">
         <span
           v-for="message in errors"

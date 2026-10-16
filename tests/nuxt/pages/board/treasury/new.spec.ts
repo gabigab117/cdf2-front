@@ -17,6 +17,10 @@ function row(expense: VueWrapper, label: string) {
   return expense.get(`#${name.attributes('for')}`)
 }
 
+function record(expense: VueWrapper) {
+  return expense.findAll('button').find(button => button.text() === 'Enregistrer la dépense')!.trigger('click')
+}
+
 function readable(text: string): string {
   return text.replace(/[\u202F\u00A0]/g, ' ')
 }
@@ -63,7 +67,7 @@ describe('the expense entered on a phone', () => {
     await expense.get('input[type="radio"][value="advance"]').setValue(true)
     expect(expense.text()).toContain('Avancé par vous. Le remboursement sera ajouté aux écritures à traiter.')
     expect(expense.text()).toContain('Reprendre')
-    await expense.findAll('button').find(button => button.text() === 'Enregistrer la dépense')!.trigger('click')
+    await record(expense)
 
     await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith('/bureau/tresorerie/ecritures/31'))
     expect(sent.find(request => request.method === 'POST')?.body).toEqual({
@@ -87,7 +91,7 @@ describe('the expense entered on a phone', () => {
 
     await expense.get('input[aria-label="Montant TTC"]').setValue('12')
     await row(expense, 'Fournisseur').setValue('Boulangerie')
-    await expense.findAll('button').find(button => button.text() === 'Enregistrer la dépense')!.trigger('click')
+    await record(expense)
 
     await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith('/bureau/tresorerie/ecritures/32'))
     expect(sent.find(request => request.method === 'POST')?.body).toMatchObject({ label: 'Boulangerie', payment_method: 'association_card', supplier: 'Boulangerie' })
@@ -111,7 +115,7 @@ describe('the expense entered on a phone', () => {
     // Attached to the document, which gives the focus.
     const expense = await mountSuspended(NewExpensePage, { route: '/bureau/tresorerie/nouvelle', attachTo: document.body })
 
-    await expense.findAll('button').find(button => button.text() === 'Enregistrer la dépense')!.trigger('click')
+    await record(expense)
 
     await vi.waitFor(() => expect(document.activeElement?.getAttribute('role')).toBe('alert'))
     const alert = expense.get('[role="alert"]')
@@ -128,7 +132,7 @@ describe('the expense entered on a phone', () => {
 
     await expense.get('input[aria-label="Montant TTC"]').setValue('12')
     await row(expense, 'Note').setValue('Pain')
-    await expense.findAll('button').find(button => button.text() === 'Enregistrer la dépense')!.trigger('click')
+    await record(expense)
 
     await vi.waitFor(() => expect(expense.get('[role="alert"]').text()).toContain('Date : La date ne peut pas être dans le futur.'))
     expect(navigateToMock).not.toHaveBeenCalled()

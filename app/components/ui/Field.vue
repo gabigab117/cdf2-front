@@ -51,10 +51,7 @@ const describedby = computed(() =>
       :id="errorId"
       class="flex items-start gap-2 text-sm text-ambre-800"
     >
-      <span
-        class="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-ambre-50 text-xs font-bold text-ambre-700"
-        aria-hidden="true"
-      >!</span>
+      <UiErrorMark />
       <span>{{ errors.join(' ') }}</span>
     </p>
   </div>
