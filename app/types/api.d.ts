@@ -1165,6 +1165,31 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/treasury/entries/{entry_id}/reimbursement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark an advance reimbursed
+         * @description « Marquer remboursée »: the advance of a member is paid back, its line
+         *     completed; no second expense is written (A18).
+         */
+        post: operations["treasury_api_reimburse"];
+        /**
+         * Cancel the reimbursement of an advance
+         * @description « Annuler le remboursement »: the advance is owed again.
+         */
+        delete: operations["treasury_api_cancel_reimbursement_of"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/treasury/invoices/{document_id}/attach": {
         parameters: {
             query?: never;
@@ -1202,6 +1227,27 @@ export interface paths {
          *     awaited review.
          */
         post: operations["treasury_api_record_invoice_expense"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/treasury/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the report of a fiscal year for the general meeting
+         * @description « Bilan pour l'AG »: the totals and results of a fiscal year, what each
+         *     category brought in or cost, and the expenses missing their receipt.
+         */
+        get: operations["treasury_api_read_report"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1993,6 +2039,24 @@ export interface components {
             years: number[];
         };
         /**
+         * GeneralMeetingReportOut
+         * @description The report of a fiscal year for the general meeting: a bounded aggregate (A7).
+         */
+        GeneralMeetingReportOut: {
+            /** Events */
+            events: components["schemas"]["LedgerEventResultOut"][];
+            /** Expense Categories */
+            expense_categories: components["schemas"]["LedgerCategoryTotalOut"][];
+            general: components["schemas"]["LedgerTotalsOut"];
+            /** Income Categories */
+            income_categories: components["schemas"]["LedgerCategoryTotalOut"][];
+            /** Missing Receipts */
+            missing_receipts: components["schemas"]["LedgerEntryOut"][];
+            totals: components["schemas"]["LedgerTotalsOut"];
+            /** Year */
+            year: number;
+        };
+        /**
          * GeneralTasksOut
          * @description The tasks without an event (D10), as the dashboard's block shows them.
          */
@@ -2108,6 +2172,17 @@ export interface components {
          */
         LedgerCategory: "food" | "drinks" | "equipment_rental" | "decoration" | "prizes" | "insurance" | "bank_fees" | "bar" | "pitches" | "tickets" | "grant" | "membership_fees" | "donations" | "misc";
         /**
+         * LedgerCategoryTotalOut
+         * @description What a category brought in, or cost, over a fiscal year.
+         */
+        LedgerCategoryTotalOut: {
+            category: components["schemas"]["LedgerCategory"];
+            /** Count */
+            count: number;
+            /** Total */
+            total: string;
+        };
+        /**
          * LedgerEntryFilters
          * @description The entries the journal keeps: every filter given applies.
          */
@@ -2120,6 +2195,11 @@ export interface components {
              */
             general: boolean;
             receipt_state?: components["schemas"]["LedgerReceiptState"] | null;
+            /**
+             * To Reimburse
+             * @default false
+             */
+            to_reimburse: boolean;
             /** Year */
             year?: number | null;
         };
@@ -2887,6 +2967,18 @@ export interface components {
             email: string;
         };
         /**
+         * PendingAdvancesOut
+         * @description The advances the committee owes its members (6.5).
+         */
+        PendingAdvancesOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["LedgerEntryOut"][];
+            /** Total */
+            total: string;
+        };
+        /**
          * PendingDocumentsOut
          * @description The documents awaiting review: how many, by category, and the latest.
          */
@@ -2922,6 +3014,7 @@ export interface components {
          * @description What awaits the board (A6): the bell's panel, the sidebar's badges.
          */
         PendingOut: {
+            advances: components["schemas"]["PendingAdvancesOut"];
             documents: components["schemas"]["PendingDocumentsOut"];
             invoices: components["schemas"]["PendingInvoicesOut"];
             loans: components["schemas"]["PendingLoansOut"];
@@ -3073,6 +3166,18 @@ export interface components {
             time: string;
             /** Title */
             title: string;
+        };
+        /**
+         * ReimbursementIn
+         * @description How the committee paid an advance back: every key required.
+         */
+        ReimbursementIn: {
+            /**
+             * Reimbursed On
+             * Format: date
+             */
+            reimbursed_on: string;
+            reimbursement_method: components["schemas"]["ReimbursementMethod"];
         };
         /**
          * ReimbursementMethod
@@ -7455,6 +7560,7 @@ export interface operations {
                 event?: number | null;
                 general?: boolean;
                 receipt_state?: components["schemas"]["LedgerReceiptState"] | null;
+                to_reimburse?: boolean;
                 page?: number;
                 page_size?: number | null;
             };
@@ -7866,6 +7972,135 @@ export interface operations {
             };
         };
     };
+    treasury_api_reimburse: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReimbursementIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LedgerEntryOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_cancel_reimbursement_of: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LedgerEntryOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
     treasury_api_attach_invoice_to_expense: {
         parameters: {
             query?: never;
@@ -7990,6 +8225,55 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_read_report: {
+        parameters: {
+            query: {
+                year: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GeneralMeetingReportOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

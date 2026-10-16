@@ -18,6 +18,7 @@ function mockPending(receipts: LedgerEntryOut[], receiptsCount: number, invoices
       loans: { overdue: 0, to_prepare: 0, items: [] },
       receipts: { count: receiptsCount, items: receipts },
       invoices: { count: invoicesCount, items: invoices },
+      advances: { count: 0, total: '0.00', items: [] },
     },
   }) })
 }

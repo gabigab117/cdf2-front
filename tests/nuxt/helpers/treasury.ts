@@ -36,10 +36,11 @@ export function unpaidInvoice(changes: Partial<UnpaidInvoiceOut> = {}): UnpaidIn
   return { id: 21, title: 'Facture — Location sono', issuer: 'Animation 60', amount: '380.00', due_date: '2026-10-28', overdue: false, ...changes }
 }
 
-/** Nothing the treasury leaves to the board: no receipt missing, no invoice to pay. */
+/** Nothing the treasury leaves to the board: no receipt missing, no invoice to pay, no advance owed. */
 export const NOTHING_TO_PAY = {
   receipts: { count: 0, items: [] },
   invoices: { count: 0, items: [] },
+  advances: { count: 0, total: '0.00', items: [] },
 }
 
 function totals(income: string, expense: string, result: string, count: number): LedgerTotalsOut {
