@@ -16,14 +16,13 @@ const now = useNow()
 
 const COLUMNS = 'grid-cols-ledger-narrow md:grid-cols-ledger'
 
-const rows = computed(() => entries.map(entry => ({ entry, reimbursement: reimbursement(entry) })))
+const rows = computed(() => entries.map(entry => ({ entry, paidBack: reimbursement(entry) })))
 
-// Under « Avancé par Julie R. »: « À rembourser », in amber, or the day the
-// advance was paid back.
+// Under « Avancé par Julie R. »: « À rembourser », in amber, or « Remboursée »,
+// the day being on the line's page: the column keeps to one line.
 function reimbursement(entry: LedgerEntryOut): { text: string, owed: boolean } | null {
   if (entry.payment_method !== 'advance') return null
-  if (entry.reimbursed_on === null) return { text: 'À rembourser', owed: true }
-  return { text: `Remboursée le ${calendarDay(entry.reimbursed_on, now.value)}`, owed: false }
+  return entry.reimbursed_on === null ? { text: 'À rembourser', owed: true } : { text: 'Remboursée', owed: false }
 }
 </script>
 
@@ -43,7 +42,7 @@ function reimbursement(entry: LedgerEntryOut): { text: string, owed: boolean } |
     </div>
     <ul class="divide-y divide-argent-100">
       <li
-        v-for="{ entry, reimbursement: paidBack } in rows"
+        v-for="{ entry, paidBack } in rows"
         :key="entry.id"
       >
         <UiSelectableRow
@@ -73,7 +72,7 @@ function reimbursement(entry: LedgerEntryOut): { text: string, owed: boolean } |
               <span class="truncate text-note text-sable-600">{{ paymentText(entry) }}</span>
               <span
                 v-if="paidBack"
-                class="text-caption"
+                class="truncate text-caption"
                 :class="paidBack.owed ? 'font-semibold text-ambre-700' : 'text-argent-600'"
               >{{ paidBack.text }}</span>
             </span>

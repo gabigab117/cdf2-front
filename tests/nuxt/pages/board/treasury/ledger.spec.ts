@@ -71,7 +71,7 @@ describe('the page of the whole journal', () => {
     expect(ledger.find('nav[aria-label="Filtrer par événement"]').exists()).toBe(false)
     await vi.waitFor(() => expect(ledger.find('a[href="/bureau/tresorerie/ecritures/5"]').exists()).toBe(true))
     expect(ledger.get('a[href="/bureau/tresorerie/ecritures/4"]').text()).toContain('À rembourser')
-    expect(ledger.get('a[href="/bureau/tresorerie/ecritures/5"]').text()).toContain('Remboursée le 20 sept.')
+    expect(ledger.get('a[href="/bureau/tresorerie/ecritures/5"]').text()).toContain('Remboursée')
   })
 
   it('says when no advance is owed', async () => {
