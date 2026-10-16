@@ -57,6 +57,31 @@ describe('the page of the whole journal', () => {
     expect(ledger.get('nav[aria-label="Fil d’Ariane"] a').attributes('href')).toBe('/bureau/tresorerie')
   })
 
+  it('lists every year’s advances to pay back, and tells one paid back', async () => {
+    mockApi('/api/board/treasury/entries', { method: 'GET', handler: () => apiResponse(200, page([
+      ledgerEntry(),
+      ledgerEntry({ id: 5, reimbursed_on: '2026-09-20', reimbursement_method: 'transfer' }),
+    ])) })
+    const sent = recordRequests()
+
+    const ledger = await mountSuspended(LedgerPage, { route: '/bureau/tresorerie/journal?avance=a-rembourser' })
+
+    await vi.waitFor(() => expect(sent.map(request => request.url)).toContain('/api/board/treasury/entries?to_reimburse=true&page=1&page_size=25'))
+    expect(ledger.get('h1').text()).toBe('Avances à rembourser')
+    expect(ledger.find('nav[aria-label="Filtrer par événement"]').exists()).toBe(false)
+    await vi.waitFor(() => expect(ledger.find('a[href="/bureau/tresorerie/ecritures/5"]').exists()).toBe(true))
+    expect(ledger.get('a[href="/bureau/tresorerie/ecritures/4"]').text()).toContain('À rembourser')
+    expect(ledger.get('a[href="/bureau/tresorerie/ecritures/5"]').text()).toContain('Remboursée le 20 sept.')
+  })
+
+  it('says when no advance is owed', async () => {
+    mockApi('/api/board/treasury/entries', { method: 'GET', handler: () => apiResponse(200, page([])) })
+
+    const ledger = await mountSuspended(LedgerPage, { route: '/bureau/tresorerie/journal?avance=a-rembourser' })
+
+    await vi.waitFor(() => expect(ledger.text()).toContain('Aucune avance à rembourser.'))
+  })
+
   it('says when every receipt is joined', async () => {
     mockApi('/api/board/treasury/entries', { method: 'GET', handler: () => apiResponse(200, page([])) })
 

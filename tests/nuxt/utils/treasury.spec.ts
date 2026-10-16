@@ -6,13 +6,14 @@ const NOW = Date.parse('2026-10-01T10:00:00+02:00')
 
 describe('parseTreasuryQuery', () => {
   it('reads the fiscal year, the filter and the page of an address', () => {
-    expect(parseTreasuryQuery({ exercice: '2025', evenement: '12', page: '2' })).toEqual({ year: 2025, filter: 12, page: 2, missing: false })
-    expect(parseTreasuryQuery({ evenement: 'aucun' })).toEqual({ year: null, filter: 'general', page: 1, missing: false })
-    expect(parseTreasuryQuery({ justificatif: 'manquant' })).toMatchObject({ missing: true })
+    expect(parseTreasuryQuery({ exercice: '2025', evenement: '12', page: '2' })).toEqual({ year: 2025, filter: 12, page: 2, pending: null })
+    expect(parseTreasuryQuery({ evenement: 'aucun' })).toEqual({ year: null, filter: 'general', page: 1, pending: null })
+    expect(parseTreasuryQuery({ justificatif: 'manquant' })).toMatchObject({ pending: 'receipts' })
+    expect(parseTreasuryQuery({ avance: 'a-rembourser' })).toMatchObject({ pending: 'advances' })
   })
 
   it('leaves out what the page does not know', () => {
-    expect(parseTreasuryQuery({ exercice: 'cette année', evenement: 'brocante', page: '-1' })).toEqual({ year: null, filter: null, page: 1, missing: false })
+    expect(parseTreasuryQuery({ exercice: 'cette année', evenement: 'brocante', page: '-1', avance: 'toutes' })).toEqual({ year: null, filter: null, page: 1, pending: null })
   })
 })
 
@@ -20,7 +21,8 @@ describe('treasuryQuery', () => {
   it('writes the fiscal year, the filter and the page, the defaults left out', () => {
     expect(treasuryQuery({ year: 2025, filter: 'general', page: 2 })).toEqual({ exercice: '2025', evenement: 'aucun', page: '2', justificatif: undefined })
     expect(treasuryQuery({ year: null, filter: 12, page: 1 })).toEqual({ exercice: undefined, evenement: '12', page: undefined, justificatif: undefined })
-    expect(treasuryQuery({ year: null, filter: null, page: 1, missing: true })).toEqual({ exercice: undefined, evenement: undefined, page: undefined, justificatif: 'manquant' })
+    expect(treasuryQuery({ year: null, filter: null, page: 1, pending: 'receipts' })).toEqual({ justificatif: 'manquant' })
+    expect(treasuryQuery({ year: null, filter: null, page: 1, pending: 'advances' })).toEqual({ avance: 'a-rembourser' })
   })
 
   it('leads to the journal of a page', () => {
@@ -33,7 +35,8 @@ describe('ledgerFilters', () => {
     expect(ledgerFilters(2026, null)).toEqual({ year: 2026 })
     expect(ledgerFilters(2026, 12)).toEqual({ year: 2026, event: 12 })
     expect(ledgerFilters(2026, 'general')).toEqual({ year: 2026, general: true })
-    expect(ledgerFilters(2026, 12, true)).toEqual({ receipt_state: 'missing' })
+    expect(ledgerFilters(2026, 12, 'receipts')).toEqual({ receipt_state: 'missing' })
+    expect(ledgerFilters(2026, 12, 'advances')).toEqual({ to_reimburse: true })
   })
 })
 
@@ -152,7 +155,8 @@ describe('the words of the treasury assistant', () => {
       .toBe('mailto:julie@example.test?subject=Justificatif%20%C3%A0%20d%C3%A9poser%20%3A%20Courses&body=Bonjour%20Julie%2C%0AMerci%20!')
   })
 
-  it('leads to every year’s receipts missing', () => {
-    expect(MISSING_RECEIPTS_LOCATION).toEqual({ path: '/bureau/tresorerie/journal', query: { justificatif: 'manquant' } })
+  it('leads to every year’s receipts missing, and advances to pay back', () => {
+    expect(pendingLinesLocation('receipts')).toEqual({ path: '/bureau/tresorerie/journal', query: { justificatif: 'manquant' } })
+    expect(pendingLinesLocation('advances')).toEqual({ path: '/bureau/tresorerie/journal', query: { avance: 'a-rembourser' } })
   })
 })

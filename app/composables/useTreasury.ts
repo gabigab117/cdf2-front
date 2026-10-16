@@ -1,4 +1,4 @@
-import type { LedgerFilter } from '~/utils/treasury'
+import type { LedgerFilter, PendingLines } from '~/utils/treasury'
 
 /** A fiscal year's results: its figures, its events with lines, its years. Lazy. */
 export function useTreasuryResults(year: () => number) {
@@ -15,23 +15,23 @@ export interface LedgerPage {
   filter: LedgerFilter
   page: number
   size: number
-  /** Every year's lines whose receipt is missing, in place of the year's. */
-  missing?: boolean
+  /** Every year's pending lines, in place of the year's. */
+  pending?: PendingLines | null
 }
 
 /** A page of the journal, the latest line first. Lazy. */
 export function useLedgerEntries(query: () => LedgerPage) {
   return useLazyAsyncData(
     () => {
-      const { year, filter, page, size, missing = false } = query()
-      return missing
-        ? `board:treasury:entries:missing:${page}:${size}`
+      const { year, filter, page, size, pending = null } = query()
+      return pending
+        ? `board:treasury:entries:${pending}:${page}:${size}`
         : `board:treasury:entries:${year}:${filter ?? 'all'}:${page}:${size}`
     },
     (_nuxtApp, { signal }) => {
-      const { year, filter, page, size, missing } = query()
+      const { year, filter, page, size, pending } = query()
       return loadData(useApi().GET('/api/board/treasury/entries', {
-        params: { query: { ...ledgerFilters(year, filter, missing), page, page_size: size } },
+        params: { query: { ...ledgerFilters(year, filter, pending), page, page_size: size } },
         signal,
       }))
     },

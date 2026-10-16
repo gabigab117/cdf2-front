@@ -4,7 +4,7 @@ import type { ComponentPublicInstance } from 'vue'
 
 // An action asked in the page itself, never in a dialog of the browser: the
 // question takes the focus as it shows (useConfirmation brings it back).
-const { question, pending = false, failure = null, action = 'Supprimer définitivement' } = defineProps<{
+const { question, pending = false, failure = null, action = 'Supprimer définitivement', keep = 'Annuler' } = defineProps<{
   question: string
   /** The action is under way. */
   pending?: boolean
@@ -12,6 +12,8 @@ const { question, pending = false, failure = null, action = 'Supprimer définiti
   failure?: string | null
   /** The button that confirms. */
   action?: string
+  /** The button that leaves things as they are, when « Annuler » would read as the action. */
+  keep?: string
 }>()
 
 const emit = defineEmits<{ confirm: [], cancel: [] }>()
@@ -53,7 +55,7 @@ onMounted(() => {
         size="sm"
         @click="emit('cancel')"
       >
-        Annuler
+        {{ keep }}
       </UiButton>
     </template>
   </UiCallout>

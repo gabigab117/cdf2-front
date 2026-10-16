@@ -5,8 +5,8 @@ type PendingOut = components['schemas']['PendingOut']
 
 // The « À traiter » panel the bell opens (A6): what awaits the board, each item
 // leading to where it is dealt with. The documents to review, the loans late or
-// to prepare, then what the treasury leaves to do; the stock joins with its
-// phase.
+// to prepare, then what the treasury leaves to do: the receipts missing, the
+// invoices to pay and the advances to pay back. The stock joins with its phase.
 const { pending } = defineProps<{ pending: PendingOut | null }>()
 
 const { amount } = useMoneyFormat()
@@ -63,7 +63,21 @@ const receipts = computed(() =>
 )
 const allReceipts = computed(() => {
   const count = pending?.receipts.count ?? 0
-  return count > receipts.value.length ? { label: `Voir les ${count} justificatifs manquants`, to: MISSING_RECEIPTS_LOCATION } : null
+  return count > receipts.value.length ? { label: `Voir les ${count} justificatifs manquants`, to: pendingLinesLocation('receipts') } : null
+})
+
+// The advances the committee owes its members, the oldest first.
+const advances = computed(() =>
+  (pending?.advances.items ?? []).map(entry => ({
+    key: entry.id,
+    to: entryPath(entry.id),
+    title: entry.label,
+    line: [calendarDay(entry.date, now.value), amount(entry.amount), entry.advanced_by ? memberShortName(entry.advanced_by) : 'Ancien membre'].join(' · '),
+  })),
+)
+const allAdvances = computed(() => {
+  const count = pending?.advances.count ?? 0
+  return count > advances.value.length ? { label: `Voir les ${count} avances à rembourser`, to: pendingLinesLocation('advances') } : null
 })
 
 // The invoices to pay, the first due first.
@@ -127,6 +141,13 @@ function dueText({ due_date, overdue }: { due_date: string | null, overdue: bool
       title="Factures à régler"
       :items="invoices"
       :more="otherInvoices"
+    />
+    <BoardPendingSection
+      v-if="advances.length > 0"
+      id="pending-advances"
+      title="Avances à rembourser"
+      :items="advances"
+      :more="allAdvances"
     />
   </div>
 </template>

@@ -113,6 +113,11 @@ async function remove(): Promise<void> {
         :entry
         @changed="entry = $event"
       />
+      <TreasuryReimbursement
+        v-if="!editing && entry.payment_method === 'advance'"
+        :entry
+        @changed="entry = $event"
+      />
       <UiConfirmation
         v-if="confirming"
         :question

@@ -89,14 +89,14 @@ describe('the Trésorerie page', () => {
     expect(rows[0]!.attributes('aria-current')).toBe('page')
   })
 
-  it('shows a line of the journal: its date, label, category, event, payment and amount', async () => {
+  it('shows a line of the journal: its date, label, category, event, payment, reimbursement and amount', async () => {
     mockPage()
 
     const treasury = await mountSuspended(TreasuryPage, { route: '/bureau/tresorerie' })
 
     await vi.waitFor(() => expect(treasury.find('a[href="/bureau/tresorerie/ecritures/4"]').exists()).toBe(true))
     const row = treasury.get('a[href="/bureau/tresorerie/ecritures/4"]')
-    expect(readable(row.text())).toBe('12 sept.Courses buvetteBoissonsBrocanteAvancé par Julie R.−286,30 €!')
+    expect(readable(row.text())).toBe('12 sept.Courses buvetteBoissonsBrocanteAvancé par Julie R.À rembourser−286,30 €!')
   })
 
   it('filters the journal by the event of the address', async () => {

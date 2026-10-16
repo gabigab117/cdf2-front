@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import type { RouteLocationRaw } from 'vue-router'
 import type { components } from '~/types/api'
-import type { LedgerFilter } from '~/utils/treasury'
+import type { LedgerFilter, PendingLines } from '~/utils/treasury'
 
 type FiscalYearResultsOut = components['schemas']['FiscalYearResultsOut']
 type PagedLedgerEntryOut = components['schemas']['PagedLedgerEntryOut']
 
 // The journal of a fiscal year: its chips, its lines, and what follows them, the
 // link to the whole journal or the pages.
-const { year, results, page, filter, location, error = null, loading = false, highlighted = null, missing = false } = defineProps<{
+const { year, results, page, filter, location, error = null, loading = false, highlighted = null, pending = null } = defineProps<{
   year: number
-  /** Every year's lines whose receipt is missing: no chip of a year. */
-  missing?: boolean
+  /** Every year's pending lines: no chip of a year. */
+  pending?: PendingLines | null
   /** The fiscal year's results, which count the lines of each chip. */
   results: FiscalYearResultsOut | null
   /** The page of lines the filter keeps, and how many it keeps in all. */
@@ -35,7 +35,7 @@ const chips = computed(() => [
   ...(results?.events ?? []).map(result => ({ label: result.event.title, filter: result.event.id, count: result.count })),
 ])
 const entries = computed(() => page?.items ?? [])
-const emptyText = computed(() => (missing ? 'Tous les justificatifs sont joints.' : `Aucune ligne pour l’exercice ${year}.`))
+const emptyText = computed(() => (pending ? PENDING_LINES_TEXTS[pending].empty : `Aucune ligne pour l’exercice ${year}.`))
 const countText = computed(() => {
   const count = page?.count ?? 0
   return `${count} ${count < 2 ? 'ligne' : 'lignes'}`
@@ -55,7 +55,7 @@ const countText = computed(() => {
         <span class="text-note text-argent-600">{{ countText }}</span>
       </div>
       <nav
-        v-if="!missing"
+        v-if="!pending"
         aria-label="Filtrer par événement"
         class="flex flex-wrap gap-1.5"
       >

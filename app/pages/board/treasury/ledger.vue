@@ -7,11 +7,11 @@ const route = useRoute()
 const now = useNow()
 const query = computed(() => parseTreasuryQuery(route.query))
 const year = computed(() => shownYear(query.value, now.value))
-// Every year's lines whose receipt is missing, as the bell leads to them.
-const missing = computed(() => query.value.missing ?? false)
-const title = computed(() => (missing.value ? 'Justificatifs manquants' : 'Journal'))
+// Every year's pending lines, as the bell leads to them.
+const pending = computed(() => query.value.pending ?? null)
+const title = computed(() => (pending.value ? PENDING_LINES_TEXTS[pending.value].title : 'Journal'))
 
-useHead({ title: () => (missing.value ? 'Justificatifs manquants' : 'Journal de la trésorerie') })
+useHead({ title: () => (pending.value ? title.value : 'Journal de la trésorerie') })
 
 const { data: results } = useTreasuryResults(() => year.value)
 const { data: page, status, error, refresh } = useLedgerEntries(() => ({
@@ -19,12 +19,12 @@ const { data: page, status, error, refresh } = useLedgerEntries(() => ({
   filter: query.value.filter,
   page: query.value.page,
   size: LEDGER_PAGE_SIZE,
-  missing: missing.value,
+  pending: pending.value,
 }))
 
 const pageCount = computed(() => Math.ceil((page.value?.count ?? 0) / LEDGER_PAGE_SIZE))
 const breadcrumb = computed(() => [
-  { label: 'Trésorerie', to: ledgerLocation(TREASURY_PATH, { ...query.value, filter: null, page: 1, missing: false }) },
+  { label: 'Trésorerie', to: ledgerLocation(TREASURY_PATH, { ...query.value, filter: null, page: 1, pending: null }) },
   { label: title.value },
 ])
 
@@ -46,7 +46,7 @@ function pageLocation(target: number) {
     <div class="flex flex-wrap items-center gap-3.5">
       <BoardPageTitle>{{ title }}</BoardPageTitle>
       <TreasuryYearSelect
-        v-if="!missing"
+        v-if="!pending"
         :year
         :years="results?.years ?? []"
         :location="yearLocation"
@@ -60,7 +60,7 @@ function pageLocation(target: number) {
       :location
       :error="error?.message ?? null"
       :loading="status === 'pending'"
-      :missing
+      :pending
       @retry="refresh()"
     >
       <UiPagination

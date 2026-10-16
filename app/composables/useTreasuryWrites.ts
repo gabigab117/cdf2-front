@@ -6,6 +6,7 @@ type DocumentOut = components['schemas']['DocumentOut']
 type InvoiceExpenseIn = components['schemas']['InvoiceExpenseIn']
 type LedgerEntryIn = components['schemas']['LedgerEntryIn']
 type LedgerEntryOut = components['schemas']['LedgerEntryOut']
+type ReimbursementIn = components['schemas']['ReimbursementIn']
 type RecordContent = paths['/api/board/treasury/entries']['post']['requestBody']['content']
 type RecordBody = RecordContent[keyof RecordContent]
 type ReceiptBody = paths['/api/board/treasury/entries/{entry_id}/receipt']['post']['requestBody']['content']['multipart/form-data']
@@ -20,7 +21,7 @@ export function useTreasuryWrites() {
 
   async function written<T>(write: Promise<Written<T>>): Promise<Written<T>> {
     const result = await write
-    // A receipt missing and an invoice to pay are shown by the bell (A6).
+    // A receipt missing, an invoice to pay and an advance owed are shown by the bell (A6).
     if (!result.errors) void refreshBoardOverview()
     return result
   }
@@ -79,5 +80,15 @@ export function useTreasuryWrites() {
     })))
   }
 
-  return { recordEntry, correctEntry, deleteEntry, attachReceipt, createInvoiceExpense, attachInvoice }
+  /** « Marquer remboursée »: the advance paid back, on a day, by a method. */
+  function markReimbursed(id: number, payload: ReimbursementIn): Promise<Written<LedgerEntryOut>> {
+    return written(formWrite(api.POST('/api/board/treasury/entries/{entry_id}/reimbursement', { ...path(id), body: payload })))
+  }
+
+  /** « Annuler le remboursement »: the advance owed again. */
+  function cancelReimbursement(id: number): Promise<Written<LedgerEntryOut>> {
+    return written(formWrite(api.DELETE('/api/board/treasury/entries/{entry_id}/reimbursement', path(id))))
+  }
+
+  return { recordEntry, correctEntry, deleteEntry, attachReceipt, createInvoiceExpense, attachInvoice, markReimbursed, cancelReimbursement }
 }

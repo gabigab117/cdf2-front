@@ -7,14 +7,16 @@ import { ledgerEntry, unpaidInvoice } from '../../helpers/treasury'
 
 type PendingOut = components['schemas']['PendingOut']
 
-function pending(receipts: PendingOut['receipts'], invoices: PendingOut['invoices']): PendingOut {
+const NO_ADVANCE: PendingOut['advances'] = { count: 0, total: '0.00', items: [] }
+
+function pending(receipts: PendingOut['receipts'], invoices: PendingOut['invoices'], advances = NO_ADVANCE): PendingOut {
   return {
-    total: receipts.count + invoices.count,
+    total: receipts.count + invoices.count + advances.count,
     documents: { counts: { total: 0, invoice: 0, order: 0, minutes: 0, misc: 0 }, items: [] },
     loans: { overdue: 0, to_prepare: 0, items: [] },
     receipts,
     invoices,
-    advances: { count: 0, total: '0.00', items: [] },
+    advances,
   }
 }
 
@@ -66,5 +68,20 @@ describe('the panel « À traiter »', () => {
     ])
     expect(panel.find('a[href="/bureau/documents?document=20"]').exists()).toBe(true)
     expect(panel.text()).toContain('Et 1 autre facture')
+  })
+
+  it('lists the advances to pay back, the oldest first, and all of them past ten', async () => {
+    const advances = { count: 11, total: '1240.00', items: [ledgerEntry(), ledgerEntry({ id: 5, label: 'Lots du loto', advanced_by: null })] }
+
+    const panel = await mountSuspended(BoardPendingPanel, {
+      props: { pending: pending({ count: 0, items: [] }, { count: 0, items: [] }, advances) },
+    })
+
+    expect(panel.findAll('h3').map(title => title.text())).toEqual(['Avances à rembourser'])
+    expect(panel.findAll('section li a').map(link => readable(link.text()))).toEqual([
+      'Courses buvette12 sept. · 286,30 € · Julie R.',
+      'Lots du loto12 sept. · 286,30 € · Ancien membre',
+    ])
+    expect(panel.get('a[href="/bureau/tresorerie/journal?avance=a-rembourser"]').text()).toBe('Voir les 11 avances à rembourser')
   })
 })

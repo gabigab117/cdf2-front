@@ -135,6 +135,7 @@ async function record(fields: EntryFields, receipt: File | null) {
           :location
         />
         <TreasuryAssistant />
+        <TreasuryAdvances @changed="refreshEntries()" />
       </div>
     </div>
   </div>

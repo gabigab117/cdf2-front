@@ -64,6 +64,17 @@ describe('the page of a line', () => {
       'SaisieJulie R., le 12/09/2026 · 18 h 00',
     ])
     expect(view.text()).toContain('Pour la buvette')
+    // An advance tells its reimbursement.
+    expect(view.text()).toContain('À rembourser à Julie R.')
+  })
+
+  it('tells no reimbursement for a line paid by the association', async () => {
+    mockEntry(ledgerEntry({ payment_method: 'association_card', advanced_by: null }))
+
+    const view = await mountPage()
+
+    await vi.waitFor(() => expect(view.find('h1').exists()).toBe(true))
+    expect(view.text()).not.toContain('Remboursement')
   })
 
   it('corrects the line whole, then shows it corrected', async () => {
