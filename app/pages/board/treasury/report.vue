@@ -99,7 +99,7 @@ function print(): void {
     >
       <article
         aria-label="Bilan pour l’AG"
-        class="mx-auto flex a4-sheet flex-col gap-1.5 bg-white leading-tight text-sable-950 shadow-sheet print:min-h-0 print:shadow-none"
+        class="mx-auto flex a4-sheet flex-col gap-1.5 bg-white leading-tight text-sable-950 shadow-sheet print:min-h-0 print:box-decoration-clone print:shadow-none"
       >
         <header class="flex flex-col gap-0.5 border-b-2 border-sable-950 pb-1.5 text-center">
           <p class="text-sm font-semibold uppercase">
