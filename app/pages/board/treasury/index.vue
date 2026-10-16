@@ -115,6 +115,11 @@ async function record(fields: EntryFields, receipt: File | null) {
         </NuxtLink>
       </TreasuryLedger>
       <div class="flex min-w-0 flex-1 basis-85 flex-col gap-5 md:max-w-105">
+        <TreasuryEventResults
+          :results="results ?? null"
+          :filter="query.filter"
+          :location
+        />
         <TreasuryAssistant />
       </div>
     </div>

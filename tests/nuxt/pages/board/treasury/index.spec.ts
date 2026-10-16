@@ -65,6 +65,28 @@ describe('the Trésorerie page', () => {
     expect(treasury.get('a[href="/bureau/tresorerie/journal"]').text()).toBe('Voir tout le journal de l’exercice')
   })
 
+  it('shows the result of each event, whose rows filter the journal of the year shown', async () => {
+    /**
+     * Given the journal of 2025 filtered on the brocante
+     * When the page shows
+     * Then the result of each event leads the brocante back to the whole
+     * journal of 2025, and the other rows to theirs
+     */
+    mockPage()
+
+    const treasury = await mountSuspended(TreasuryPage, { route: '/bureau/tresorerie?exercice=2025&evenement=3' })
+
+    await vi.waitFor(() => expect(readable(treasury.text())).toContain('+3 140,00 €'))
+    const title = treasury.findAll('h2').find(heading => heading.text() === 'Résultat par événement')!
+    const rows = treasury.get(`section[aria-labelledby="${title.attributes('id')}"]`).findAll('li a')
+    expect(rows.map(row => row.attributes('href'))).toEqual([
+      '/bureau/tresorerie?exercice=2025',
+      '/bureau/tresorerie?exercice=2025&evenement=12',
+      '/bureau/tresorerie?exercice=2025&evenement=aucun',
+    ])
+    expect(rows[0]!.attributes('aria-current')).toBe('page')
+  })
+
   it('shows a line of the journal: its date, label, category, event, payment and amount', async () => {
     mockPage()
 

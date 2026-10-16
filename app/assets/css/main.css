@@ -159,6 +159,10 @@
   --grid-template-columns-ledger: 70px minmax(0, 1.7fr) minmax(0, 1fr) minmax(0, 0.9fr) 108px 44px;
   --grid-template-columns-ledger-narrow: 56px minmax(0, 1fr) auto 28px;
 
+  /* Rows of the treasury's « Résultat par événement »: the event, its result;
+     its two bars below, across both. */
+  --grid-template-columns-event-result: minmax(0, 1fr) 96px;
+
   /* Lines of the loan form: equipment, what is free, its quantity. */
   --grid-template-columns-loan-line: minmax(0, 1fr) 140px 132px;
 
