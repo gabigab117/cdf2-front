@@ -16,6 +16,8 @@ const { calendarDay } = useDateFormat()
 const now = useNow()
 
 const marking = ref(false)
+// The button in place, « Marquer remboursée » or « Annuler le remboursement »:
+// the focus comes back to it once the form or the question is gone.
 const trigger = useTemplateRef<ComponentPublicInstance>('trigger')
 const { confirming, pending, failure, ask, dismiss, confirm } = useConfirmation(trigger)
 
@@ -23,14 +25,17 @@ const owed = computed(() => entry.reimbursed_on === null)
 // « Remboursée le 20 sept. par virement », or « À rembourser à Julie R. ».
 const state = computed(() => {
   if (entry.reimbursed_on !== null && entry.reimbursement_method !== null) {
-    return `Remboursée le ${calendarDay(entry.reimbursed_on, now.value)} ${REIMBURSED_BY[entry.reimbursement_method]}.`
+    return `Remboursée le ${calendarDay(entry.reimbursed_on, now.value)} ${REIMBURSED_BY[entry.reimbursement_method]}`
   }
-  return `À rembourser à ${entry.advanced_by ? memberShortName(entry.advanced_by) : 'un ancien membre'}.`
+  return `À rembourser à ${entry.advanced_by ? memberShortName(entry.advanced_by) : 'un ancien membre'}`
 })
 
-function marked(updated: LedgerEntryOut): void {
+async function closed(updated?: LedgerEntryOut): Promise<void> {
   marking.value = false
-  emit('changed', updated)
+  if (updated) emit('changed', updated)
+  await nextTick()
+  const element: unknown = trigger.value?.$el
+  if (element instanceof HTMLElement) element.focus()
 }
 
 async function cancel(): Promise<void> {
@@ -55,8 +60,8 @@ async function cancel(): Promise<void> {
     <TreasuryReimbursementForm
       v-if="marking"
       :entry
-      @saved="marked"
-      @cancel="marking = false"
+      @saved="closed"
+      @cancel="closed()"
     />
     <UiConfirmation
       v-else-if="confirming"
@@ -76,6 +81,7 @@ async function cancel(): Promise<void> {
     >
       <UiButton
         v-if="owed"
+        ref="trigger"
         variant="secondary"
         size="sm"
         @click="marking = true"

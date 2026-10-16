@@ -2,8 +2,11 @@ import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import TreasuryReimbursement from '~/components/treasury/Reimbursement.vue'
+import type { components } from '~/types/api'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
 import { ledgerEntry } from '../../helpers/treasury'
+
+type LedgerEntryOut = components['schemas']['LedgerEntryOut']
 
 const REIMBURSEMENT = '/api/board/treasury/entries/{entry_id}/reimbursement'
 
@@ -39,7 +42,7 @@ describe('the reimbursement of an advance', () => {
   it('names a member who has left the board', async () => {
     const card = await mountSuspended(TreasuryReimbursement, { props: { entry: ledgerEntry({ advanced_by: null }) } })
 
-    expect(card.text()).toContain('À rembourser à un ancien membre.')
+    expect(card.text()).toContain('À rembourser à un ancien membre')
   })
 
   it('tells an advance paid back, and cancels its reimbursement once confirmed', async () => {
@@ -55,7 +58,7 @@ describe('the reimbursement of an advance', () => {
       props: { entry: ledgerEntry({ reimbursed_on: '2026-09-20', reimbursement_method: 'transfer' }) },
     })
 
-    expect(card.text()).toContain('Remboursée le 20 sept. par virement.')
+    expect(card.text()).toContain('Remboursée le 20 sept. par virement')
     await card.findAll('button').find(button => button.text() === 'Annuler le remboursement')!.trigger('click')
     expect(card.text()).toContain('Annuler le remboursement de cette avance ?')
     expect(card.findAll('button').map(button => button.text())).toEqual(['Annuler le remboursement', 'Garder le remboursement'])
@@ -63,6 +66,25 @@ describe('the reimbursement of an advance', () => {
 
     await vi.waitFor(() => expect(card.emitted('changed')).toEqual([[ledgerEntry()]]))
     expect(sent.filter(request => request.method === 'DELETE').map(request => request.url)).toEqual(['/api/board/treasury/entries/4/reimbursement'])
+  })
+
+  it('gives the focus back to the button in place, once the reimbursement is cancelled or its form closed', async () => {
+    mockApi(REIMBURSEMENT, { method: 'DELETE', handler: () => apiResponse(200, ledgerEntry()) }, { entry_id: 4 })
+    const card = await mountSuspended(TreasuryReimbursement, {
+      props: {
+        entry: ledgerEntry({ reimbursed_on: '2026-09-20', reimbursement_method: 'transfer' }),
+        // The page shows the line the API gives back.
+        onChanged: (updated: LedgerEntryOut) => card.setProps({ entry: updated }),
+      },
+      attachTo: document.body,
+    })
+
+    await card.findAll('button').find(button => button.text() === 'Annuler le remboursement')!.trigger('click')
+    await card.findAll('button')[0]!.trigger('click')
+    await vi.waitFor(() => expect(document.activeElement?.textContent?.trim()).toBe('Marquer remboursée'))
+    await card.findAll('button').find(button => button.text() === 'Marquer remboursée')!.trigger('click')
+    await card.findAll('button').find(button => button.text() === 'Annuler')!.trigger('click')
+    await vi.waitFor(() => expect(document.activeElement?.textContent?.trim()).toBe('Marquer remboursée'))
   })
 
   it('shows the refusal of a cancellation with its question', async () => {
@@ -73,7 +95,7 @@ describe('the reimbursement of an advance', () => {
       props: { entry: ledgerEntry({ reimbursed_on: '2026-09-20', reimbursement_method: 'cash' }) },
     })
 
-    expect(card.text()).toContain('Remboursée le 20 sept. en espèces.')
+    expect(card.text()).toContain('Remboursée le 20 sept. en espèces')
     await card.findAll('button').find(button => button.text() === 'Annuler le remboursement')!.trigger('click')
     await card.findAll('button')[0]!.trigger('click')
 
