@@ -24,7 +24,7 @@ const { data: page, status, error, refresh } = useLedgerEntries(() => ({
 
 const pageCount = computed(() => Math.ceil((page.value?.count ?? 0) / LEDGER_PAGE_SIZE))
 const breadcrumb = computed(() => [
-  { label: 'Trésorerie', to: ledgerLocation(TREASURY_PATH, { ...query.value, filter: null, page: 1 }) },
+  { label: 'Trésorerie', to: ledgerLocation(TREASURY_PATH, { ...query.value, filter: null, page: 1, missing: false }) },
   { label: title.value },
 ])
 

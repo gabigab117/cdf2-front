@@ -53,6 +53,8 @@ describe('the page of the whole journal', () => {
     expect(ledger.get('h1').text()).toBe('Justificatifs manquants')
     expect(ledger.find('nav[aria-label="Filtrer par événement"]').exists()).toBe(false)
     expect(ledger.find('select[aria-label="Exercice"]').exists()).toBe(false)
+    // The way back leads to the Trésorerie page, not to its missing receipts.
+    expect(ledger.get('nav[aria-label="Fil d’Ariane"] a').attributes('href')).toBe('/bureau/tresorerie')
   })
 
   it('says when every receipt is joined', async () => {
