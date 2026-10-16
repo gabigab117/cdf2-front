@@ -23,6 +23,9 @@ export const NEW_LINE_ANCHOR = 'nouvelle-ligne'
 /** An expense entered on a phone, its ticket taken in photo. */
 export const NEW_EXPENSE_PATH = `${TREASURY_PATH}/nouvelle`
 
+/** The report of a fiscal year for the general meeting, to print. */
+export const REPORT_PATH = `${TREASURY_PATH}/bilan`
+
 /** The page of a line: its detail, its correction and its deletion. */
 export function entryPath(id: number): string {
   return `${TREASURY_PATH}/ecritures/${id}`

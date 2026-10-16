@@ -9,6 +9,15 @@ export function useTreasuryResults(year: () => number) {
   )
 }
 
+/** The report of a fiscal year for the general meeting. Lazy. */
+export function useTreasuryReport(year: () => number) {
+  return useLazyAsyncData(
+    () => `board:treasury:report:${year()}`,
+    (_nuxtApp, { signal }) =>
+      loadData(useApi().GET('/api/board/treasury/report', { params: { query: { year: year() } }, signal })),
+  )
+}
+
 /** A page of the journal: a fiscal year, a filter, and how many lines a page holds. */
 export interface LedgerPage {
   year: number

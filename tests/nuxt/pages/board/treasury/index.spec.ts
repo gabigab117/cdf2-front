@@ -16,6 +16,11 @@ function mockPage(entries = [ledgerEntry()]) {
   mockApi('/api/board/members', { handler: () => apiResponse(200, page([julie])) })
 }
 
+// The page's own action, « Bilan pour l’AG », shows in place, without the top bar.
+function mountPage(route: string) {
+  return mountSuspended(TreasuryPage, { route, global: { stubs: { teleport: true } } })
+}
+
 function readable(text: string): string {
   return text.replace(/[\u202F\u00A0]/g, ' ')
 }
@@ -50,7 +55,7 @@ describe('the Trésorerie page', () => {
     mockPage()
     const sent = recordRequests()
 
-    const treasury = await mountSuspended(TreasuryPage, { route: '/bureau/tresorerie' })
+    const treasury = await mountPage('/bureau/tresorerie')
 
     await vi.waitFor(() => expect(readable(treasury.text())).toContain('11 490,00 €'))
     expect(treasury.get('h1').text()).toBe('Trésorerie')
@@ -67,6 +72,14 @@ describe('the Trésorerie page', () => {
     expect(treasury.get('a[href="/bureau/tresorerie/nouvelle"]').text()).toBe('Photographier un ticket')
   })
 
+  it('leads to the report of the fiscal year shown, for the general meeting', async () => {
+    mockPage()
+
+    const treasury = await mountPage('/bureau/tresorerie?exercice=2025&evenement=3')
+
+    expect(treasury.get('a[href="/bureau/tresorerie/bilan?exercice=2025"]').text()).toBe('Bilan pour l’AG')
+  })
+
   it('shows the result of each event, whose rows filter the journal of the year shown', async () => {
     /**
      * Given the journal of 2025 filtered on the brocante
@@ -76,7 +89,7 @@ describe('the Trésorerie page', () => {
      */
     mockPage()
 
-    const treasury = await mountSuspended(TreasuryPage, { route: '/bureau/tresorerie?exercice=2025&evenement=3' })
+    const treasury = await mountPage('/bureau/tresorerie?exercice=2025&evenement=3')
 
     await vi.waitFor(() => expect(readable(treasury.text())).toContain('+3 140,00 €'))
     const title = treasury.findAll('h2').find(heading => heading.text() === 'Résultat par événement')!
@@ -92,7 +105,7 @@ describe('the Trésorerie page', () => {
   it('shows a line of the journal: its date, label, category, event, payment, reimbursement and amount', async () => {
     mockPage()
 
-    const treasury = await mountSuspended(TreasuryPage, { route: '/bureau/tresorerie' })
+    const treasury = await mountPage('/bureau/tresorerie')
 
     await vi.waitFor(() => expect(treasury.find('a[href="/bureau/tresorerie/ecritures/4"]').exists()).toBe(true))
     const row = treasury.get('a[href="/bureau/tresorerie/ecritures/4"]')
@@ -103,7 +116,7 @@ describe('the Trésorerie page', () => {
     mockPage()
     const sent = recordRequests()
 
-    const treasury = await mountSuspended(TreasuryPage, { route: '/bureau/tresorerie?exercice=2025&evenement=aucun' })
+    const treasury = await mountPage('/bureau/tresorerie?exercice=2025&evenement=aucun')
 
     await vi.waitFor(() => expect(sent.map(request => request.url)).toContain('/api/board/treasury/entries?year=2025&general=true&page=1&page_size=10'))
     expect(treasury.text()).toContain('Du 1er janvier au 31 décembre 2025')
@@ -120,7 +133,7 @@ describe('the Trésorerie page', () => {
     mockPage()
     mockApi('/api/board/treasury/entries', { method: 'POST', handler: () => apiResponse(201, ledgerEntry({ id: 21, payment_method: 'association_card', advanced_by: null })) })
     const sent = recordRequests()
-    const treasury = await mountSuspended(TreasuryPage, { route: '/bureau/tresorerie' })
+    const treasury = await mountPage('/bureau/tresorerie')
 
     await treasury.get('input[placeholder="Ex. Courses buvette"]').setValue('Courses buvette')
     await treasury.get('input[inputmode="decimal"]').setValue('286,30')
@@ -140,7 +153,7 @@ describe('the Trésorerie page', () => {
   it('says when a fiscal year has no line', async () => {
     mockPage([])
 
-    const treasury = await mountSuspended(TreasuryPage, { route: '/bureau/tresorerie' })
+    const treasury = await mountPage('/bureau/tresorerie')
 
     await vi.waitFor(() => expect(treasury.text()).toContain('Aucune ligne pour l’exercice 2026.'))
   })

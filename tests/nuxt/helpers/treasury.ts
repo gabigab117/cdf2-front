@@ -2,6 +2,7 @@ import type { components } from '~/types/api'
 import { julie } from './events'
 
 type FiscalYearResultsOut = components['schemas']['FiscalYearResultsOut']
+type GeneralMeetingReportOut = components['schemas']['GeneralMeetingReportOut']
 type LedgerEntryOut = components['schemas']['LedgerEntryOut']
 type LedgerTotalsOut = components['schemas']['LedgerTotalsOut']
 type UnpaidInvoiceOut = components['schemas']['UnpaidInvoiceOut']
@@ -58,6 +59,31 @@ export function fiscalYearResults(changes: Partial<FiscalYearResultsOut> = {}): 
       { event: { id: 12, title: 'Halloween des enfants', starts_at: '2026-10-31T14:00:00Z' }, ...totals('0.00', '195.25', '-195.25', 2) },
     ],
     general: totals('1620.00', '366.00', '1254.00', 5),
+    ...changes,
+  }
+}
+
+/** The report of the mockup's fiscal year, 2026, for the general meeting: one receipt missing. */
+export function generalMeetingReport(changes: Partial<GeneralMeetingReportOut> = {}): GeneralMeetingReportOut {
+  const { year, totals, events, general } = fiscalYearResults()
+  return {
+    year,
+    totals,
+    events,
+    general,
+    income_categories: [
+      { category: 'bar', total: '5240.00', count: 5 },
+      { category: 'pitches', total: '3130.00', count: 3 },
+      { category: 'grant', total: '1500.00', count: 1 },
+      { category: 'membership_fees', total: '1620.00', count: 2 },
+    ],
+    expense_categories: [
+      { category: 'food', total: '2180.50', count: 3 },
+      { category: 'drinks', total: '1940.75', count: 3 },
+      { category: 'equipment_rental', total: '1600.00', count: 1 },
+      { category: 'insurance', total: '1200.00', count: 1 },
+    ],
+    missing_receipts: [ledgerEntry()],
     ...changes,
   }
 }

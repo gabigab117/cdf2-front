@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Camera } from '@lucide/vue'
+import { Camera, Download } from '@lucide/vue'
 import type { EntryFields, LedgerFilter } from '~/utils/treasury'
 
-definePageMeta({ path: '/bureau/tresorerie' })
+// « Bilan pour l’AG » stands in the top bar, in place of « Nouveau », as in the mockup.
+definePageMeta({ path: '/bureau/tresorerie', topBarAction: true })
 
 useHead({ title: 'Trésorerie' })
 
@@ -33,6 +34,8 @@ function location(filter: LedgerFilter) {
 }
 
 const ledgerLink = computed(() => ledgerLocation(LEDGER_PATH, { ...query.value, page: 1 }))
+// The report of the fiscal year shown.
+const reportLink = computed(() => ledgerLocation(REPORT_PATH, { year: query.value.year, filter: null, page: 1 }))
 
 // A line recorded shows first in the journal of its year, the filter left out.
 async function record(fields: EntryFields, receipt: File | null) {
@@ -48,6 +51,16 @@ async function record(fields: EntryFields, receipt: File | null) {
 
 <template>
   <div class="flex flex-col gap-6">
+    <Teleport
+      defer
+      to="#board-top-bar-action"
+    >
+      <BoardTopBarButton
+        :icon="Download"
+        label="Bilan pour l’AG"
+        :to="reportLink"
+      />
+    </Teleport>
     <div class="flex flex-col gap-1.5">
       <div class="flex flex-wrap items-center gap-3.5">
         <BoardPageTitle>Trésorerie</BoardPageTitle>
