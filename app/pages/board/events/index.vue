@@ -87,12 +87,10 @@ watch(() => query.value.page, () => window.scrollTo({ top: 0 }))
           v-else-if="beyondTheEnd"
         >
           Cette page ne contient aucun événement.
-          <NuxtLink
+          <BoardTextLink
             :to="pageLocation(1)"
-            class="font-medium text-azur-600 hover:text-azur-700"
-          >
-            Revenir à la première page
-          </NuxtLink>
+            label="Revenir à la première page"
+          />
         </UiEmptyState>
         <UiEmptyState
           v-else-if="!loading"

@@ -9,7 +9,7 @@ type LoanIn = components['schemas']['LoanIn']
 type LoanOut = components['schemas']['LoanOut']
 
 // The form of a loan (NouveauPret.dc.html): its borrower, its days, its
-// equipment, and beside them the summary that tells whether all of it is free.
+// equipment, and beside them the recap that tells whether all of it is free.
 // What is free comes from the API at each change of days; the API checks it
 // again when the loan is sent, under its locks.
 const { loan = null, initial, save } = defineProps<{
@@ -78,12 +78,12 @@ const picked = computed(() =>
 )
 const beyond = computed(() => picked.value.filter(line => line.beyond))
 
-const summaryLines = computed(() =>
+const recapLines = computed(() =>
   picked.value.map(({ item, quantity, beyond: over }) => ({
     id: item.equipment.id,
     name: item.equipment.name,
     quantity,
-    beyond: over ? (item.free === 0 ? 'indisponible' : `${item.free} ${item.free > 1 ? 'libres' : 'libre'}`) : null,
+    beyond: over ? (item.free === 0 ? 'indisponible' : countText(item.free, 'libre', 'libres')) : null,
   })),
 )
 
@@ -98,8 +98,8 @@ const conflict = computed(() => {
   const first = lines[0]
   if (!first) return null
   if (lines.length > 1) return `${lines.length} articles dépassent ce qui est libre sur la période.`
-  const free = first.item.free === 0 ? 'aucun libre' : `${first.item.free} ${first.item.free > 1 ? 'libres' : 'libre'}`
-  return `${first.item.equipment.name} : ${first.quantity} ${first.quantity > 1 ? 'demandés' : 'demandé'}, ${free} sur la période.`
+  const free = first.item.free === 0 ? 'aucun libre' : countText(first.item.free, 'libre', 'libres')
+  return `${first.item.equipment.name} : ${countText(first.quantity, 'demandé', 'demandés')}, ${free} sur la période.`
 })
 
 const title = computed(() => (committee.value ? chosenEvent.value?.title : fields.value.borrowerName.trim()) || 'Sans nom')
@@ -355,10 +355,10 @@ async function submit(): Promise<void> {
       </LoansFormSection>
     </div>
     <div class="w-full md:sticky md:top-24 md:max-w-95 md:flex-1 md:basis-80">
-      <LoansSummary
+      <LoansRecap
         :title
         :subtitle="`${look.label} · ${period}`"
-        :lines="summaryLines"
+        :lines="recapLines"
         :deposit="depositLabel"
         :conflict
         :available="!conflict && picked.length > 0 && !datesWrong"
@@ -368,7 +368,7 @@ async function submit(): Promise<void> {
         @reduce="reduce"
       >
         <slot name="actions" />
-      </LoansSummary>
+      </LoansRecap>
     </div>
   </form>
 </template>

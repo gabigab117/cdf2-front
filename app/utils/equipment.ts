@@ -31,9 +31,9 @@ export function inventoryQuery({ equipment }: InventoryQuery): LocationQueryRaw 
 
 /** « 1 référence », « 14 références · 3 en partie prêtées aujourd’hui · 5 pièces en réparation ». */
 export function inventoryTotalsText(totals: components['schemas']['InventoryTotalsOut']): string {
-  const references = `${totals.references} ${totals.references > 1 ? 'références' : 'référence'}`
+  const references = countText(totals.references, 'référence', 'références')
   const taken = `${totals.taken_today} en partie ${totals.taken_today > 1 ? 'prêtées' : 'prêtée'} aujourd’hui`
-  const repair = `${totals.pieces_under_repair} ${totals.pieces_under_repair > 1 ? 'pièces' : 'pièce'} en réparation`
+  const repair = `${countText(totals.pieces_under_repair, 'pièce', 'pièces')} en réparation`
   return [references, taken, repair].join(' · ')
 }
 

@@ -112,7 +112,7 @@ describe('the page of a new loan', () => {
     /**
      * Given three marquees asked from the inventory, one free over the days
      * When the form shows
-     * Then the summary tells the conflict and the loan cannot be recorded
+     * Then the recap tells the conflict and the loan cannot be recorded
      * Until « Ramener aux quantités libres » brings the marquees back to one
      */
     mockForm()

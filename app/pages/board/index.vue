@@ -11,14 +11,11 @@ const { longDay, countdown, countdownText, calendarWeekday } = useDateFormat()
 
 // The dashboard's figures, shared with the layout. Lazy: the greeting and the
 // day wait for no request.
-const { data, status, error, refresh } = useBoardOverview()
-
-const classes = {
-  kpis: 'grid grid-cols-kpis gap-4',
-}
+const { data, pending: loading, error, refresh } = useBoardOverview()
 
 const events = computed(() => data.value?.upcoming_events ?? [])
 const notes = computed(() => data.value?.latest_notes ?? [])
+// « Tâches générales »: the tasks without an event (D10), in their block.
 const generalTasks = computed(() => data.value?.general_tasks ?? null)
 const recentDocuments = computed(() => data.value?.recent_documents ?? [])
 const toReview = computed(() => data.value?.pending.documents.counts ?? null)
@@ -26,7 +23,7 @@ const toReview = computed(() => data.value?.pending.documents.counts ?? null)
 // until the assistant (phase 9), never « lus par l’assistant ».
 const toReviewValue = computed(() => {
   const total = toReview.value?.total ?? 0
-  return `${total} document${total > 1 ? 's' : ''}`
+  return countText(total, 'document', 'documents')
 })
 const toReviewDetail = computed(() =>
   toReview.value && toReview.value.total > 0 ? categoryCounts(toReview.value) : 'Tous les documents sont validés.',
@@ -41,13 +38,12 @@ const loanedDetail = computed(() => {
   const due = shown.next_return
   const parts = [
     due ? `${due.display_name} : ${dueBack(due)}` : '',
-    shown.to_prepare_count > 0 ? `${shown.to_prepare_count} prêt${shown.to_prepare_count > 1 ? 's' : ''} à préparer` : '',
+    shown.to_prepare_count > 0 ? `${countText(shown.to_prepare_count, 'prêt', 'prêts')} à préparer` : '',
   ].filter(Boolean)
   return parts.length > 0 ? parts.join(' · ') : 'Aucun prêt en cours ni à préparer.'
 })
 const movements = computed(() => data.value?.loan_movements ?? [])
 const count = computed(() => data.value?.upcoming_events_count ?? 0)
-const loading = computed(() => status.value === 'pending')
 const next = computed(() => events.value[0] ?? null)
 const nextCountdown = computed(() => (next.value ? countdown(next.value, now.value) : null))
 
@@ -85,7 +81,7 @@ function dueBack(loan: { state: string, end_date: string }): string {
     <template v-else>
       <div
         v-if="toReview"
-        :class="classes.kpis"
+        class="grid grid-cols-kpis gap-4"
       >
         <UiKpiCard
           label="Matériel prêté"
@@ -114,7 +110,6 @@ function dueBack(loan: { state: string, end_date: string }): string {
           <template #aside>
             <UiStatusPill
               tone="accent"
-              size="md"
               class="font-mono"
             >
               {{ nextPill }}
@@ -152,9 +147,11 @@ function dueBack(loan: { state: string, end_date: string }): string {
             :notes
             :loading
           />
-          <DashboardGeneralTasks
+          <TasksBlock
             v-if="generalTasks"
-            :summary="generalTasks"
+            title="Tâches générales"
+            :figures="generalTasks"
+            :all="GENERAL_TASKS_PATH"
             @changed="refresh()"
           />
           <DashboardRecentDocuments

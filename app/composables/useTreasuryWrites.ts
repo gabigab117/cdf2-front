@@ -12,19 +12,13 @@ type RecordBody = RecordContent[keyof RecordContent]
 type ReceiptBody = paths['/api/board/treasury/entries/{entry_id}/receipt']['post']['requestBody']['content']['multipart/form-data']
 
 /**
- * Writes the journal. Each write gives what it wrote, or the errors to show on
+ * Writes the ledger. Each write gives what it wrote, or the errors to show on
  * its form; the page reads its figures and its lines again, and the bell what
- * the treasury leaves to do.
+ * the treasury leaves to do: a receipt missing, an invoice to pay, an advance
+ * owed (A6).
  */
 export function useTreasuryWrites() {
   const api = useApi()
-
-  async function written<T>(write: Promise<Written<T>>): Promise<Written<T>> {
-    const result = await write
-    // A receipt missing, an invoice to pay and an advance owed are shown by the bell (A6).
-    if (!result.errors) void refreshBoardOverview()
-    return result
-  }
 
   function path(id: number) {
     return { params: { path: { entry_id: id } } }
@@ -42,31 +36,29 @@ export function useTreasuryWrites() {
     if (file) form.append('file', file)
     // openapi-typescript types the form as an object: the form data goes as it
     // is, its Content-Type and boundary left to the browser.
-    return written(formWrite(api.POST('/api/board/treasury/entries', { body: form as unknown as RecordBody })))
+    return refreshesOverview(formWrite(api.POST('/api/board/treasury/entries', { body: form as unknown as RecordBody })))
   }
 
   /** Rewrites a line whole: its receipt and its reimbursement stay as they are. */
   function updateEntry(id: number, payload: LedgerEntryIn): Promise<Written<LedgerEntryOut>> {
-    return written(formWrite(api.PUT('/api/board/treasury/entries/{entry_id}', { ...path(id), body: payload })))
+    return refreshesOverview(formWrite(api.PUT('/api/board/treasury/entries/{entry_id}', { ...path(id), body: payload })))
   }
 
   /** Deletes a line: null once done, or the message to show. */
-  async function deleteEntry(id: number): Promise<string | null> {
-    const failure = await plainWrite(api.DELETE('/api/board/treasury/entries/{entry_id}', path(id)))
-    if (failure === null) void refreshBoardOverview()
-    return failure
+  function deleteEntry(id: number): Promise<string | null> {
+    return refreshesOverview(plainWrite(api.DELETE('/api/board/treasury/entries/{entry_id}', path(id))))
   }
 
   /** « Joindre le justificatif »: the document that proves a line that has none. */
   function attachReceipt(id: number, file: File): Promise<Written<LedgerEntryOut>> {
     const form = new FormData()
     form.append('file', file)
-    return written(formWrite(api.POST('/api/board/treasury/entries/{entry_id}/receipt', { ...path(id), body: form as unknown as ReceiptBody })))
+    return refreshesOverview(formWrite(api.POST('/api/board/treasury/entries/{entry_id}/receipt', { ...path(id), body: form as unknown as ReceiptBody })))
   }
 
   /** « Valider et créer l’écriture », « Marquer payée »: the expense of an invoice. */
   function createInvoiceExpense(documentId: number, payload: InvoiceExpenseIn): Promise<Written<DocumentOut>> {
-    return written(formWrite(api.POST('/api/board/treasury/invoices/{document_id}/expense', {
+    return refreshesOverview(formWrite(api.POST('/api/board/treasury/invoices/{document_id}/expense', {
       params: { path: { document_id: documentId } },
       body: payload,
     })))
@@ -74,7 +66,7 @@ export function useTreasuryWrites() {
 
   /** « Ligne déjà saisie »: the invoice proves an expense entered without its receipt. */
   function attachInvoice(documentId: number, entryId: number): Promise<Written<DocumentOut>> {
-    return written(formWrite(api.POST('/api/board/treasury/invoices/{document_id}/attach', {
+    return refreshesOverview(formWrite(api.POST('/api/board/treasury/invoices/{document_id}/attach', {
       params: { path: { document_id: documentId } },
       body: { entry: entryId },
     })))
@@ -82,12 +74,12 @@ export function useTreasuryWrites() {
 
   /** « Marquer remboursée »: the advance paid back, on a day, by a method. */
   function markReimbursed(id: number, payload: ReimbursementIn): Promise<Written<LedgerEntryOut>> {
-    return written(formWrite(api.POST('/api/board/treasury/entries/{entry_id}/reimbursement', { ...path(id), body: payload })))
+    return refreshesOverview(formWrite(api.POST('/api/board/treasury/entries/{entry_id}/reimbursement', { ...path(id), body: payload })))
   }
 
   /** « Annuler le remboursement »: the advance owed again. */
   function cancelReimbursement(id: number): Promise<Written<LedgerEntryOut>> {
-    return written(formWrite(api.DELETE('/api/board/treasury/entries/{entry_id}/reimbursement', path(id))))
+    return refreshesOverview(formWrite(api.DELETE('/api/board/treasury/entries/{entry_id}/reimbursement', path(id))))
   }
 
   return { recordEntry, updateEntry, deleteEntry, attachReceipt, createInvoiceExpense, attachInvoice, markReimbursed, cancelReimbursement }

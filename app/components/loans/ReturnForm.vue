@@ -54,7 +54,7 @@ const notes = computed(() => {
       const pieces = row.quantity > 1 ? row.back.pieces : 1
       return row.back.condition === 'damaged'
         ? `${row.name} : ${pieces} passera en réparation`
-        : `${row.name} : ${pieces} ${pieces > 1 ? 'manquants' : 'manquant'}, à signaler à l’emprunteur`
+        : `${row.name} : ${countText(pieces, 'manquant', 'manquants')}, à signaler à l’emprunteur`
     })
   return told.length ? `À noter : ${told.join(' ; ')}.` : null
 })

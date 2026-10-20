@@ -9,6 +9,7 @@ import { documentItem } from '../../helpers/documents'
 import { loanBrief } from '../../helpers/equipment'
 import { boardTask } from '../../helpers/tasks'
 import { NOTHING_PENDING } from '../../helpers/treasury'
+import { readable } from '../../helpers/text'
 
 type BoardOverviewOut = components['schemas']['BoardOverviewOut']
 
@@ -43,10 +44,6 @@ function overview(
     loans,
     loan_movements: movements,
   }
-}
-
-function readable(text: string): string {
-  return text.replaceAll('\u202F', ' ').replaceAll('\u00A0', ' ')
 }
 
 function mockOverview(body: BoardOverviewOut) {
@@ -137,7 +134,7 @@ describe('the dashboard', () => {
     expect(notes.find('[aria-label="Privé"]').exists()).toBe(true)
     const [julieNote, general] = notes.findAll('li')
     expect(julieNote!.get('a').attributes('href')).toBe('/bureau/evenements/12')
-    expect(julieNote!.text().replaceAll('\u00A0', ' ')).toContain('Julie R.Halloween des enfants · il y a 2 h')
+    expect(readable(julieNote!.text())).toContain('Julie R.Halloween des enfants · il y a 2 h')
     expect(general!.get('a').attributes('href')).toBe('/bureau/notes')
     expect(general!.text()).toContain('Ancien membrehier')
     const all = notes.findAll('a').at(-1)!

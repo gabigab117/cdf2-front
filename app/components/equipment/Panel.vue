@@ -36,7 +36,7 @@ const tiles = computed(() => [
 // The note of the board, or what is known without it.
 const repairNote = computed(() => {
   const pieces = equipment.value.repair_quantity
-  return equipment.value.repair_note || `${pieces} ${pieces > 1 ? 'pièces' : 'pièce'} en réparation.`
+  return equipment.value.repair_note || `${countText(pieces, 'pièce', 'pièces')} en réparation.`
 })
 
 async function save(fields: EquipmentFields): Promise<FormErrors | null> {

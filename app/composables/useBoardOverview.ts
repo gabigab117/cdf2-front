@@ -1,3 +1,5 @@
+import type { Written } from '~/utils/api-errors'
+
 const BOARD_OVERVIEW_KEY = 'board:overview'
 
 /**
@@ -18,4 +20,17 @@ export function useBoardOverview() {
 /** Fetches the overview again, after a write changed what awaits the board. */
 export function refreshBoardOverview(): Promise<void> {
   return refreshNuxtData(BOARD_OVERVIEW_KEY)
+}
+
+/**
+ * A write that may change what awaits the board (A6): once it went through,
+ * the overview is read again. It gives what the write gave: what a form wrote
+ * or its errors, or null once done or the message to show.
+ */
+export function refreshesOverview<T>(write: Promise<Written<T>>): Promise<Written<T>>
+export function refreshesOverview(write: Promise<string | null>): Promise<string | null>
+export async function refreshesOverview(write: Promise<Written<unknown> | string | null>): Promise<Written<unknown> | string | null> {
+  const result = await write
+  if (result === null || (typeof result === 'object' && result.errors === null)) void refreshBoardOverview()
+  return result
 }

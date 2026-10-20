@@ -5,15 +5,12 @@ import BoardPendingPanel from '~/components/board/PendingPanel.vue'
 import type { components } from '~/types/api'
 import { lowStockItem } from '../../helpers/stock'
 import { ledgerEntry, NOTHING_PENDING, NOTHING_TO_PAY, unpaidInvoice } from '../../helpers/treasury'
+import { readable } from '../../helpers/text'
 
 type PendingOut = components['schemas']['PendingOut']
 
 function pending(receipts: PendingOut['receipts'], invoices: PendingOut['invoices'], advances: PendingOut['advances'] = NOTHING_TO_PAY.advances): PendingOut {
   return { ...NOTHING_PENDING, total: receipts.count + invoices.count + advances.count, receipts, invoices, advances }
-}
-
-function readable(text: string): string {
-  return text.replace(/[\u202F\u00A0]/g, ' ')
 }
 
 describe('the panel « À traiter »', () => {

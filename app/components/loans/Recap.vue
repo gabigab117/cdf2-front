@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { Check } from '@lucide/vue'
 
-/** A line of the loan, as the summary lists it. */
-interface SummaryLine {
+/** A line of the loan, as the recap lists it. */
+interface RecapLine {
   id: number
   name: string
   quantity: number
@@ -10,12 +10,12 @@ interface SummaryLine {
   beyond: string | null
 }
 
-// The summary beside the loan form: whom it lends to and when, its lines, the
+// The recap beside the loan form: whom it lends to and when, its lines, the
 // deposit, and whether all of it is free.
 defineProps<{
   title: string
   subtitle: string
-  lines: readonly SummaryLine[]
+  lines: readonly RecapLine[]
   /** « Chèque de 150,00 € (non encaissé) », « Aucune ». */
   deposit: string
   /** What goes beyond what is free, or null. */

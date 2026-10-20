@@ -39,6 +39,7 @@ const rows = computed(() =>
 )
 
 const more = computed(() => count > events.length)
+const moreText = computed(() => `Voir les ${count} événements à venir`)
 </script>
 
 <template>
@@ -115,12 +116,10 @@ const more = computed(() => count > events.length)
         v-if="more"
         class="border-t border-argent-100 px-5.5 py-3.5 text-sm"
       >
-        <NuxtLink
+        <BoardTextLink
           :to="EVENTS_PATH"
-          class="font-medium text-azur-600 hover:text-azur-700"
-        >
-          Voir les {{ count }} événements à venir
-        </NuxtLink>
+          :label="moreText"
+        />
       </p>
     </template>
     <UiEmptyState

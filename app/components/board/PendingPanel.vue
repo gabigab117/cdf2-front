@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { RouteLocationRaw } from 'vue-router'
 import type { components } from '~/types/api'
 
 type PendingOut = components['schemas']['PendingOut']
@@ -27,11 +28,7 @@ const documents = computed(() =>
 )
 const documentsCount = computed(() => pending?.documents.counts.total ?? 0)
 // The panel lists the latest: the count leads to them all.
-const allDocuments = computed(() =>
-  documentsCount.value > documents.value.length
-    ? { label: `Voir les ${documentsCount.value} documents à vérifier`, to: TO_REVIEW_LOCATION }
-    : null,
-)
+const allDocuments = computed(() => seeAll(documentsCount.value, documents.value.length, 'documents à vérifier', TO_REVIEW_LOCATION))
 
 // The loans late, then those to prepare, under their own titles.
 const loans = computed(() =>
@@ -39,7 +36,7 @@ const loans = computed(() =>
     state: loan.state,
     key: loan.id,
     to: loanLocation(loan.id),
-    title: loan.purpose ? `${loan.display_name} — ${loan.purpose}` : loan.display_name,
+    title: loanTitle(loan),
     line: loanHeadline(loan, parisDate(now.value), date => calendarWeekday(date, now.value)),
   })),
 )
@@ -49,7 +46,7 @@ const loanSections = computed(() => {
     { id: 'pending-overdue-loans', title: 'Prêts en retard', items: loans.value.filter(loan => loan.state === 'overdue') },
     { id: 'pending-loans-to-prepare', title: 'Prêts à préparer', items: loans.value.filter(loan => loan.state === 'to_prepare') },
   ].filter(section => section.items.length > 0)
-  const more = loansCount.value > loans.value.length ? { label: `Voir les ${loansCount.value} prêts à traiter`, to: LOANS_PATH } : null
+  const more = seeAll(loansCount.value, loans.value.length, 'prêts à traiter', LOANS_PATH)
   // The link to them all follows the last of their sections.
   return sections.map((section, index) => ({ ...section, more: index === sections.length - 1 ? more : null }))
 })
@@ -63,10 +60,8 @@ const receipts = computed(() =>
     line: [calendarDay(entry.date, now.value), amount(entry.amount), entry.contact && memberShortName(entry.contact)].filter(Boolean).join(' · '),
   })),
 )
-const allReceipts = computed(() => {
-  const count = pending?.receipts.count ?? 0
-  return count > receipts.value.length ? { label: `Voir les ${count} justificatifs manquants`, to: pendingEntriesLocation('receipts') } : null
-})
+const allReceipts = computed(() =>
+  seeAll(pending?.receipts.count ?? 0, receipts.value.length, 'justificatifs manquants', pendingEntriesLocation('receipts')))
 
 // The advances the committee owes its members, the oldest first.
 const advances = computed(() =>
@@ -77,10 +72,8 @@ const advances = computed(() =>
     line: [calendarDay(entry.date, now.value), amount(entry.amount), memberSignature(entry.advanced_by)].join(' · '),
   })),
 )
-const allAdvances = computed(() => {
-  const count = pending?.advances.count ?? 0
-  return count > advances.value.length ? { label: `Voir les ${count} avances à rembourser`, to: pendingEntriesLocation('advances') } : null
-})
+const allAdvances = computed(() =>
+  seeAll(pending?.advances.count ?? 0, advances.value.length, 'avances à rembourser', pendingEntriesLocation('advances')))
 
 // The invoices to pay, the first due first.
 const invoices = computed(() =>
@@ -94,7 +87,7 @@ const invoices = computed(() =>
 const otherInvoices = computed(() => {
   const others = (pending?.invoices.count ?? 0) - invoices.value.length
   if (others < 1) return null
-  return { label: others === 1 ? 'Et 1 autre facture' : `Et ${others} autres factures` }
+  return { label: `Et ${countText(others, 'autre facture', 'autres factures')}` }
 })
 
 // The items of the stock below their threshold, in the stock's order: each
@@ -107,10 +100,12 @@ const lowItems = computed(() =>
     line: `${quantity(item.quantity, item.unit)} en stock, seuil ${quantity(item.threshold, item.unit)}`,
   })),
 )
-const allLowItems = computed(() => {
-  const count = pending?.stock.count ?? 0
-  return count > lowItems.value.length ? { label: `Voir les ${count} articles sous le seuil`, to: LOW_STOCK_LOCATION } : null
-})
+const allLowItems = computed(() => seeAll(pending?.stock.count ?? 0, lowItems.value.length, 'articles sous le seuil', LOW_STOCK_LOCATION))
+
+// « Voir les 12 documents à vérifier »: the link to them all, when the panel lists fewer.
+function seeAll(count: number, listed: number, what: string, to: RouteLocationRaw) {
+  return count > listed ? { label: `Voir les ${count} ${what}`, to } : null
+}
 
 function dueText({ due_date, overdue }: { due_date: string | null, overdue: boolean }): string {
   if (due_date === null) return 'sans échéance'

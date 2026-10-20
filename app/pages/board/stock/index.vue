@@ -165,12 +165,10 @@ async function adjust(id: number, direction: StockDirection): Promise<void> {
         </UiEmptyState>
         <div class="flex flex-wrap items-center justify-between gap-3 border-t border-argent-100 px-5 py-3.5 text-note text-argent-600">
           <span>Les boutons − et + enregistrent un mouvement daté avec votre nom.</span>
-          <NuxtLink
+          <BoardTextLink
             :to="NEW_ITEM_PATH"
-            class="font-medium text-azur-600 hover:text-azur-700"
-          >
-            Ajouter un article
-          </NuxtLink>
+            label="Ajouter un article"
+          />
         </div>
       </UiCard>
       <div class="flex min-w-0 flex-1 basis-85 flex-col gap-5 md:max-w-100">

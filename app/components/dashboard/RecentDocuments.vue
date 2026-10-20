@@ -47,7 +47,6 @@ const items = computed(() =>
         >
           <FileText
             :size="18"
-            aria-hidden="true"
             class="shrink-0 text-argent-600"
           />
           <span class="min-w-0 flex-1 truncate text-ui">{{ item.title }}</span>

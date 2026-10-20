@@ -53,7 +53,7 @@ const rows = computed(() =>
       id: equipment.id,
       name: equipment.name,
       detail: detail.length ? detail.join(' · ') : 'Aucun autre prêt sur la période',
-      available: `${free} ${free > 1 ? 'libres' : 'libre'} / ${equipment.total_quantity}`,
+      available: `${countText(free, 'libre', 'libres')} / ${equipment.total_quantity}`,
       availableClass: free === 0 || over ? 'text-ambre-700' : 'text-azur-700',
       total: equipment.total_quantity,
       segments: [

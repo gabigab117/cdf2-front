@@ -43,7 +43,7 @@ const rows = computed(() => {
 
 const count = computed(() => {
   const loans = rows.value.length
-  return `${loans} ${loans > 1 ? 'sorties prévues' : 'sortie prévue'}`
+  return countText(loans, 'sortie prévue', 'sorties prévues')
 })
 </script>
 

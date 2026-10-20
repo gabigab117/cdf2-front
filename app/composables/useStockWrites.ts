@@ -20,21 +20,9 @@ type StocktakeIn = components['schemas']['StocktakeIn']
 export function useStockWrites() {
   const api = useApi()
 
-  async function written<T>(write: Promise<Written<T>>): Promise<Written<T>> {
-    const result = await write
-    if (!result.errors) void refreshBoardOverview()
-    return result
-  }
-
-  async function done(write: Promise<string | null>): Promise<string | null> {
-    const failure = await write
-    if (failure === null) void refreshBoardOverview()
-    return failure
-  }
-
   // A write made on the Stock page reads the stock again once it is done.
   async function onStockPage(write: Promise<string | null>): Promise<string | null> {
-    const failure = await done(write)
+    const failure = await refreshesOverview(write)
     if (failure === null) void refreshStock()
     return failure
   }
@@ -45,17 +33,17 @@ export function useStockWrites() {
 
   /** Adds an item, with nothing in stock yet. */
   function addItem(payload: StockItemIn): Promise<Written<StockItemOut>> {
-    return written(formWrite(api.POST('/api/board/stock/items', { body: payload })))
+    return refreshesOverview(formWrite(api.POST('/api/board/stock/items', { body: payload })))
   }
 
   /** Rewrites an item whole: its movements stay as they are. */
   function updateItem(id: number, payload: StockItemIn): Promise<Written<StockItemOut>> {
-    return written(formWrite(api.PUT('/api/board/stock/items/{item_id}', { ...path(id), body: payload })))
+    return refreshesOverview(formWrite(api.PUT('/api/board/stock/items/{item_id}', { ...path(id), body: payload })))
   }
 
   /** Deletes an item that has never moved: null once done, or the message to show. */
   function deleteItem(id: number): Promise<string | null> {
-    return done(plainWrite(api.DELETE('/api/board/stock/items/{item_id}', path(id))))
+    return refreshesOverview(plainWrite(api.DELETE('/api/board/stock/items/{item_id}', path(id))))
   }
 
   /**
@@ -68,12 +56,12 @@ export function useStockWrites() {
 
   /** « Entrée ou sortie »: several items in or out at once, for one reason. */
   function recordOperation(payload: StockOperationIn): Promise<Written<StockOperationOut>> {
-    return written(formWrite(api.POST('/api/board/stock/operations', { body: payload })))
+    return refreshesOverview(formWrite(api.POST('/api/board/stock/operations', { body: payload })))
   }
 
   /** « Faire l’inventaire »: what each item counted, an item left out not counted. */
   function recordStocktake(payload: StocktakeIn): Promise<Written<StockOperationOut>> {
-    return written(formWrite(api.POST('/api/board/stock/stocktakes', { body: payload })))
+    return refreshesOverview(formWrite(api.POST('/api/board/stock/stocktakes', { body: payload })))
   }
 
   function orderPath(id: number) {
@@ -82,7 +70,7 @@ export function useStockWrites() {
 
   /** The lines of an order, all at once, until it is received. */
   function writeOrderLines(id: number, lines: LineFields[]): Promise<Written<StockOrderOut>> {
-    return written(formWrite(api.PUT('/api/board/stock/orders/{document_id}/lines', { ...orderPath(id), body: { lines: linesPayload(lines) } })))
+    return refreshesOverview(formWrite(api.PUT('/api/board/stock/orders/{document_id}/lines', { ...orderPath(id), body: { lines: linesPayload(lines) } })))
   }
 
   /** « Réceptionner la livraison »: null once done, or the message to show. */

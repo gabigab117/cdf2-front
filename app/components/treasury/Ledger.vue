@@ -36,10 +36,7 @@ const chips = computed(() => [
 ])
 const entries = computed(() => page?.items ?? [])
 const emptyText = computed(() => (pending ? PENDING_ENTRIES_TEXTS[pending].empty : `Aucune ligne pour l’exercice ${year}.`))
-const countText = computed(() => {
-  const count = page?.count ?? 0
-  return `${count} ${count < 2 ? 'ligne' : 'lignes'}`
-})
+const entriesText = computed(() => countText(page?.count ?? 0, 'ligne', 'lignes'))
 </script>
 
 <template>
@@ -52,7 +49,7 @@ const countText = computed(() => {
         <h2 class="text-title font-semibold">
           Journal
         </h2>
-        <span class="text-note text-argent-600">{{ countText }}</span>
+        <span class="text-note text-argent-600">{{ entriesText }}</span>
       </div>
       <nav
         v-if="!pending"

@@ -15,15 +15,17 @@ const { movements, loading = false } = defineProps<{
 const { calendarWeekday } = useDateFormat()
 const now = useNow()
 
-const MOVEMENT_STATES: Partial<Record<LoanMovementOut['loan']['state'], string>> = {
-  to_prepare: 'À préparer',
-  overdue: 'En retard',
-}
+// The states a movement tells beside what it takes.
+const MOVEMENT_STATES: readonly LoanMovementOut['loan']['state'][] = ['to_prepare', 'overdue']
 
 // A return in azur, a late one in amber; a checkout to prepare in light amber.
 function tone({ kind, loan }: LoanMovementOut): StatusPillTone {
   if (kind === 'return') return loan.state === 'overdue' ? 'alert' : 'azur'
   return loan.state === 'to_prepare' ? 'ambre' : 'slate'
+}
+
+function stateText(state: LoanMovementOut['loan']['state']): string {
+  return MOVEMENT_STATES.includes(state) ? LOAN_STATES[state].label : ''
 }
 
 const rows = computed(() =>
@@ -33,7 +35,7 @@ const rows = computed(() =>
     tone: tone(movement),
     name: loanTitle(movement.loan),
     // What calls for the board comes first: a long list of equipment is cut.
-    items: [MOVEMENT_STATES[movement.loan.state] ?? '', loanItems(movement.loan.lines)].filter(Boolean).join(' · '),
+    items: [stateText(movement.loan.state), loanItems(movement.loan.lines)].filter(Boolean).join(' · '),
     day: calendarWeekday(movement.day, now.value),
   })),
 )

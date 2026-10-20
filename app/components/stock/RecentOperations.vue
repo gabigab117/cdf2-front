@@ -37,7 +37,7 @@ function line({ reason, movements, created_at }: StockOperationOut): string {
   if (movements.length === 0) return `Aucun écart · ${date}`
   const named = movements.slice(0, NAMED).map(({ item, delta }) => `${signedQuantity(delta, item.unit)} ${item.name}`)
   const others = movements.length - NAMED
-  const rest = others > 0 ? ` et ${others} ${others > 1 ? 'autres' : 'autre'}` : ''
+  const rest = others > 0 ? ` et ${countText(others, 'autre', 'autres')}` : ''
   return `${named.join(', ')}${rest} · ${date}`
 }
 

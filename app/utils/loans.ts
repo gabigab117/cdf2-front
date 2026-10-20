@@ -135,7 +135,7 @@ export function loanDays(start: string, end: string): number {
 
 /** « 3 jours », « 1 jour ». */
 export function daysText(days: number): string {
-  return `${days} ${days > 1 ? 'jours' : 'jour'}`
+  return countText(days, 'jour', 'jours')
 }
 
 const LOAN_FIELD_LABELS: Readonly<Record<string, string>> = {
@@ -241,8 +241,8 @@ export function returnNotes(lines: readonly LoanLineOut[]): string {
   return lines
     .filter(line => line.damaged_quantity > 0 || line.missing_quantity > 0)
     .map((line) => {
-      const damaged = line.damaged_quantity ? `${line.damaged_quantity} ${line.damaged_quantity > 1 ? 'abîmés' : 'abîmé'}, mis en réparation` : null
-      const missing = line.missing_quantity ? `${line.missing_quantity} ${line.missing_quantity > 1 ? 'manquants' : 'manquant'}` : null
+      const damaged = line.damaged_quantity ? `${countText(line.damaged_quantity, 'abîmé', 'abîmés')}, mis en réparation` : null
+      const missing = line.missing_quantity ? countText(line.missing_quantity, 'manquant', 'manquants') : null
       return `${line.equipment.name} : ${[damaged, missing].filter(Boolean).join(', ')}`
     })
     .join(' · ')

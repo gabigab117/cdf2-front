@@ -15,7 +15,7 @@ const titleId = useId()
 const rows = computed(() =>
   lines.map(({ item, quantity: toBuy }) => ({ id: item.id, name: item.name, quantity: quantity(toBuy, item.unit) })),
 )
-const countText = computed(() => `${rows.value.length} ${rows.value.length > 1 ? 'articles' : 'article'}`)
+const itemsText = computed(() => countText(rows.value.length, 'article', 'articles'))
 
 // Copied, an item a line: « - Jus de fruits 1 L : 30 ».
 const copiedText = computed(() =>
@@ -81,7 +81,7 @@ async function send(): Promise<void> {
       >
         Liste de courses
       </h2>
-      <span class="text-note text-argent-600">{{ countText }}</span>
+      <span class="text-note text-argent-600">{{ itemsText }}</span>
     </div>
     <template v-if="rows.length > 0">
       <ul class="flex flex-col py-1.5">

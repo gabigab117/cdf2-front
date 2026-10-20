@@ -20,17 +20,11 @@ type DocumentFile = Pick<DocumentOut, 'id' | 'original_name'>
 /**
  * Writes the board's documents, and reads their files. Each write gives what
  * it wrote, or the errors to show on its form; the page fetches the lists
- * again, and the bell what awaits the board.
+ * again, and the bell what awaits the board: a document to review, an
+ * invoice to pay (A6).
  */
 export function useDocumentWrites() {
   const api = useApi()
-
-  async function written<T>(write: Promise<Written<T>>): Promise<Written<T>> {
-    const result = await write
-    // A document to review, an invoice to pay are shown by the bell (A6).
-    if (!result.errors) void refreshBoardOverview()
-    return result
-  }
 
   /** Uploads a file, classified: the document awaits review. */
   function uploadDocument(file: File, fields: UploadFields): Promise<Written<DocumentOut>> {
@@ -42,7 +36,7 @@ export function useDocumentWrites() {
     if (fields.event !== null) form.append('event', String(fields.event))
     // openapi-typescript types a file as a string: the form data goes as it
     // is, openapi-fetch leaving its Content-Type, and boundary, to the browser.
-    return written(formWrite(api.POST('/api/board/documents', { body: form as unknown as UploadBody })))
+    return refreshesOverview(formWrite(api.POST('/api/board/documents', { body: form as unknown as UploadBody })))
   }
 
   /**
@@ -50,25 +44,23 @@ export function useDocumentWrites() {
    * is filed as an invoice, which awaits review.
    */
   function attestPurchase(payload: SwornStatementIn): Promise<Written<DocumentOut>> {
-    return written(formWrite(api.POST('/api/board/documents/statements', { body: payload })))
+    return refreshesOverview(formWrite(api.POST('/api/board/documents/statements', { body: payload })))
   }
 
   /** Rewrites a document whole: the « Corriger » form. */
   function updateDocument(id: number, payload: DocumentIn): Promise<Written<DocumentOut>> {
     const path = { document_id: id }
-    return written(formWrite(api.PUT('/api/board/documents/{document_id}', { params: { path }, body: payload })))
+    return refreshesOverview(formWrite(api.PUT('/api/board/documents/{document_id}', { params: { path }, body: payload })))
   }
 
   /** Validates a document: minutes create the tasks they list. */
   function validateDocument(id: number): Promise<Written<DocumentOut>> {
-    return written(formWrite(api.POST('/api/board/documents/{document_id}/validate', { params: { path: { document_id: id } } })))
+    return refreshesOverview(formWrite(api.POST('/api/board/documents/{document_id}/validate', { params: { path: { document_id: id } } })))
   }
 
   /** @returns null once deleted, or the message to show. */
-  async function deleteDocument(id: number): Promise<string | null> {
-    const failure = await plainWrite(api.DELETE('/api/board/documents/{document_id}', { params: { path: { document_id: id } } }))
-    if (failure === null) void refreshBoardOverview()
-    return failure
+  function deleteDocument(id: number): Promise<string | null> {
+    return refreshesOverview(plainWrite(api.DELETE('/api/board/documents/{document_id}', { params: { path: { document_id: id } } })))
   }
 
   function fetchFile(document: DocumentFile) {

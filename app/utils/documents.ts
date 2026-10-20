@@ -111,7 +111,7 @@ export const TO_REVIEW_LOCATION: RouteLocationRaw = { path: DOCUMENTS_PATH, quer
 /** « 1 facture », « 2 comptes rendus ». */
 function categoryCount(category: DocumentCategory, count: number): string {
   const { one, many } = DOCUMENT_CATEGORIES[category]
-  return `${count} ${count > 1 ? many : one}`
+  return countText(count, one, many)
 }
 
 /** « 2 factures, 1 commande, 1 compte rendu »: the categories that count some. */
