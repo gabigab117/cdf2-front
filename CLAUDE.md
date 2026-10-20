@@ -82,7 +82,7 @@ Règles de développement de ce dépôt, pour les humains comme pour les agents.
 - **Layouts** :
   - `default` : le site public, en-tête et pied de page. Ses liens arrivent avec les pages qu'ils visent. Aucun lien vers l'espace bureau.
   - `board` : barre latérale, barre supérieure, tiroir sous 820 px. Posé sur `/bureau/**` par `routeRules` (`appLayout`).
-  - `standalone` : une page hors du site public, la connexion et la page d'erreur (`error.vue`).
+  - `standalone` : une page hors du site public : la connexion, le choix du mot de passe et la page d'erreur (`error.vue`), dans leur carte (`StandaloneCard`).
 - Icônes : `@lucide/vue`, l'équivalent le plus proche de celles de la maquette. Le trait de 1,8 de la maquette est fourni à toute l'application par `plugins/icons.ts`.
 - **Option d'invite d'un `UiSelect`** (« Choisir une catégorie ») : une option à valeur vide **statique**. Liée à `null`, Vue retirerait son attribut `value`, et un `required` laisserait passer la liste sans choix.
 - État global : **Pinia**, stores par domaine (`useSessionStore`, puis par domaine métier au besoin). Pas d'état global improvisé dans des refs partagées : avec le rendu serveur, une ref de module serait partagée entre les requêtes de tous les visiteurs.

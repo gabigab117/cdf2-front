@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { CircleAlert } from '@lucide/vue'
-
 const { message } = defineProps<{
   /** Why the page could not load, as errorMessage() words it. */
   message: string
@@ -10,11 +8,7 @@ const emit = defineEmits<{ retry: [] }>()
 </script>
 
 <template>
-  <UiCallout
-    tone="ambre"
-    role="alert"
-    :icon="CircleAlert"
-  >
+  <UiAlert>
     <p>{{ message }}</p>
     <template #actions>
       <UiButton
@@ -25,5 +19,5 @@ const emit = defineEmits<{ retry: [] }>()
         Réessayer
       </UiButton>
     </template>
-  </UiCallout>
+  </UiAlert>
 </template>

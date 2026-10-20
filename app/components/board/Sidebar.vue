@@ -1,5 +1,4 @@
 <script setup lang="ts">
-// The badges join the sidebar with the phases that compute them.
 import { ExternalLink } from '@lucide/vue'
 </script>
 

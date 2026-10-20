@@ -97,7 +97,7 @@ function tabClasses(value: T): string[] {
       :aria-labelledby="tabId(selected)"
       tabindex="0"
     >
-      <slot :selected />
+      <slot />
     </div>
   </div>
 </template>

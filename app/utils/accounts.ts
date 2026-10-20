@@ -6,14 +6,11 @@ type AccountOut = components['schemas']['AccountOut']
 /** The accounts page, the superuser's alone. */
 export const ACCOUNTS_PATH = '/bureau/membres'
 
-/** Where a member chooses their password, from the link of an email. */
-export const SET_PASSWORD_PATH = '/choisir-mot-de-passe'
-
 /** How many accounts a page of the list shows. */
 export const ACCOUNTS_PAGE_SIZE = 25
 
 /** The positions of the board, in the order of the list (decision of 10/10/2026). */
-export const BOARD_POSITIONS: Readonly<Record<BoardPosition, string>> = {
+const BOARD_POSITIONS: Readonly<Record<BoardPosition, string>> = {
   president: 'Président·e',
   vice_president: 'Vice-président·e',
   treasurer: 'Trésorier·e',

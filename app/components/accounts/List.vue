@@ -19,7 +19,7 @@ const now = useNow()
 const rows = computed(() =>
   accounts.map(account => ({
     id: account.id,
-    name: [account.first_name, account.last_name].filter(Boolean).join(' ') || account.email,
+    name: memberName(account),
     details: [account.position, account.email].filter(Boolean).join(' · '),
     pill: accountPill(account, iso => writtenDay(iso, now.value)),
     linkable: account.state !== 'inactive',

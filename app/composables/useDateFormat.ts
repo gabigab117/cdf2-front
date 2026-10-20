@@ -7,7 +7,7 @@ type EventDates = Pick<components['schemas']['EventItemOut'], 'starts_at' | 'end
  * Where an event stands, as of a moment: a number of days ahead, today, under
  * way since a day before, or over. Days are counted in Paris.
  */
-export type Countdown
+type Countdown
   = | { kind: 'ahead', days: number }
     | { kind: 'today' }
     | { kind: 'ongoing' }
@@ -59,12 +59,23 @@ function capitalized(text: string): string {
   return `${text.charAt(0).toUpperCase()}${text.slice(1)}`
 }
 
+// A day of the calendar, which the API gives without a time ("2026-10-08"), is
+// read at noon: it never moves to another day, whatever the time zone.
+function atNoon(date: string): string {
+  return `${date}T12:00:00Z`
+}
+
+// A day of another year than `now` shows its year, in Paris.
+function otherYear(iso: string, now: number): boolean {
+  return parisCalendar(iso).year !== parisCalendar(now).year
+}
+
 /**
  * The month of a day of the calendar, such as the best-before date of an item
  * of the stock: « mai 2027 », « févr. 2027 ».
  */
 function calendarMonth(date: string): string {
-  return FORMATS.monthAndYear.format(new Date(`${date}T12:00:00Z`))
+  return FORMATS.monthAndYear.format(new Date(atNoon(date)))
 }
 
 /** « 31/10 ». */
@@ -90,7 +101,7 @@ function day(iso: string, { weekday = true, year = false }: { weekday?: boolean,
  * it is not the year of `now`: « 24 sept. 2025 ».
  */
 function writtenDay(iso: string, now: number): string {
-  return day(iso, { weekday: false, year: parisCalendar(iso).year !== parisCalendar(now).year })
+  return day(iso, { weekday: false, year: otherYear(iso, now) })
 }
 
 // French's own words for the time gone by: « il y a 5 min », « hier ».
@@ -112,24 +123,23 @@ function ago(iso: string, now: number): string {
 }
 
 /**
- * A day of the calendar, such as a due date, which the API gives without a
- * time ("2026-10-08"): « 8 oct. », with its year when it is not the year of
- * `now`. Read at noon, it never moves to another day, whatever the time zone.
+ * A day of the calendar, such as a due date: « 8 oct. », with its year when it
+ * is not the year of `now`.
  */
 function calendarDay(date: string, now: number): string {
-  return writtenDay(`${date}T12:00:00Z`, now)
+  return writtenDay(atNoon(date), now)
 }
 
 /** A day of the calendar in full, as a sentence opens: « Samedi 12 septembre 2026 ». */
 function calendarLong(date: string): string {
-  return longDay(`${date}T12:00:00Z`, { year: true, sentence: true })
+  return longDay(atNoon(date), { year: true, sentence: true })
 }
 
 /**
  * A day of the calendar in figures, as a form to sign writes it: « 16/10/2026 ».
  */
 function calendarNumeric(date: string): string {
-  return FORMATS.numericWithYear.format(new Date(`${date}T12:00:00Z`))
+  return FORMATS.numericWithYear.format(new Date(atNoon(date)))
 }
 
 /**
@@ -137,8 +147,8 @@ function calendarNumeric(date: string): string {
  * « ven. 16 oct. », with its year when it is not the year of `now`.
  */
 function calendarWeekday(date: string, now: number): string {
-  const iso = `${date}T12:00:00Z`
-  return day(iso, { year: parisCalendar(iso).year !== parisCalendar(now).year })
+  const iso = atNoon(date)
+  return day(iso, { year: otherYear(iso, now) })
 }
 
 /**
@@ -147,8 +157,8 @@ function calendarWeekday(date: string, now: number): string {
  * « mercredi 30 septembre »; with its year when it is not the year of `now`.
  */
 function calendarInWords(date: string, now: number, { weekday = false }: { weekday?: boolean } = {}): string {
-  const iso = `${date}T12:00:00Z`
-  return longDay(iso, { weekday: weekday ? 'long' : 'none', year: parisCalendar(iso).year !== parisCalendar(now).year })
+  const iso = atNoon(date)
+  return longDay(iso, { weekday: weekday ? 'long' : 'none', year: otherYear(iso, now) })
 }
 
 /**
@@ -158,12 +168,12 @@ function calendarInWords(date: string, now: number, { weekday = false }: { weekd
  */
 function calendarPeriod(start: string, end: string, now: number): string {
   if (start === end) return calendarWeekday(start, now)
-  const first = `${start}T12:00:00Z`
-  const last = `${end}T12:00:00Z`
+  const first = atNoon(start)
+  const last = atNoon(end)
   const from = parisCalendar(first)
   const to = parisCalendar(last)
   if (from.year !== to.year) return `du ${written(FORMATS.weekdayAndYear, first)} au ${day(last, { year: true })}`
-  const until = day(last, { year: to.year !== parisCalendar(now).year })
+  const until = day(last, { year: otherYear(last, now) })
   if (from.month !== to.month) return `du ${written(FORMATS.weekday, first)} au ${until}`
   return `du ${written(FORMATS.weekdayAndDay, first)} au ${until}`
 }

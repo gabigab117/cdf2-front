@@ -76,12 +76,6 @@ describe('UiFilterChip', () => {
 })
 
 describe('UiSelectableRow', () => {
-  it('tells which row is selected', async () => {
-    const row = await mountSuspended(UiSelectableRow, { props: { selected: true } })
-
-    expect(row.attributes('aria-pressed')).toBe('true')
-  })
-
   it.each([
     ['selected', true, 'true'],
     ['not selected', false, undefined],
@@ -98,7 +92,6 @@ describe('UiSelectableRow', () => {
     expect(row.element.tagName).toBe('A')
     expect(row.attributes('href')).toBe('/?document=21')
     expect(row.attributes('aria-current')).toBe(current)
-    expect(row.attributes('aria-pressed')).toBeUndefined()
   })
 })
 

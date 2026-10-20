@@ -38,13 +38,13 @@ export function apiResponse(status: number, body: unknown, headers: Record<strin
 }
 
 /** A file sent in a form, as a test reads it. */
-export interface SentFile {
+interface SentFile {
   name: string
   type: string
 }
 
 /** A request sent to the API, as a test reads it. */
-export interface SentRequest {
+interface SentRequest {
   method: string
   /** Its path and query string: "/api/board/events?period=upcoming". */
   url: string

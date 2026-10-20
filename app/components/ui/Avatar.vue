@@ -32,9 +32,10 @@ const initials = computed(() => {
   return `${first}${last}`.toUpperCase()
 })
 
+const avatarClasses = computed(() => [classes.base, classes.size[size], classes.tone[tone]])
+
 // The name always shows next to the avatar, which screen readers skip (aria-hidden):
 // the initials would only repeat it.
-const avatarClasses = computed(() => [classes.base, classes.size[size], classes.tone[tone]])
 </script>
 
 <template>

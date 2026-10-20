@@ -1,15 +1,11 @@
 <script setup lang="ts">
 import type { RouteLocationRaw } from 'vue-router'
-import { NuxtLink } from '#components'
 
 const { selected, to } = defineProps<{
   /** The row whose detail shows beside the list. */
   selected: boolean
-  /**
-   * The address of the row's detail: the row becomes a link, the address
-   * keeping the row shown.
-   */
-  to?: RouteLocationRaw
+  /** The address of the row's detail, which keeps the row shown. */
+  to: RouteLocationRaw
 }>()
 
 // The columns are the list's own: it lays them out on the row.
@@ -21,21 +17,17 @@ const classes = {
 
 const rowClasses = computed(() => [classes.base, selected ? classes.selected : classes.idle])
 
-// A button says it is pressed; a link says it is the current item of the list.
-// The router would mark every row of the page as such, whatever its query: the
-// row decides alone.
-const state = computed(() =>
-  to ? { 'aria-current': selected ? 'true' : undefined } : { 'type': 'button', 'aria-pressed': selected },
-)
+// The link says it is the current item of the list. The router would mark every
+// row of the page as such, whatever its query: the row decides alone.
+const current = computed(() => (selected ? 'true' : undefined))
 </script>
 
 <template>
-  <component
-    :is="to ? NuxtLink : 'button'"
+  <NuxtLink
     :to
-    v-bind="state"
+    :aria-current="current"
     :class="rowClasses"
   >
     <slot />
-  </component>
+  </NuxtLink>
 </template>

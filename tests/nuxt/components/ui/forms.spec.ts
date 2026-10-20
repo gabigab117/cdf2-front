@@ -5,6 +5,7 @@ import UiSearchInput from '~/components/ui/SearchInput.vue'
 import UiSelect from '~/components/ui/Select.vue'
 import UiSwitch from '~/components/ui/Switch.vue'
 import UiTextarea from '~/components/ui/Textarea.vue'
+import { chooseFile } from '../../helpers/files'
 
 describe('UiSelect', () => {
   const options = [
@@ -139,8 +140,7 @@ describe('UiDropZone', () => {
     const click = vi.spyOn(picker.element, 'click').mockImplementation(() => {})
 
     await zone.get('button').trigger('click')
-    Object.defineProperty(picker.element, 'files', { value: [pdf], configurable: true })
-    await picker.trigger('change')
+    await chooseFile(picker, pdf)
 
     expect(click).toHaveBeenCalledOnce()
     expect(picker.attributes('accept')).toBe('application/pdf')

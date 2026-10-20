@@ -2,13 +2,13 @@ import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
 
 /** How a renewal ends: a new access token, or a session over for good. */
-export type SessionRenewal = 'renewed' | 'ended'
+type SessionRenewal = 'renewed' | 'ended'
 
 /** What a member types to sign in. */
-export type Credentials = components['schemas']['LoginIn']
+type Credentials = components['schemas']['LoginIn']
 
 /** The signed-in member, as the board's pages show them. */
-export type Member = components['schemas']['MeOut']
+type Member = components['schemas']['MeOut']
 
 // A renewal left hanging would hold the lock of every tab.
 const RENEWAL_TIMEOUT_MS = 10_000
@@ -29,17 +29,10 @@ export const useSessionStore = defineStore('session', () => {
    * @returns null once signed in, or the errors to show on the sign-in form.
    */
   async function signIn(credentials: Credentials): Promise<FormErrors | null> {
-    try {
-      const { data, error, response } = await useApi().POST('/api/auth/login', { body: credentials })
-      if (data) {
-        accessToken.value = data.access
-        return null
-      }
-      return toFormErrors(error) ?? { form: [errorMessage(error, response)], fields: {} }
-    }
-    catch (failure) {
-      return { form: [errorMessage(failure)], fields: {} }
-    }
+    const result = await formWrite(useApi().POST('/api/auth/login', { body: credentials }))
+    if (result.errors) return result.errors
+    accessToken.value = result.data.access
+    return null
   }
 
   /**
@@ -51,15 +44,9 @@ export const useSessionStore = defineStore('session', () => {
    * @returns null once signed out, or the message to show.
    */
   async function signOut(): Promise<string | null> {
-    try {
-      const { error, response } = await useApi().POST('/api/auth/logout')
-      if (!response.ok) return errorMessage(error, response)
-    }
-    catch (failure) {
-      return errorMessage(failure)
-    }
-    clear()
-    return null
+    const failure = await plainWrite(useApi().POST('/api/auth/logout'))
+    if (!failure) clear()
+    return failure
   }
 
   /**

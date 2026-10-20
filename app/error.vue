@@ -46,18 +46,16 @@ function leave(path: string): Promise<void> {
 
 <template>
   <NuxtLayout name="standalone">
-    <div class="flex w-full max-w-md flex-col gap-6 rounded-card border border-argent-200 bg-white p-6 md:p-8">
-      <div class="flex flex-col gap-2">
-        <p class="text-overline font-semibold text-azur-600 uppercase">
-          {{ page.overline }}
-        </p>
-        <h1 class="font-display text-headline font-bold">
-          {{ page.heading }}
-        </h1>
+    <StandaloneCard
+      :overline="page.overline"
+      :title="page.heading"
+      tone="azur"
+    >
+      <template #lead>
         <p class="text-argent-600">
           {{ page.text }}
         </p>
-      </div>
+      </template>
       <div class="flex flex-wrap gap-2">
         <UiButton
           v-if="retryPath"
@@ -81,6 +79,6 @@ function leave(path: string): Promise<void> {
           Espace bureau
         </UiButton>
       </div>
-    </div>
+    </StandaloneCard>
   </NuxtLayout>
 </template>

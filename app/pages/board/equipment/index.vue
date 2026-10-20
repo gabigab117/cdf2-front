@@ -121,7 +121,6 @@ async function deleted(): Promise<void> {
     <UiSidePanel
       v-if="adding"
       title="Ajouter du matériel"
-      closable
       class="md:sticky md:top-17 md:h-below-top-bar md:overflow-y-auto"
       @close="close"
     >

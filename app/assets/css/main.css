@@ -176,8 +176,7 @@
 
   /* Radii */
   --radius-swatch: 3px;     /* colour swatches of a legend */
-  --radius-badge: 7px;
-  --radius-segment: 9px;     /* segmented control options */
+  --radius-segment: 9px;     /* the icon of a recent operation of the stock */
   --radius-control: 10px;    /* small controls */
   --radius-icon: 11px;       /* icon boxes, list actions */
   --radius-field: 12px;      /* fields, buttons */

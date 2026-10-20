@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleAlert, CircleCheck } from '@lucide/vue'
+import { CircleCheck } from '@lucide/vue'
 import type { FormErrors } from '~/utils/api-errors'
 
 // Linked from nowhere: board members reach it by its address, or on their way
@@ -35,23 +35,13 @@ async function signIn(): Promise<void> {
 
 <template>
   <div class="flex w-full flex-col items-center gap-6">
-    <div class="flex w-full max-w-md flex-col gap-6 rounded-card border border-argent-200 bg-white p-6 md:p-8">
-      <div class="flex flex-col gap-2">
-        <p class="text-overline font-semibold text-argent-600 uppercase">
-          Espace bureau
-        </p>
-        <h1 class="font-display text-headline font-bold">
-          Connexion
-        </h1>
-      </div>
-      <UiCallout
-        v-if="errors?.form.length"
-        tone="ambre"
-        role="alert"
-        :icon="CircleAlert"
-      >
+    <StandaloneCard
+      overline="Espace bureau"
+      title="Connexion"
+    >
+      <UiAlert v-if="errors?.form.length">
         <p>{{ errors.form.join(' ') }}</p>
-      </UiCallout>
+      </UiAlert>
       <UiCallout
         v-else-if="notice"
         role="status"
@@ -64,33 +54,29 @@ async function signIn(): Promise<void> {
         @submit.prevent="signIn"
       >
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           label="Adresse e-mail"
           :errors="errors?.fields.email"
         >
           <UiInput
-            :id
+            v-bind="control"
             v-model="credentials.email"
             type="email"
             autocomplete="username"
             required
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           label="Mot de passe"
           :errors="errors?.fields.password"
         >
           <UiInput
-            :id
+            v-bind="control"
             v-model="credentials.password"
             type="password"
             autocomplete="current-password"
             required
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiButton
@@ -103,7 +89,7 @@ async function signIn(): Promise<void> {
           Se connecter
         </UiButton>
       </form>
-    </div>
+    </StandaloneCard>
     <UiButton
       variant="link"
       to="/"

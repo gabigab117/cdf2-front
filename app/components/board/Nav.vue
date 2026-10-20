@@ -23,7 +23,7 @@ const SECTIONS: ReadonlyArray<{ title?: string, entries: readonly Entry[] }> = [
   {
     title: 'Gestion',
     entries: [
-      { label: 'Trésorerie', path: '/bureau/tresorerie', icon: Wallet },
+      { label: 'Trésorerie', path: TREASURY_PATH, icon: Wallet },
       { label: 'Stock', path: STOCK_PATH, icon: Package },
       { label: 'Matériel', path: EQUIPMENT_PATH, icon: Tent },
       { label: 'Prêts', path: LOANS_PATH, icon: ArrowRightLeft },

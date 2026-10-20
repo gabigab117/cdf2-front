@@ -14,7 +14,7 @@ describe('UiTabs', () => {
   function mountTabs(modelValue: 'notes' | 'tasks' | 'public') {
     return mountSuspended(UiTabs<'notes' | 'tasks' | 'public'>, {
       props: { modelValue, tabs, label: 'Sections de l’événement' },
-      slots: { default: ({ selected }: { selected: string }) => `Section ${selected}` },
+      slots: { default: () => 'Contenu de la section' },
       attachTo: document.body,
     })
   }
@@ -29,7 +29,7 @@ describe('UiTabs', () => {
     expect(notes?.attributes()).toMatchObject({ 'aria-selected': 'false', 'tabindex': '-1' })
     expect(tasks?.attributes('aria-controls')).toBe(panel.attributes('id'))
     expect(panel.attributes('aria-labelledby')).toBe(tasks?.attributes('id'))
-    expect(panel.text()).toBe('Section tasks')
+    expect(panel.text()).toBe('Contenu de la section')
     expect(tasks?.text()).toBe('Tâches 9/14')
     tabList.unmount()
   })

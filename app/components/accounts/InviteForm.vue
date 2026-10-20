@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleAlert, Send } from '@lucide/vue'
+import { Send } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
 
@@ -13,13 +13,6 @@ const { save } = defineProps<{
 }>()
 
 const FIELDS = new Set(['email', 'first_name', 'last_name', 'position'])
-
-const LABELS: Readonly<Record<string, string>> = {
-  email: 'Adresse e-mail',
-  first_name: 'Prénom',
-  last_name: 'Nom',
-  position: 'Fonction',
-}
 
 function emptyFields() {
   return { email: '', firstName: '', lastName: '', position: NO_POSITION as PositionChoice }
@@ -38,7 +31,7 @@ async function submit(): Promise<void> {
     position: fields.position === NO_POSITION ? null : fields.position,
   })
   pending.value = false
-  errors.value = refused ? placeErrors(refused, FIELDS, path => LABELS[path] ?? path) : null
+  errors.value = refused ? placeErrors(refused, FIELDS, path => path) : null
   if (!refused) Object.assign(fields, emptyFields())
 }
 </script>
@@ -52,70 +45,57 @@ async function submit(): Promise<void> {
       <p class="text-note text-argent-600">
         Le membre reçoit un e-mail avec un lien, valable 7 jours, pour choisir son mot de passe.
       </p>
-      <UiCallout
-        v-if="errors?.form.length"
-        tone="ambre"
-        role="alert"
-        :icon="CircleAlert"
-      >
+      <UiAlert v-if="errors?.form.length">
         <p>{{ errors.form.join(' ') }}</p>
-      </UiCallout>
+      </UiAlert>
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Adresse e-mail"
         :errors="errors?.fields.email"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.email"
           type="email"
           autocomplete="off"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <div class="grid grid-cols-2 gap-3">
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           label="Prénom"
           :errors="errors?.fields.first_name"
         >
           <UiInput
-            :id
+            v-bind="control"
             v-model="fields.firstName"
             autocomplete="off"
             required
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           label="Nom"
           :errors="errors?.fields.last_name"
         >
           <UiInput
-            :id
+            v-bind="control"
             v-model="fields.lastName"
             autocomplete="off"
             required
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
       </div>
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Fonction"
         :errors="errors?.fields.position"
       >
         <UiSelect
-          :id
+          v-bind="control"
           v-model="fields.position"
           :options="POSITION_OPTIONS"
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiButton

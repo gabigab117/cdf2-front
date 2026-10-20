@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { CircleAlert } from '@lucide/vue'
 import type { FormErrors } from '~/utils/api-errors'
 
 // The page of the link an invited member, or one who forgot their password,
@@ -13,7 +12,7 @@ const INVALID_LINK = 'Ce lien n’est plus valable. Demandez-en un nouveau à la
 
 const FIELDS = new Set(['password', 'confirmation'])
 
-const { checkLink, choosePassword } = usePasswordWrites()
+const { checkLink, setPassword } = usePasswordWrites()
 
 // The link of the address: a second email opened in the same tab changes the
 // fragment alone, which the page follows.
@@ -40,13 +39,12 @@ async function check(): Promise<void> {
   else account.value = result.data.email
 }
 
-onMounted(check)
-watch(link, check)
+watch(link, check, { immediate: true })
 
 async function submit(): Promise<void> {
   if (!link.value) return
   pending.value = true
-  const result = await choosePassword({ ...link.value, ...fields })
+  const result = await setPassword({ ...link.value, ...fields })
   pending.value = false
   if (result.errors) {
     errors.value = placeErrors(result.errors, FIELDS, path => path)
@@ -65,71 +63,54 @@ async function submit(): Promise<void> {
 
 <template>
   <div class="flex w-full flex-col items-center gap-6">
-    <div class="flex w-full max-w-md flex-col gap-6 rounded-card border border-argent-200 bg-white p-6 md:p-8">
-      <div class="flex flex-col gap-2">
-        <p class="text-overline font-semibold text-argent-600 uppercase">
-          Espace bureau
-        </p>
-        <h1 class="font-display text-headline font-bold">
-          Choisir mon mot de passe
-        </h1>
+    <StandaloneCard
+      overline="Espace bureau"
+      title="Choisir mon mot de passe"
+    >
+      <template #lead>
         <p
           v-if="account"
           class="text-note text-argent-600"
         >
           Pour le compte {{ account }}
         </p>
-      </div>
-      <UiCallout
-        v-if="refusal"
-        tone="ambre"
-        role="alert"
-        :icon="CircleAlert"
-      >
+      </template>
+      <UiAlert v-if="refusal">
         <p>{{ refusal }}</p>
-      </UiCallout>
+      </UiAlert>
       <form
         v-else-if="account"
         class="flex flex-col gap-4"
         @submit.prevent="submit"
       >
-        <UiCallout
-          v-if="errors?.form.length"
-          tone="ambre"
-          role="alert"
-          :icon="CircleAlert"
-        >
+        <UiAlert v-if="errors?.form.length">
           <p>{{ errors.form.join(' ') }}</p>
-        </UiCallout>
+        </UiAlert>
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           label="Mot de passe"
           help="Au moins 8 caractères, ni trop courant, ni proche de votre nom ou de votre adresse."
           :errors="errors?.fields.password"
         >
           <UiInput
-            :id
+            v-bind="control"
             v-model="fields.password"
             type="password"
             autocomplete="new-password"
             required
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           label="Confirmation"
           :errors="errors?.fields.confirmation"
         >
           <UiInput
-            :id
+            v-bind="control"
             v-model="fields.confirmation"
             type="password"
             autocomplete="new-password"
             required
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiButton
@@ -142,7 +123,7 @@ async function submit(): Promise<void> {
           Enregistrer mon mot de passe
         </UiButton>
       </form>
-    </div>
+    </StandaloneCard>
     <UiButton
       variant="link"
       to="/"

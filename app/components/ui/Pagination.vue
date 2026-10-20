@@ -8,6 +8,9 @@ const { page, pageCount, to } = defineProps<{
   /** The address of a page of the list. */
   to: (page: number) => RouteLocationRaw
 }>()
+
+const previous = computed(() => (page > 1 ? to(page - 1) : undefined))
+const next = computed(() => (page < pageCount ? to(page + 1) : undefined))
 </script>
 
 <template>
@@ -19,8 +22,8 @@ const { page, pageCount, to } = defineProps<{
     <UiButton
       variant="secondary"
       size="sm"
-      :to="page > 1 ? to(page - 1) : undefined"
-      :disabled="page <= 1"
+      :to="previous"
+      :disabled="!previous"
     >
       Précédent
     </UiButton>
@@ -28,8 +31,8 @@ const { page, pageCount, to } = defineProps<{
     <UiButton
       variant="secondary"
       size="sm"
-      :to="page < pageCount ? to(page + 1) : undefined"
-      :disabled="page >= pageCount"
+      :to="next"
+      :disabled="!next"
     >
       Suivant
     </UiButton>

@@ -2,6 +2,7 @@ import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { describe, expect, it } from 'vitest'
 import UiAvatar from '~/components/ui/Avatar.vue'
 import UiField from '~/components/ui/Field.vue'
+import UiInput from '~/components/ui/Input.vue'
 import UiKpiCard from '~/components/ui/KpiCard.vue'
 import UiLegend from '~/components/ui/Legend.vue'
 import UiProgressBar from '~/components/ui/ProgressBar.vue'
@@ -105,6 +106,18 @@ describe('UiField', () => {
     expect(input.attributes('aria-invalid')).toBe('true')
   })
 
+  it('gives a control of the visual system all it takes at once', async () => {
+    const field = await mountSuspended(UiField, {
+      props: { label: 'Montant', errors: ['Le montant doit être positif.'] },
+      slots: { default: ({ control }: { control: Record<string, unknown> }) => h(UiInput, control) },
+    })
+
+    const input = field.find('input')
+    expect(field.find('label').attributes('for')).toBe(input.attributes('id'))
+    expect(field.find(`#${input.attributes('aria-describedby')}`).text()).toContain('Le montant doit être positif.')
+    expect(input.attributes('aria-invalid')).toBe('true')
+  })
+
   it('says when it may stay empty', async () => {
     const field = await mountSuspended(UiField, { props: { label: 'Note', optional: true } })
 
@@ -126,7 +139,7 @@ describe('UiKpiCard', () => {
 
 describe('UiSidePanel', () => {
   it('is named by its title, and asks to be closed', async () => {
-    const panel = await mountSuspended(UiSidePanel, { props: { title: 'Location sono', closable: true } })
+    const panel = await mountSuspended(UiSidePanel, { props: { title: 'Location sono' } })
 
     await panel.get('button[aria-label="Fermer le panneau"]').trigger('click')
 

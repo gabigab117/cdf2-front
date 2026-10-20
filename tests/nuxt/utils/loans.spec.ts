@@ -66,13 +66,9 @@ describe('the loan form', () => {
 })
 
 describe('the addresses of the loans', () => {
-  it('lead to a loan, its form, and read an id from an address', () => {
+  it('lead to a loan and to its form', () => {
     expect(loanLocation(20)).toEqual({ path: '/bureau/prets', query: { pret: '20' } })
     expect(editLoanPath(20)).toBe('/bureau/prets/20/modifier')
-    expect(queryId('12')).toBe(12)
-    expect(queryId('-1')).toBeNull()
-    expect(queryId(['12'])).toBeNull()
-    expect(queryId(undefined)).toBeNull()
   })
 })
 

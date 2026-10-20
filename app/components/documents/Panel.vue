@@ -100,10 +100,9 @@ async function download(): Promise<void> {
     v-if="document && look"
     :title="document.title"
     :subtitle="depositLine(document)"
-    closable
     @close="emit('close')"
   >
-    <template #badge>
+    <template #pill>
       <UiStatusPill :tone="look.tone">
         {{ look.label }}
       </UiStatusPill>

@@ -57,7 +57,6 @@ function remove(): Promise<string | null> {
 <template>
   <UiSidePanel
     :title="equipment.name"
-    closable
     @close="emit('close')"
   >
     <EquipmentForm

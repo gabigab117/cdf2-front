@@ -30,7 +30,6 @@ const { items, back = false } = defineProps<{
           <ArrowLeft
             v-if="back && index === 0"
             :size="16"
-            aria-hidden="true"
           />
           {{ item.label }}
         </NuxtLink>

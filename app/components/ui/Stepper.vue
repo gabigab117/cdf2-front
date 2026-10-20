@@ -59,7 +59,7 @@ const state = computed(() => (invalid ? 'invalid' : 'valid'))
       class="flex min-w-0 flex-1 items-center justify-center px-2 font-mono text-sm font-semibold whitespace-nowrap"
       :class="classes.value[state]"
     >
-      <slot :quantity>{{ quantity }}</slot>
+      <slot>{{ quantity }}</slot>
     </output>
     <button
       type="button"

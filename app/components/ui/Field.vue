@@ -20,6 +20,10 @@ const invalid = computed(() => errors.length > 0)
 const describedby = computed(() =>
   [help && helpId, invalid.value && errorId].filter(Boolean).join(' ') || undefined,
 )
+
+// All a control of the visual system (UiInput, UiSelect, UiTextarea) takes from
+// its field, bound at once; a native element takes the ids alone.
+const control = computed(() => ({ 'id': id, 'aria-describedby': describedby.value, 'invalid': invalid.value }))
 </script>
 
 <template>
@@ -38,6 +42,7 @@ const describedby = computed(() =>
       :id
       :describedby
       :invalid
+      :control
     />
     <p
       v-if="help"

@@ -81,6 +81,22 @@ describe('the accounts page', () => {
     ])
   })
 
+  it('reads its page from the address, and leads back to the first', async () => {
+    /**
+     * Given 30 accounts, the address asking for the second page
+     * Then the page reads the second page of the list, and leads back to the first
+     */
+    mockApi('/api/board/accounts', { method: 'GET', handler: () => apiResponse(200, page(ACCOUNTS, 30)) })
+    const sent = recordRequests()
+
+    const view = await mountSuspended(AccountsPage, { route: '/bureau/membres?page=2', attachTo: document.body })
+
+    await vi.waitFor(() => expect(view.findAll('li')).toHaveLength(4))
+    expect(sent.find(request => request.method === 'GET')?.url).toBe('/api/board/accounts?page=2&page_size=25')
+    expect(view.text()).toContain('Page 2 sur 2')
+    expect(view.findAll('a').find(link => link.text() === 'Précédent')?.attributes('href')).toBe('/bureau/membres')
+  })
+
   it('invites a member, and says the email went out', async () => {
     /**
      * Given the superuser on the accounts page
@@ -134,6 +150,17 @@ describe('the accounts page', () => {
     await vi.waitFor(() => expect(view.text()).toContain('Un compte existe déjà avec cette adresse.'))
     expect(view.get('input[type="email"]').attributes('aria-invalid')).toBe('true')
     expect(view.find('[role="status"]').exists()).toBe(false)
+  })
+
+  it('tells a refusal of the whole invitation above its fields', async () => {
+    mockAccounts([])
+    mockApi('/api/board/accounts', { method: 'POST', handler: () => apiResponse(429, { detail: 'Trop de requêtes.' }) })
+    const view = await mountPage()
+
+    await view.get('form').trigger('submit')
+
+    await vi.waitFor(() => expect(view.find('form [role="alert"]').exists()).toBe(true))
+    expect(view.get('form [role="alert"]').text()).toBe('Trop de requêtes.')
   })
 
   it('sends a new link, and says so', async () => {

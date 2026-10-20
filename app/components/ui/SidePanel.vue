@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { X } from '@lucide/vue'
 
-const { title, subtitle, closable = false } = defineProps<{
+const { title, subtitle } = defineProps<{
   title: string
   subtitle?: string
-  /** Shows a button that closes the panel. */
-  closable?: boolean
 }>()
 
 const emit = defineEmits<{ close: [] }>()
@@ -19,13 +17,9 @@ const emit = defineEmits<{ close: [] }>()
     class="flex w-full shrink-0 flex-col bg-white md:w-panel md:border-l md:border-argent-200"
   >
     <header class="flex flex-col gap-3 border-b border-argent-100 px-6 pt-6 pb-5">
-      <div
-        v-if="$slots.badge || closable"
-        class="flex items-start justify-between gap-3"
-      >
-        <slot name="badge" />
+      <div class="flex items-start justify-between gap-3">
+        <slot name="pill" />
         <UiIconButton
-          v-if="closable"
           class="ml-auto"
           label="Fermer le panneau"
           size="sm"

@@ -1,5 +1,6 @@
 <!-- A page on its own, outside the public site: the sign-in page, which only
-board members reach by its address, and the error page. -->
+board members reach by its address, the page where a member chooses their
+password, and the error page. -->
 <template>
   <div class="flex min-h-dvh flex-col items-center justify-center gap-8 bg-argent-50 px-4 py-12 text-base text-sable-950">
     <div class="flex items-center gap-3">

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { CircleAlert, CircleCheck } from '@lucide/vue'
 import type { components } from '~/types/api'
-import type { FormErrors, Written } from '~/utils/api-errors'
+import type { FormErrors } from '~/utils/api-errors'
 
 type AccountIn = components['schemas']['AccountIn']
 type InvitationOut = components['schemas']['InvitationOut']
@@ -14,10 +14,7 @@ useHead({ title: 'Membres' })
 // lost theirs or forgot their password (5.9). A position, a deactivation or a
 // departure from the board are changed in the admin.
 const route = useRoute()
-const page = computed(() => {
-  const value = Number(route.query.page)
-  return Number.isInteger(value) && value > 1 ? value : 1
-})
+const page = computed(() => queryPage(route.query.page))
 
 const { data, status, error, refresh } = useAccounts(() => page.value)
 const { inviteMember, sendNewLink } = useAccountWrites()
@@ -53,10 +50,10 @@ async function invite(payload: AccountIn): Promise<FormErrors | null> {
 async function send(id: number): Promise<void> {
   sending.value = id
   sendFailure.value = ''
-  const result: Written<InvitationOut> = await sendNewLink(id)
+  const result = await sendNewLink(id)
   sending.value = null
   if (result.errors) {
-    sendFailure.value = [...result.errors.form, ...Object.values(result.errors.fields).flat()].join(' ')
+    sendFailure.value = refusalText(result.errors)
     return
   }
   told(result.data, false)
@@ -64,7 +61,7 @@ async function send(id: number): Promise<void> {
 }
 
 function pageLocation(target: number) {
-  return { query: { page: target > 1 ? String(target) : undefined } }
+  return { query: { page: pageParam(target) } }
 }
 </script>
 
@@ -84,14 +81,9 @@ function pageLocation(target: number) {
     >
       <p>{{ notice.text }}</p>
     </UiCallout>
-    <UiCallout
-      v-if="sendFailure"
-      tone="ambre"
-      role="alert"
-      :icon="CircleAlert"
-    >
+    <UiAlert v-if="sendFailure">
       <p>{{ sendFailure }}</p>
-    </UiCallout>
+    </UiAlert>
     <div class="flex flex-wrap items-start gap-5">
       <UiCard
         flush

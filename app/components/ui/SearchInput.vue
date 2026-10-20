@@ -16,7 +16,6 @@ const { label } = defineProps<{
   <label class="flex h-12 items-center gap-2.5 rounded-search border border-argent-200 bg-white px-4 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-azur-600">
     <Search
       :size="18"
-      aria-hidden="true"
       class="shrink-0 text-argent-600"
     />
     <span class="sr-only">{{ label }}</span>

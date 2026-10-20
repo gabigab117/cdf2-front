@@ -23,12 +23,6 @@ export function agreementPath(id: number): string {
   return `${LOANS_PATH}/${id}/convention`
 }
 
-/** The id an address names, such as `?materiel=12`, or none. */
-export function queryId(value: unknown): number | null {
-  const id = Number(value)
-  return typeof value === 'string' && Number.isInteger(id) && id > 0 ? id : null
-}
-
 /** The address of a loan, its panel open beside the list. */
 export function loanLocation(id: number): RouteLocationRaw {
   return { path: LOANS_PATH, query: { pret: String(id) } }

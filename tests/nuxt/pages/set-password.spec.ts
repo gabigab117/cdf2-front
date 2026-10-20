@@ -71,6 +71,19 @@ describe('the page to choose a password', () => {
     expect(navigateToMock).not.toHaveBeenCalled()
   })
 
+  it('tells a refusal of the whole form above its fields', async () => {
+    mockApi('/api/auth/password-link', { handler: () => apiResponse(200, { email: 'julie.petit@example.fr' }) })
+    mockApi('/api/auth/password', { handler: () => apiResponse(429, { detail: 'Trop de requêtes.' }) })
+    const view = await mountPage()
+    await vi.waitFor(() => expect(view.find('form').exists()).toBe(true))
+
+    await view.get('form').trigger('submit')
+
+    await vi.waitFor(() => expect(view.find('form [role="alert"]').exists()).toBe(true))
+    expect(view.get('form [role="alert"]').text()).toBe('Trop de requêtes.')
+    expect(navigateToMock).not.toHaveBeenCalled()
+  })
+
   it('says a link holds no more, and asks nothing', async () => {
     mockApi('/api/auth/password-link', {
       handler: () => apiResponse(422, { detail: [{ type: 'validation_error', loc: ['body'], msg: INVALID_LINK }] }),

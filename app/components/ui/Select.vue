@@ -63,7 +63,6 @@ const selectClasses = computed(() => [classes.base, classes.size[size], frame.va
     </select>
     <ChevronDown
       :size="16"
-      aria-hidden="true"
       class="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-argent-600"
     />
   </div>
