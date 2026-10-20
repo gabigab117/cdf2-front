@@ -99,13 +99,6 @@ describe('statementPayload', () => {
   })
 })
 
-describe('statementFieldLabel', () => {
-  it('names a field of a statement', () => {
-    expect(statementFieldLabel('purchase_date')).toBe('Date de l’achat')
-    expect(statementFieldLabel('unknown')).toBe('unknown')
-  })
-})
-
 describe('documentPayload', () => {
   it('sends a document whole, as its form edits it', () => {
     /**

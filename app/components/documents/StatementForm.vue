@@ -34,7 +34,7 @@ async function submit(): Promise<void> {
   const result = await attestPurchase(statementPayload(fields.value))
   pending.value = false
   if (result.errors) {
-    errors.value = placeErrors(result.errors, SHOWN, statementFieldLabel)
+    errors.value = placeErrors(result.errors, SHOWN)
     await focusErrors(form)
     return
   }

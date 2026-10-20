@@ -9,12 +9,11 @@ useHead({ title: 'Prêts' })
 const route = useRoute()
 const query = computed(() => parseLoansQuery(route.query))
 
-const { data: page, status, error, refresh } = useLoanList(() => query.value)
+const { data: page, pending: loading, error, refresh } = useLoanList(() => query.value)
 const { data: counts, refresh: refreshCounts } = useLoanCounts()
 
 const loans = computed(() => page.value?.items ?? [])
 const pageCount = computed(() => Math.ceil((page.value?.count ?? 0) / LOANS_PAGE_SIZE))
-const loading = computed(() => status.value === 'pending')
 const emptyText = computed(() => (query.value.state === null ? 'Aucun prêt pour l’instant.' : 'Aucun prêt dans cet état.'))
 
 function location(changes: Partial<LoansQuery>) {
@@ -37,7 +36,7 @@ const chips = computed(() => [
   }),
 ])
 
-// A write changes the list, its counts, and what awaits the board.
+// A write changes the list, its counts and the planning.
 function changed(): void {
   void refresh()
   void refreshCounts()

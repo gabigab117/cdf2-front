@@ -21,7 +21,7 @@ watch(error, (failure) => {
 const { changeLoan } = useLoanWrites()
 
 const initial = computed(() => (loan.value ? loanFields(loan.value) : null))
-const reference = computed(() => loan.value?.number ?? 'Réservation interne')
+const reference = computed(() => (loan.value ? capitalized(loanReference(loan.value)) : ''))
 const breadcrumb = computed(() => [
   { label: 'Prêts', to: LOANS_PATH },
   { label: reference.value, to: loanLocation(id) },

@@ -5,13 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import AgreementPage from '~/pages/board/loans/[id]/agreement.vue'
 import { apiResponse, clearApiMocks, mockApi } from '../../../helpers/api'
 import { loanOut } from '../../../helpers/equipment'
+import { readable } from '../../../helpers/text'
 
 const { showErrorMock } = vi.hoisted(() => ({ showErrorMock: vi.fn() }))
 mockNuxtImport('showError', () => showErrorMock)
-
-function readable(text: string): string {
-  return text.replaceAll('\u202F', ' ').replaceAll('\u00A0', ' ')
-}
 
 // Each line of the agreement: its label, and what the loan filled in after it.
 function fields(sheet: Pick<DOMWrapper<Element>, 'findAll'>): string[][] {

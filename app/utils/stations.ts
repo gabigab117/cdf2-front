@@ -25,17 +25,6 @@ export function stationPayload(fields: StationFields): StationIn {
   return { name: fields.name, description: fields.description, required_count: Number(fields.requiredCount) }
 }
 
-const STATION_FIELD_LABELS: Readonly<Record<string, string>> = {
-  name: 'Nom du poste',
-  description: 'Description',
-  required_count: 'Personnes requises',
-}
-
-/** The name of a field of a station, for an error its form cannot show under it. */
-export function stationFieldLabel(path: string): string {
-  return STATION_FIELD_LABELS[path] ?? path
-}
-
 /** « 4 / 7 personnes affectées », as the v1 counts the volunteers of an event. */
 export function staffing(board: Pick<StationBoardOut, 'assigned_count' | 'required_count'>): string {
   return `${board.assigned_count} / ${board.required_count} personnes affectées`

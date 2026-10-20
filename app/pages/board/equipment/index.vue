@@ -10,10 +10,9 @@ useHead({ title: 'Matériel' })
 const route = useRoute()
 const query = computed(() => parseInventoryQuery(route.query))
 
-const { data: inventory, status, error, refresh } = useInventory()
+const { data: inventory, pending: loading, error, refresh } = useInventory()
 const { addEquipment } = useEquipmentWrites()
 
-const loading = computed(() => status.value === 'pending')
 const items = computed(() => inventory.value?.items ?? [])
 const selected = computed(() => {
   const id = query.value.equipment
@@ -22,7 +21,7 @@ const selected = computed(() => {
 const adding = computed(() => query.value.equipment === 'new')
 const panelShown = computed(() => adding.value || selected.value !== null)
 
-const figures = computed(() => (inventory.value ? inventoryFigures(inventory.value.totals) : ''))
+const totals = computed(() => (inventory.value ? inventoryTotalsText(inventory.value.totals) : ''))
 
 const LEGEND = [
   { label: 'Disponible aujourd’hui', tone: 'azur' },
@@ -76,7 +75,7 @@ async function deleted(): Promise<void> {
         <div class="flex flex-col gap-1.5">
           <BoardPageTitle>Matériel</BoardPageTitle>
           <p class="text-lead text-argent-600">
-            {{ figures }}
+            {{ totals }}
           </p>
         </div>
         <div class="flex flex-wrap gap-2">

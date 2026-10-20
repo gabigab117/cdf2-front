@@ -43,8 +43,7 @@ export const BORROWER_TYPES: Readonly<Record<LoanBorrowerType, BorrowerLook>> = 
   committee: { label: 'Usage comité', nameLabel: 'Événement du comité' },
 }
 
-// Object.keys() types its keys as strings: they are those of the record.
-export const BORROWER_TYPE_VALUES = Object.keys(BORROWER_TYPES) as LoanBorrowerType[]
+export const BORROWER_TYPE_VALUES = keysOf(BORROWER_TYPES)
 
 /**
  * What the loan form edits. The deposit is a text, as its field holds it; the
@@ -190,8 +189,7 @@ export const LOAN_STATES: Readonly<Record<LoanState, StateLook>> = {
   cancelled: { label: 'Annulé', chip: null, slug: 'annules', tone: 'outline' },
 }
 
-// Object.keys() types its keys as strings: they are those of the record.
-export const LOAN_STATE_VALUES = Object.keys(LOAN_STATES) as LoanState[]
+export const LOAN_STATE_VALUES = keysOf(LOAN_STATES)
 
 /** How many loans a page of the list holds. */
 export const LOANS_PAGE_SIZE = 25
@@ -209,11 +207,10 @@ export interface LoansQuery {
  * A value the page does not know is left out.
  */
 export function parseLoansQuery(query: LocationQuery): LoansQuery {
-  const page = Number(query.page)
   return {
     loan: queryId(query.pret),
     state: LOAN_STATE_VALUES.find(state => LOAN_STATES[state].slug === query.etat) ?? null,
-    page: Number.isInteger(page) && page > 1 ? page : 1,
+    page: queryPage(query.page),
   }
 }
 
@@ -222,8 +219,18 @@ export function loansQuery({ loan, state, page }: LoansQuery): LocationQueryRaw 
   return {
     pret: loan === null ? undefined : String(loan),
     etat: state === null ? undefined : LOAN_STATES[state].slug,
-    page: page > 1 ? String(page) : undefined,
+    page: pageParam(page),
   }
+}
+
+/** « Club de football — Tournoi jeunes »: whom a loan lends to, and for what. */
+export function loanTitle(loan: Pick<LoanOut, 'display_name' | 'purpose'>): string {
+  return loan.purpose ? `${loan.display_name} — ${loan.purpose}` : loan.display_name
+}
+
+/** « P-2026-018 », or « réservation interne »: the committee's loan has no number. */
+export function loanReference(loan: Pick<LoanOut, 'number'>): string {
+  return loan.number ?? 'réservation interne'
 }
 
 /** « Tables pliantes 180 cm (6), Barnums 3 × 3 m (1) »: what a loan takes. */

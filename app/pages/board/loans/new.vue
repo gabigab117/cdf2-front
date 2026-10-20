@@ -12,14 +12,14 @@ useHead({ title: 'Nouveau prêt' })
 const BREADCRUMB = [{ label: 'Prêts', to: LOANS_PATH }, { label: 'Nouveau prêt' }]
 
 const route = useRoute()
-const now = useNow()
+const today = useToday()
 const { recordLoan } = useLoanWrites()
 
 // From the inventory, the equipment to lend; from an event, its reservation.
 const equipment = queryId(route.query.materiel)
 const event = queryId(route.query.evenement)
 
-const initial = newLoanFields(parisDate(now.value))
+const initial = newLoanFields(today.value)
 if (equipment !== null) initial.quantities = { [equipment]: 1 }
 if (event !== null) {
   initial.borrowerType = 'committee'
@@ -31,7 +31,7 @@ if (event !== null) {
 async function record(payload: LoanIn): Promise<FormErrors | null> {
   const result = await recordLoan(payload)
   if (result.errors) return result.errors
-  const next = event === null ? loanLocation(result.data.id) : { path: eventPath(event), query: { onglet: 'materiel' } }
+  const next = event === null ? loanLocation(result.data.id) : { path: eventPath(event), query: eventPageQuery({ tab: 'equipment', page: 1 }) }
   await navigateTo(next, { replace: true })
   return null
 }

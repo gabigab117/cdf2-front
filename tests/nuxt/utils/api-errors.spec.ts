@@ -183,6 +183,12 @@ describe('placeErrors', () => {
       fields: { title: ['Ce champ ne peut pas être vide.'] },
     })
   })
+
+  it('writes an unforeseen field by its path, when the form names none', () => {
+    const errors = { form: [], fields: { lines: ['Ajoutez au moins un matériel.'] } }
+
+    expect(placeErrors(errors, new Set(['name']))).toEqual({ form: ['lines : Ajoutez au moins un matériel.'], fields: {} })
+  })
 })
 
 describe('loadData', () => {

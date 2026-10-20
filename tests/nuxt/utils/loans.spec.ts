@@ -109,6 +109,13 @@ describe('what a loan tells', () => {
     expect(loanHeadline(loan, '2026-10-01', date => date)).toBe(headline)
   })
 
+  it('names whom it lends to and for what, and its number', () => {
+    expect(loanTitle({ display_name: 'Club de football', purpose: 'Tournoi jeunes' })).toBe('Club de football — Tournoi jeunes')
+    expect(loanTitle({ display_name: 'Halloween des enfants', purpose: '' })).toBe('Halloween des enfants')
+    expect(loanReference({ number: 'P-2026-020' })).toBe('P-2026-020')
+    expect(loanReference({ number: null })).toBe('réservation interne')
+  })
+
   it('tells its deposit', () => {
     const amount = (value: string) => `${value.replace('.', ',')} €`
 

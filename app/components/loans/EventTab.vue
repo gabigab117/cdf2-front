@@ -7,7 +7,7 @@ const { eventId } = defineProps<{ eventId: number }>()
 
 const { data: dashboard, error, refresh } = useEventDashboard(eventId)
 
-const reserve = computed(() => ({ path: NEW_LOAN_PATH, query: { evenement: String(eventId) } }))
+const reserve = computed(() => eventLocation(NEW_LOAN_PATH, eventId))
 </script>
 
 <template>

@@ -178,6 +178,22 @@ describe('the Matériel page', () => {
     expect(page.findAll('aside input')[2]!.attributes('aria-invalid')).toBe('true')
   })
 
+  it('shows a refusal of the whole change above the form, and takes the focus to it', async () => {
+    mockInventory()
+    mockOccupancy()
+    mockApi('/api/board/equipment/{equipment_id}', {
+      method: 'PUT',
+      handler: () => apiResponse(404, { detail: 'Ce matériel n’existe plus.' }),
+    }, { equipment_id: 5 })
+    const page = await mountPage('/bureau/materiel?materiel=5')
+
+    await (await panelOf(page)).findAll('footer button').find(button => button.text() === 'Modifier')!.trigger('click')
+    await page.get('aside form').trigger('submit')
+
+    await vi.waitFor(() => expect(page.get('aside form [role="alert"]').text()).toBe('Ce matériel n’existe plus.'))
+    expect(document.activeElement).toBe(page.get('aside form [role="alert"]').element)
+  })
+
   it('deletes an equipment once the member confirms', async () => {
     mockInventory()
     mockOccupancy()

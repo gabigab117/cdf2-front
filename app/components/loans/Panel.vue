@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRightLeft, CalendarDays, CircleAlert, FileCheck, FileText, FileUp, PencilLine, Phone, RotateCcw, X } from '@lucide/vue'
+import { ArrowRightLeft, CalendarDays, FileCheck, FileText, FileUp, PencilLine, Phone, RotateCcw, X } from '@lucide/vue'
 import type { ComponentPublicInstance } from 'vue'
 import type { components } from '~/types/api'
 import type { FormErrors, Written } from '~/utils/api-errors'
@@ -13,13 +13,13 @@ type ShortageOut = components['schemas']['ShortageOut']
 const { id } = defineProps<{ id: number }>()
 
 const emit = defineEmits<{
-  /** The loan changed: the list and its counts are fetched again. */
+  /** The loan changed: the list, its counts and the planning are fetched again. */
   changed: []
   close: []
 }>()
 
 const { data: loan, error, refresh } = useLoan(id)
-const { checkOut, returnLoan, reopenLoan, cancelLoan, depositAgreement } = useLoanWrites()
+const { checkOut, returnLoan, reopenLoan, cancelLoan, uploadAgreement } = useLoanWrites()
 const { calendarPeriod, calendarWeekday, writtenDay } = useDateFormat()
 const { amount } = useMoneyFormat()
 const now = useNow()
@@ -29,13 +29,13 @@ const shortages = ref<ShortageOut[]>([])
 
 const look = computed(() => (loan.value ? LOAN_STATES[loan.value.state] : null))
 const state = computed(() => loan.value?.state)
-const title = computed(() => (loan.value?.purpose ? `${loan.value.display_name} — ${loan.value.purpose}` : loan.value?.display_name ?? ''))
+const title = computed(() => (loan.value ? loanTitle(loan.value) : ''))
 const headline = computed(() => (loan.value ? loanHeadline(loan.value, parisDate(now.value), date => calendarWeekday(date, now.value)) : ''))
 const facts = computed(() => {
   const shown = loan.value
   if (!shown) return ''
   const period = calendarPeriod(shown.start_date, shown.end_date, now.value)
-  return [period.charAt(0).toUpperCase() + period.slice(1), shown.number ?? 'réservation interne', depositFact(shown, amount)].join(' · ')
+  return [capitalized(period), loanReference(shown), depositFact(shown, amount)].join(' · ')
 })
 
 // Each line, and how it came back when not whole.
@@ -56,28 +56,28 @@ const canEdit = computed(() => canCancel.value || canReturn.value)
 // A loan to someone is signed for; the committee's is not, nor a loan cancelled.
 const signed = computed(() => state.value !== undefined && state.value !== 'committee' && state.value !== 'cancelled')
 
-// The signed agreement, deposited as a document: the file picked goes at once.
+// The signed agreement, uploaded as a document: the file picked goes at once.
 const picker = useTemplateRef<HTMLInputElement>('picker')
-const depositing = ref(false)
-const depositFailure = ref('')
+const uploading = ref(false)
+const uploadFailure = ref('')
 const agreementText = computed(() => {
   const agreement = loan.value?.agreement
   return agreement ? `Convention signée, déposée le ${writtenDay(agreement.created_at, now.value)}` : ''
 })
 
-async function deposit(event: Event): Promise<void> {
+async function upload(event: Event): Promise<void> {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   // Picked again, the same file is sent again.
   input.value = ''
-  if (!file || depositing.value) return
-  depositing.value = true
-  depositFailure.value = ''
-  const result = await depositAgreement(id, file)
-  depositing.value = false
+  if (!file || uploading.value) return
+  uploading.value = true
+  uploadFailure.value = ''
+  const result = await uploadAgreement(id, file)
+  uploading.value = false
   if (result.errors) {
-    const placed = placeErrors(result.errors, new Set(['file']), path => path)
-    depositFailure.value = [...(placed.fields.file ?? []), ...placed.form].join(' ')
+    const placed = placeErrors(result.errors, new Set(['file']))
+    uploadFailure.value = [...(placed.fields.file ?? []), ...placed.form].join(' ')
     return
   }
   loan.value = result.data
@@ -98,7 +98,7 @@ const cancelQuestion = computed(() =>
 // A step refused tells why, with the question that asked for it.
 async function step(write: () => Promise<Written<LoanOut>>): Promise<string | null> {
   const result = await write()
-  if (result.errors) return placeErrors(result.errors, new Set(), path => path).form.join(' ')
+  if (result.errors) return refusalText(result.errors)
   loan.value = result.data
   emit('changed')
   return null
@@ -189,11 +189,8 @@ const shortageLines = computed(() =>
           >{{ line.back }}</span>
         </li>
       </ul>
-      <UiCallout
+      <UiAlert
         v-if="shortageLines.length"
-        tone="ambre"
-        role="alert"
-        :icon="CircleAlert"
         title="Des prêts à venir manquent désormais de matériel"
       >
         <p
@@ -202,7 +199,7 @@ const shortageLines = computed(() =>
         >
           {{ shortage.text }}
         </p>
-      </UiCallout>
+      </UiAlert>
       <dl
         v-if="loan.phone || loan.notes"
         class="flex flex-col gap-2 text-sm"
@@ -293,7 +290,7 @@ const shortageLines = computed(() =>
           <UiButton
             variant="secondary"
             class="flex-1"
-            :loading="depositing"
+            :loading="uploading"
             @click="picker?.click()"
           >
             <FileUp :size="16" />
@@ -306,15 +303,15 @@ const shortageLines = computed(() =>
             tabindex="-1"
             aria-hidden="true"
             :accept="DOCUMENT_TYPES"
-            @change="deposit"
+            @change="upload"
           >
         </div>
         <p
-          v-if="depositFailure"
+          v-if="uploadFailure"
           role="alert"
           class="text-sm text-ambre-800"
         >
-          {{ depositFailure }}
+          {{ uploadFailure }}
         </p>
         <NuxtLink
           v-if="signed && loan.agreement"

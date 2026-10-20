@@ -8,6 +8,6 @@ export function field(view: VueWrapper, label: string) {
 }
 
 /** The button its text or its label names, if the view shows one. */
-export function button(view: VueWrapper | DOMWrapper<Element>, name: string) {
+export function button(view: Pick<DOMWrapper<Element>, 'findAll'>, name: string) {
   return view.findAll('button').find(candidate => candidate.text() === name || candidate.attributes('aria-label') === name)
 }

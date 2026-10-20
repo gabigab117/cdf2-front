@@ -301,19 +301,6 @@ const DOCUMENT_FIELD_LABELS: Readonly<Record<string, string>> = {
   'extracted.key_date': 'Date repérée',
 }
 
-const STATEMENT_FIELD_LABELS: Readonly<Record<string, string>> = {
-  supplier: 'Fournisseur',
-  purchase_date: 'Date de l’achat',
-  purchase: 'Ce qui a été acheté',
-  amount: 'Montant TTC',
-  event: 'Événement',
-}
-
-/** The name of a field of a sworn statement, for an error its form cannot show under it. */
-export function statementFieldLabel(path: string): string {
-  return STATEMENT_FIELD_LABELS[path] ?? path
-}
-
 /**
  * The name of a field of a document, for an error the form cannot show under
  * it: « Tâche 2 : … » for a field of a listed task.

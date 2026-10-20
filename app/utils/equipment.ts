@@ -21,8 +21,7 @@ export interface InventoryQuery {
  * `?materiel=nouveau`. A value the page does not know is left out.
  */
 export function parseInventoryQuery(query: LocationQuery): InventoryQuery {
-  const id = Number(query.materiel)
-  return { equipment: query.materiel === NEW ? 'new' : Number.isInteger(id) && id > 0 ? id : null }
+  return { equipment: query.materiel === NEW ? 'new' : queryId(query.materiel) }
 }
 
 /** The address of the Matériel page, in the form parseInventoryQuery() reads. */
@@ -31,7 +30,7 @@ export function inventoryQuery({ equipment }: InventoryQuery): LocationQueryRaw 
 }
 
 /** « 1 référence », « 14 références · 3 en partie prêtées aujourd’hui · 5 pièces en réparation ». */
-export function inventoryFigures(totals: components['schemas']['InventoryTotalsOut']): string {
+export function inventoryTotalsText(totals: components['schemas']['InventoryTotalsOut']): string {
   const references = `${totals.references} ${totals.references > 1 ? 'références' : 'référence'}`
   const taken = `${totals.taken_today} en partie ${totals.taken_today > 1 ? 'prêtées' : 'prêtée'} aujourd’hui`
   const repair = `${totals.pieces_under_repair} ${totals.pieces_under_repair > 1 ? 'pièces' : 'pièce'} en réparation`
@@ -76,16 +75,4 @@ export function equipmentPayload(fields: EquipmentFields): EquipmentIn {
     repair_quantity: quantity(fields.repair),
     repair_note: fields.repairNote,
   }
-}
-
-const EQUIPMENT_FIELD_LABELS: Readonly<Record<string, string>> = {
-  name: 'Nom',
-  total_quantity: 'Quantité totale',
-  repair_quantity: 'En réparation',
-  repair_note: 'Note de réparation',
-}
-
-/** The name of a field of an equipment, for an error the form cannot show under it. */
-export function equipmentFieldLabel(path: string): string {
-  return EQUIPMENT_FIELD_LABELS[path] ?? path
 }

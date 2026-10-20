@@ -6,6 +6,8 @@ import NewLoanPage from '~/pages/board/loans/new.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
 import { DEPOSITS, availabilityItem, availabilityOut, loanBrief, loanOut } from '../../../helpers/equipment'
 import { eventItem, page } from '../../../helpers/events'
+import { button, field } from '../../../helpers/form'
+import { readable } from '../../../helpers/text'
 
 const { navigateToMock } = vi.hoisted(() => ({ navigateToMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
@@ -17,10 +19,6 @@ const TABLES = availabilityItem(
   { id: 7, name: 'Tables pliantes 180 cm', total_quantity: 24, repair_quantity: 0, repair_note: '' },
   { free: 24 },
 )
-
-function readable(text: string): string {
-  return text.replaceAll(' ', ' ').replaceAll(' ', ' ')
-}
 
 function mockForm(items = [TABLES, MARQUEES]) {
   mockApi('/api/board/loans/deposits', { handler: () => apiResponse(200, DEPOSITS) })
@@ -35,22 +33,9 @@ function mountPage(route = '/bureau/prets/nouveau') {
 
 type Page = VueWrapper
 
-// The control a label names.
-function field(view: Page, label: string) {
-  const tag = view.findAll('label').find(candidate => candidate.text().startsWith(label))
-  if (!tag) throw new Error(`No field « ${label} »`)
-  return view.get(`[id="${tag.attributes('for')}"]`)
-}
-
 function row(view: Page, name: string) {
   const found = view.findAll('li').find(item => item.text().startsWith(name))
   if (!found) throw new Error(`No line « ${name} »`)
-  return found
-}
-
-function button(view: Page, text: string) {
-  const found = view.findAll('button').find(candidate => candidate.text() === text)
-  if (!found) throw new Error(`No button « ${text} »`)
   return found
 }
 
@@ -89,10 +74,10 @@ describe('the page of a new loan', () => {
 
     await vi.waitFor(() => expect((field(view, 'Caution').element as HTMLInputElement).value).toBe('150,00'))
     expect(field(view, 'Nom de l’association').element.tagName).toBe('INPUT')
-    await button(view, 'Particulier').trigger('click')
+    await button(view, 'Particulier')!.trigger('click')
     expect(field(view, 'Nom et prénom').element.tagName).toBe('INPUT')
     expect((field(view, 'Caution').element as HTMLInputElement).value).toBe('300,00')
-    await button(view, 'Usage comité').trigger('click')
+    await button(view, 'Usage comité')!.trigger('click')
     expect(field(view, 'Événement du comité').element.tagName).toBe('SELECT')
     expect(view.text()).not.toContain('Téléphone')
     expect(readable(view.get('aside').text())).toContain('Aucune, usage interne')
@@ -142,10 +127,10 @@ describe('the page of a new loan', () => {
     await field(view, 'Retour').setValue('2026-10-02')
 
     await vi.waitFor(() => expect(readable(view.get('aside').text())).toContain('Barnums 3 × 3 m : 1 demandé, aucun libre sur la période.'))
-    expect(button(view, 'Enregistrer le prêt').attributes('disabled')).toBeDefined()
-    await button(view, 'Ramener aux quantités libres').trigger('click')
+    expect(button(view, 'Enregistrer le prêt')!.attributes('disabled')).toBeDefined()
+    await button(view, 'Ramener aux quantités libres')!.trigger('click')
     expect(view.get('aside').text()).not.toContain('Barnums 3 × 3 m')
-    expect(button(view, 'Enregistrer le prêt').attributes('disabled')).toBeUndefined()
+    expect(button(view, 'Enregistrer le prêt')!.attributes('disabled')).toBeUndefined()
   })
 
   it('tells a return before the start, and reads nothing free until it is fixed', async () => {
@@ -157,6 +142,7 @@ describe('the page of a new loan', () => {
     await field(view, 'Retour').setValue('2026-09-30')
 
     expect(view.text()).toContain('La date de retour est avant la date de sortie.')
+    expect(field(view, 'Retour').attributes('aria-invalid')).toBe('true')
     expect(view.text()).toContain('Choisissez les dates du prêt pour voir le matériel libre.')
     expect(sent.filter(request => request.url.startsWith('/api/board/equipment/availability'))).toHaveLength(1)
   })
@@ -213,6 +199,37 @@ describe('the page of a new loan', () => {
 
     await vi.waitFor(() => expect(row(view, 'Tables pliantes 180 cm').text()).toContain('Tables pliantes 180 cm : 1 demandé, 0 libre sur la période.'))
     expect(field(view, 'Téléphone').attributes('aria-invalid')).toBe('true')
+  })
+
+  it('shows a refusal of the whole loan above the form, and takes the focus to it', async () => {
+    mockForm()
+    mockApi('/api/board/loans', {
+      method: 'POST',
+      handler: () => apiResponse(403, { detail: 'Accès réservé aux membres du bureau.' }),
+    })
+    const view = await mountPage()
+    await linesShown(view)
+    await field(view, 'Nom de l’association').setValue('Club de football')
+    await row(view, 'Tables pliantes 180 cm').get('button[aria-label="Ajouter : Tables pliantes 180 cm"]').trigger('click')
+
+    await view.get('form').trigger('submit')
+
+    await vi.waitFor(() => expect(view.find('form [role="alert"]').exists()).toBe(true))
+    expect(view.get('form [role="alert"]').text()).toBe('Accès réservé aux membres du bureau.')
+    expect(document.activeElement).toBe(view.get('form [role="alert"]').element)
+  })
+
+  it('records the committee’s reservation, then opens its event on the Matériel tab', async () => {
+    mockForm()
+    mockApi('/api/board/loans', { method: 'POST', handler: () => apiResponse(201, loanOut({ id: 34, borrower_type: 'committee' })) })
+    const view = await mountPage('/bureau/prets/nouveau?evenement=12')
+    await linesShown(view)
+    await vi.waitFor(() => expect((field(view, 'Événement du comité').element as HTMLSelectElement).value).toBe('12'))
+    await row(view, 'Tables pliantes 180 cm').get('button[aria-label="Ajouter : Tables pliantes 180 cm"]').trigger('click')
+
+    await view.get('form').trigger('submit')
+
+    await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith({ path: '/bureau/evenements/12', query: { onglet: 'materiel' } }, { replace: true }))
   })
 
   it('keeps equipment for an event, from the day before to the day after', async () => {

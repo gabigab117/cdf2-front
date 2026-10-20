@@ -14,7 +14,7 @@ const period = computed(() => {
   const kept = reservation.value
   if (!kept) return ''
   const days = calendarPeriod(kept.start_date, kept.end_date, now.value)
-  return `${days.charAt(0).toUpperCase()}${days.slice(1)} · bloqué pour les prêts`
+  return `${capitalized(days)} · bloqué pour les prêts`
 })
 </script>
 

@@ -7,6 +7,9 @@ import LoansPage from '~/pages/board/loans/index.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
 import { loanBrief, loanOut } from '../../../helpers/equipment'
 import { page } from '../../../helpers/events'
+import { chooseFile } from '../../../helpers/files'
+import { button } from '../../../helpers/form'
+import { readable } from '../../../helpers/text'
 
 type LoanItemOut = components['schemas']['LoanItemOut']
 
@@ -27,10 +30,6 @@ const ITEMS = [
   item({ id: 31, number: null, display_name: 'Halloween des enfants', purpose: '', borrower_type: 'committee', state: 'committee', start_date: '2026-10-30', end_date: '2026-11-01' }),
 ]
 
-function readable(text: string): string {
-  return text.replaceAll(' ', ' ').replaceAll(' ', ' ')
-}
-
 function mockList(items = ITEMS, planned = ITEMS) {
   mockApi('/api/board/loans', { method: 'GET', handler: () => apiResponse(200, page(items)) })
   mockApi('/api/board/loans/counts', { handler: () => apiResponse(200, COUNTS) })
@@ -48,12 +47,6 @@ function mountPage(route = '/bureau/prets') {
 async function panelOf(view: VueWrapper) {
   await vi.waitFor(() => expect(view.find('section[aria-label]').exists()).toBe(true))
   return view.get('section[aria-label]')
-}
-
-function button(view: VueWrapper | ReturnType<VueWrapper['get']>, text: string) {
-  const found = view.findAll('button').find(candidate => candidate.text() === text)
-  if (!found) throw new Error(`No button « ${text} »`)
-  return found
 }
 
 describe('the Prêts page', () => {
@@ -188,9 +181,9 @@ describe('the Prêts page', () => {
     const view = await mountPage('/bureau/prets?pret=20')
     const panel = await panelOf(view)
 
-    await button(panel, 'Préparer la sortie').trigger('click')
+    await button(panel, 'Préparer la sortie')!.trigger('click')
     expect(panel.text()).toContain('Le matériel de ce prêt sort maintenant ?')
-    await button(panel, 'Confirmer la sortie').trigger('click')
+    await button(panel, 'Confirmer la sortie')!.trigger('click')
 
     await vi.waitFor(() => expect(view.get('section[aria-label] header').text()).toContain('Retour prévu le dim. 4 oct.'))
     expect(sent.some(request => request.method === 'POST' && request.url === '/api/board/loans/20/checkout')).toBe(true)
@@ -210,8 +203,8 @@ describe('the Prêts page', () => {
     const view = await mountPage('/bureau/prets?pret=20')
     const panel = await panelOf(view)
 
-    await button(panel, 'Préparer la sortie').trigger('click')
-    await button(panel, 'Confirmer la sortie').trigger('click')
+    await button(panel, 'Préparer la sortie')!.trigger('click')
+    await button(panel, 'Confirmer la sortie')!.trigger('click')
 
     await vi.waitFor(() => expect(panel.text()).toContain('Le matériel de ce prêt n’est pas libre sur ses jours : Barnums 3 × 3 m : 2 demandés, 1 libre sur la période.'))
   })
@@ -247,6 +240,28 @@ describe('the Prêts page', () => {
     expect(view.get('section[aria-label]').text()).toContain('1 abîmé, mis en réparation')
   })
 
+  it('tells why a return was refused: a line’s refusal under it, the loan’s above the button', async () => {
+    mockList()
+    mockLoan(loanOut({ status: 'out', state: 'out', start_date: '2026-09-30', end_date: '2026-10-02' }))
+    mockApi('/api/board/loans/{loan_id}/return', {
+      handler: () => apiResponse(422, { detail: [
+        { type: 'validation_error', loc: ['body', 'lines', 0, 'damaged_quantity'], msg: 'Assurez-vous que cette valeur est inférieure ou égale à 2.' },
+        { type: 'validation_error', loc: ['body'], msg: 'Ce prêt n’est pas sorti : il ne peut pas être rendu.' },
+      ] }),
+    }, { loan_id: 20 })
+    const view = await mountPage('/bureau/prets?pret=20')
+    const panel = await panelOf(view)
+
+    await panel.get('input[type="radio"][value="damaged"]').setValue(true)
+    await panel.get('form').trigger('submit')
+
+    await vi.waitFor(() => expect(panel.findAll('form [role="alert"]')).toHaveLength(2))
+    const [line, loan] = panel.findAll('form [role="alert"]')
+    expect(line!.element.closest('li')?.textContent).toContain('Barnums 3 × 3 m')
+    expect(line!.text()).toBe('Assurez-vous que cette valeur est inférieure ou égale à 2.')
+    expect(loan!.text()).toBe('Ce prêt n’est pas sorti : il ne peut pas être rendu.')
+  })
+
   it('reopens a returned loan once the member confirms', async () => {
     mockList()
     mockLoan(loanOut({ status: 'returned', state: 'returned', returned_at: '2026-09-28T16:00:00Z', start_date: '2026-09-25', end_date: '2026-09-28' }))
@@ -255,9 +270,9 @@ describe('the Prêts page', () => {
     const panel = await panelOf(view)
     expect(panel.get('header').text()).toContain('Rendu le lun. 28 sept.')
 
-    await button(panel, 'Rouvrir').trigger('click')
+    await button(panel, 'Rouvrir')!.trigger('click')
     expect(panel.text()).toContain('Le matériel sera de nouveau compté comme sorti.')
-    await button(panel, 'Rouvrir le prêt').trigger('click')
+    await button(panel, 'Rouvrir le prêt')!.trigger('click')
 
     await vi.waitFor(() => expect(view.get('section[aria-label] header').text()).toContain('En retard depuis le mar. 29 sept.'))
   })
@@ -272,14 +287,14 @@ describe('the Prêts page', () => {
     expect(panel.findAll('a').find(link => link.text() === 'Voir l’événement')?.attributes('href')).toBe('/bureau/evenements/12')
     expect(panel.text()).not.toContain('Bon de prêt à signer')
 
-    await button(panel, 'Annuler la réservation').trigger('click')
+    await button(panel, 'Annuler la réservation')!.trigger('click')
     expect(panel.text()).toContain('Annuler cette réservation ? Son matériel redevient libre.')
-    await button(panel, 'Confirmer l’annulation').trigger('click')
+    await button(panel, 'Confirmer l’annulation')!.trigger('click')
 
     await vi.waitFor(() => expect(view.get('section[aria-label] header').text()).toContain('Annulé'))
   })
 
-  it('leads to the agreement to sign, then deposits the one signed', async () => {
+  it('leads to the agreement to sign, then uploads the one signed', async () => {
     /**
      * Given the club's loan, confirmed, without a signed agreement
      * When the member picks the agreement the club signed
@@ -295,16 +310,14 @@ describe('the Prêts page', () => {
     const panel = await panelOf(view)
     expect(panel.findAll('a').find(link => link.text() === 'Bon de prêt à signer')?.attributes('href')).toBe('/bureau/prets/20/convention')
 
-    const picker = panel.get<HTMLInputElement>('input[type="file"]')
-    Object.defineProperty(picker.element, 'files', { value: [new File(['%PDF-1.4'], 'convention.pdf', { type: 'application/pdf' })], configurable: true })
-    await picker.trigger('change')
+    await chooseFile(panel.get('input[type="file"]'), new File(['%PDF-1.4'], 'convention.pdf', { type: 'application/pdf' }))
 
     await vi.waitFor(() => expect(sent.find(request => request.url === '/api/board/loans/20/agreement')?.body).toEqual({
       file: { name: 'convention.pdf', type: 'application/pdf' },
     }))
     await vi.waitFor(() => expect(view.find('a[href="/bureau/documents?document=7"]').exists()).toBe(true))
     expect(view.get('a[href="/bureau/documents?document=7"]').text()).toBe('Convention signée, déposée le 1er oct.')
-    expect(button(view.get('section[aria-label]'), 'Remplacer la convention signée').exists()).toBe(true)
+    expect(button(view.get('section[aria-label]'), 'Remplacer la convention signée')).toBeDefined()
   })
 
   it('tells why a signed agreement was refused', async () => {
@@ -316,9 +329,7 @@ describe('the Prêts page', () => {
     const view = await mountPage('/bureau/prets?pret=20')
     const panel = await panelOf(view)
 
-    const picker = panel.get<HTMLInputElement>('input[type="file"]')
-    Object.defineProperty(picker.element, 'files', { value: [new File(['texte'], 'convention.txt', { type: 'text/plain' })], configurable: true })
-    await picker.trigger('change')
+    await chooseFile(panel.get('input[type="file"]'), new File(['texte'], 'convention.txt', { type: 'text/plain' }))
 
     await vi.waitFor(() => expect(panel.find('[role="alert"]').exists()).toBe(true))
     expect(panel.get('[role="alert"]').text()).toBe('Ce type de fichier n’est pas accepté.')

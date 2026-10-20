@@ -55,7 +55,7 @@ export function useLoanWrites() {
   }
 
   /** « Déposer la convention signée »: a document that awaits review, which the bell counts. */
-  function depositAgreement(id: number, file: File): Promise<Written<LoanOut>> {
+  function uploadAgreement(id: number, file: File): Promise<Written<LoanOut>> {
     const form = new FormData()
     form.append('file', file)
     // openapi-typescript types a file as a string: the form data goes as it
@@ -63,5 +63,5 @@ export function useLoanWrites() {
     return written(formWrite(api.POST('/api/board/loans/{loan_id}/agreement', { ...path(id), body: form as unknown as AgreementBody })))
   }
 
-  return { recordLoan, changeLoan, checkOut, returnLoan, reopenLoan, cancelLoan, depositAgreement }
+  return { recordLoan, changeLoan, checkOut, returnLoan, reopenLoan, cancelLoan, uploadAgreement }
 }

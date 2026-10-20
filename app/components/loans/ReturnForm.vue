@@ -29,8 +29,11 @@ const counted = ref(
 const errors = ref<FormErrors | null>(null)
 const pending = ref(false)
 
+// The fields of a line, whose refusals show under it.
+const LINE_FIELDS = ['', '.damaged_quantity', '.missing_quantity']
+
 const rows = computed(() =>
-  lines.map((line) => {
+  lines.map((line, index) => {
     const back = counted.value[line.id]!
     return {
       id: line.id,
@@ -39,11 +42,7 @@ const rows = computed(() =>
       back,
       // A line of several pieces says how many came back so.
       counts: line.quantity > 1 && back.condition !== 'complete',
-      errors: [
-        ...(errors.value?.fields[`lines.${lines.indexOf(line)}`] ?? []),
-        ...(errors.value?.fields[`lines.${lines.indexOf(line)}.damaged_quantity`] ?? []),
-        ...(errors.value?.fields[`lines.${lines.indexOf(line)}.missing_quantity`] ?? []),
-      ],
+      errors: LINE_FIELDS.flatMap(field => errors.value?.fields[`lines.${index}${field}`] ?? []),
     }
   }),
 )
@@ -80,8 +79,8 @@ async function submit(): Promise<void> {
   const result = await save(payload())
   pending.value = false
   // A refusal of a line shows under it, the others above the button.
-  const shown = new Set(lines.flatMap((_line, index) => [`lines.${index}`, `lines.${index}.damaged_quantity`, `lines.${index}.missing_quantity`]))
-  errors.value = result ? placeErrors(result, shown, path => path) : null
+  const shown = new Set(lines.flatMap((_line, index) => LINE_FIELDS.map(field => `lines.${index}${field}`)))
+  errors.value = result ? placeErrors(result, shown) : null
 }
 </script>
 
@@ -133,17 +132,14 @@ async function submit(): Promise<void> {
       >
         {{ notes }}
       </p>
-      <p
+      <UiAlertText
         v-for="message in errors?.form"
         :key="message"
-        role="alert"
-        class="text-sm font-semibold text-ambre-800"
       >
         {{ message }}
-      </p>
+      </UiAlertText>
       <UiButton
         type="submit"
-        variant="primary"
         size="xl"
         block
         :loading="pending"

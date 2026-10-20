@@ -41,7 +41,7 @@ const ENGAGEMENTS = [
 
 const CHEQUES = [1, 2, 3]
 
-const reference = computed(() => loan.value?.number ?? 'Réservation interne')
+const reference = computed(() => (loan.value ? capitalized(loanReference(loan.value)) : ''))
 const breadcrumb = computed(() => [
   { label: 'Prêts', to: LOANS_PATH },
   { label: reference.value, to: loanLocation(id) },

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Check, CircleAlert } from '@lucide/vue'
+import { Check } from '@lucide/vue'
 
 /** A line of the loan, as the summary lists it. */
 interface SummaryLine {
@@ -12,7 +12,7 @@ interface SummaryLine {
 
 // The summary beside the loan form: whom it lends to and when, its lines, the
 // deposit, and whether all of it is free.
-const { title, subtitle, lines, deposit, conflict, available, blocked, pending, action } = defineProps<{
+defineProps<{
   title: string
   subtitle: string
   lines: readonly SummaryLine[]
@@ -81,12 +81,9 @@ const emit = defineEmits<{
         </dd>
       </div>
     </dl>
-    <UiCallout
+    <UiAlert
       v-if="conflict"
       class="mx-4 mb-1"
-      tone="ambre"
-      role="alert"
-      :icon="CircleAlert"
     >
       {{ conflict }}
       <template #actions>
@@ -98,7 +95,7 @@ const emit = defineEmits<{
           Ramener aux quantités libres
         </UiButton>
       </template>
-    </UiCallout>
+    </UiAlert>
     <UiCallout
       v-else-if="available"
       class="mx-4 mb-1"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleAlert, Clock } from '@lucide/vue'
+import { Clock } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
 import type { LoanFields } from '~/utils/loans'
@@ -25,15 +25,13 @@ const errors = ref<FormErrors | null>(null)
 const pending = ref(false)
 const form = useTemplateRef<HTMLFormElement>('form')
 
-const { calendarPeriod, day } = useDateFormat()
+const { calendarPeriod } = useDateFormat()
 const { amount } = useMoneyFormat()
 const now = useNow()
 
 const { data: deposits } = useLoanDeposits()
 const { data: events } = useEventList()
-const eventOptions = computed(() =>
-  (events.value?.items ?? []).map(event => ({ value: event.id, label: `${event.title} · ${day(event.starts_at, { year: true })}` })),
-)
+const eventOptions = useEventChoices()
 
 const committee = computed(() => fields.value.borrowerType === 'committee')
 const look = computed(() => BORROWER_TYPES[fields.value.borrowerType])
@@ -64,7 +62,7 @@ const days = computed(() => loanDays(fields.value.startDate, fields.value.endDat
 const period = computed(() => calendarPeriod(fields.value.startDate, fields.value.endDate, now.value))
 const datesSet = computed(() => fields.value.startDate !== '' && fields.value.endDate !== '' && !datesWrong.value)
 
-const { data: availability, error: availabilityError, status } = useAvailability(() =>
+const { data: availability, error: availabilityError, pending: reading } = useAvailability(() =>
   datesSet.value ? { start: fields.value.startDate, end: fields.value.endDate, excludeLoan: loan?.id ?? null } : null,
 )
 const items = computed(() => availability.value?.items ?? [])
@@ -132,10 +130,6 @@ const lineErrors = computed(() => {
   return placed
 })
 
-function fieldErrors(path: string): readonly string[] | undefined {
-  return errors.value?.fields[path]
-}
-
 async function submit(): Promise<void> {
   const payload = loanPayload(fields.value, order.value)
   sentOrder.value = payload.lines.map(line => line.equipment)
@@ -149,8 +143,7 @@ async function submit(): Promise<void> {
   pending.value = false
   if (result) {
     errors.value = placeErrors(result, shown, path => loanFieldLabel(path, names))
-    await nextTick()
-    form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+    await focusErrors(form)
     return
   }
   errors.value = null
@@ -164,12 +157,9 @@ async function submit(): Promise<void> {
     @submit.prevent="submit"
   >
     <div class="flex min-w-0 flex-1 basis-150 flex-col gap-5">
-      <UiCallout
+      <UiAlert
         v-if="errors?.form.length"
-        tone="ambre"
-        role="alert"
         tabindex="-1"
-        :icon="CircleAlert"
       >
         <p
           v-for="message in errors.form"
@@ -177,7 +167,7 @@ async function submit(): Promise<void> {
         >
           {{ message }}
         </p>
-      </UiCallout>
+      </UiAlert>
       <LoansFormSection
         :number="1"
         title="Emprunteur"
@@ -200,50 +190,44 @@ async function submit(): Promise<void> {
         <div class="flex flex-wrap gap-3.5">
           <UiField
             v-if="committee"
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             :label="look.nameLabel"
             class="min-w-0 flex-2 basis-70"
-            :errors="fieldErrors('event')"
+            :errors="errors?.fields.event"
           >
             <UiSelect
-              :id
+              v-bind="control"
               v-model="fields.event"
               :options="eventOptions"
               placeholder="Choisir un événement"
               required
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
           <template v-else>
             <UiField
-              v-slot="{ id, describedby, invalid }"
+              v-slot="{ control }"
               :label="look.nameLabel"
               class="min-w-0 flex-2 basis-70"
-              :errors="fieldErrors('borrower_name')"
+              :errors="errors?.fields.borrower_name"
             >
               <UiInput
-                :id
+                v-bind="control"
                 v-model="fields.borrowerName"
                 required
-                :aria-describedby="describedby"
-                :invalid
               />
             </UiField>
             <UiField
-              v-slot="{ id, describedby, invalid }"
+              v-slot="{ control }"
               label="Téléphone"
               optional
               class="min-w-0 flex-1 basis-50"
-              :errors="fieldErrors('phone')"
+              :errors="errors?.fields.phone"
             >
               <UiInput
-                :id
+                v-bind="control"
                 v-model="fields.phone"
                 type="tel"
                 autocomplete="off"
-                :aria-describedby="describedby"
-                :invalid
               />
             </UiField>
           </template>
@@ -253,49 +237,43 @@ async function submit(): Promise<void> {
           class="flex flex-wrap gap-3.5"
         >
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Objet du prêt"
             optional
             class="min-w-0 flex-2 basis-70"
-            :errors="fieldErrors('purpose')"
+            :errors="errors?.fields.purpose"
           >
             <UiInput
-              :id
+              v-bind="control"
               v-model="fields.purpose"
               placeholder="Tournoi jeunes"
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Caution"
             help="En euros : un chèque, jamais encaissé."
             class="min-w-0 flex-1 basis-50"
-            :errors="fieldErrors('deposit_amount')"
+            :errors="errors?.fields.deposit_amount"
           >
             <UiInput
-              :id
+              v-bind="control"
               v-model="fields.deposit"
               inputmode="decimal"
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
         </div>
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           label="Remarques"
           help="Pour le bureau : elles ne s’impriment pas sur la convention."
           optional
-          :errors="fieldErrors('notes')"
+          :errors="errors?.fields.notes"
         >
           <UiTextarea
-            :id
+            v-bind="control"
             v-model="fields.notes"
             rows="2"
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
       </LoansFormSection>
@@ -305,32 +283,29 @@ async function submit(): Promise<void> {
       >
         <div class="flex flex-wrap items-end gap-3.5">
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Sortie du matériel"
             class="min-w-0 flex-1 basis-50"
-            :errors="fieldErrors('start_date')"
+            :errors="errors?.fields.start_date"
           >
             <UiInput
-              :id
+              v-bind="control"
               v-model="fields.startDate"
               type="date"
               required
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control, invalid }"
             label="Retour"
             class="min-w-0 flex-1 basis-50"
-            :errors="fieldErrors('end_date')"
+            :errors="errors?.fields.end_date"
           >
             <UiInput
-              :id
+              v-bind="control"
               v-model="fields.endDate"
               type="date"
               required
-              :aria-describedby="describedby"
               :invalid="invalid || datesWrong"
             />
           </UiField>
@@ -339,13 +314,9 @@ async function submit(): Promise<void> {
             {{ daysText(days) }}
           </span>
         </div>
-        <p
-          v-if="datesWrong"
-          role="alert"
-          class="text-sm font-semibold text-ambre-800"
-        >
+        <UiAlertText v-if="datesWrong">
           La date de retour est avant la date de sortie.
-        </p>
+        </UiAlertText>
       </LoansFormSection>
       <LoansFormSection
         :number="3"
@@ -376,7 +347,7 @@ async function submit(): Promise<void> {
           Choisissez les dates du prêt pour voir le matériel libre.
         </p>
         <p
-          v-else-if="status === 'pending'"
+          v-else-if="reading"
           class="px-5.5 pb-5 text-sm text-argent-600"
         >
           Lecture des disponibilités…

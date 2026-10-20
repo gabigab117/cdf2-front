@@ -31,7 +31,7 @@ const rows = computed(() =>
     id: movement.loan.id,
     label: movement.kind === 'return' ? 'Retour' : 'Sortie',
     tone: tone(movement),
-    name: movement.loan.purpose ? `${movement.loan.display_name} — ${movement.loan.purpose}` : movement.loan.display_name,
+    name: loanTitle(movement.loan),
     // What calls for the board comes first: a long list of equipment is cut.
     items: [MOVEMENT_STATES[movement.loan.state] ?? '', loanItems(movement.loan.lines)].filter(Boolean).join(' · '),
     day: calendarWeekday(movement.day, now.value),

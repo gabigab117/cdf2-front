@@ -44,10 +44,10 @@ function actionTone(state: LoanState): keyof typeof classes.tone {
 const rows = computed(() =>
   loans.map(loan => ({
     id: loan.id,
-    name: loan.purpose ? `${loan.display_name} — ${loan.purpose}` : loan.display_name,
+    name: loanTitle(loan),
     look: LOAN_STATES[loan.state],
     period: calendarPeriod(loan.start_date, loan.end_date, now.value),
-    reference: loan.number ?? 'réservation interne',
+    reference: loanReference(loan),
     items: [loanItems(loan.lines), returnNotes(loan.lines)].filter(Boolean).join(' · '),
     action: ACTIONS[loan.state] ?? null,
     actionClasses: [classes.action, classes.tone[actionTone(loan.state)]],

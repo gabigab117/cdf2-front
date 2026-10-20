@@ -29,7 +29,7 @@ async function submit(): Promise<void> {
   const result = await save(stationPayload(fields.value))
   pending.value = false
   if (result) {
-    errors.value = placeErrors(result, SHOWN, stationFieldLabel)
+    errors.value = placeErrors(result, SHOWN)
     await focusErrors(form)
     return
   }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleAlert, Trash2 } from '@lucide/vue'
+import { Trash2 } from '@lucide/vue'
 import type { ComponentPublicInstance } from 'vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
@@ -32,18 +32,13 @@ const { confirming, pending: deleting, failure, ask, dismiss, confirm } = useCon
 
 const question = computed(() => `Supprimer « ${equipment?.name} » de l’inventaire ?`)
 
-function fieldErrors(path: string): readonly string[] | undefined {
-  return errors.value?.fields[path]
-}
-
 async function submit(): Promise<void> {
   pending.value = true
   const result = await save(fields.value)
   pending.value = false
   if (result) {
-    errors.value = placeErrors(result, SHOWN, equipmentFieldLabel)
-    await nextTick()
-    form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+    errors.value = placeErrors(result, SHOWN)
+    await focusErrors(form)
     return
   }
   errors.value = null
@@ -61,12 +56,9 @@ async function deleteEquipment(): Promise<void> {
     class="flex flex-col gap-4"
     @submit.prevent="submit"
   >
-    <UiCallout
+    <UiAlert
       v-if="errors?.form.length"
-      tone="ambre"
-      role="alert"
       tabindex="-1"
-      :icon="CircleAlert"
     >
       <p
         v-for="message in errors.form"
@@ -74,64 +66,56 @@ async function deleteEquipment(): Promise<void> {
       >
         {{ message }}
       </p>
-    </UiCallout>
+    </UiAlert>
     <UiField
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Nom"
-      :errors="fieldErrors('name')"
+      :errors="errors?.fields.name"
     >
       <UiInput
-        :id
+        v-bind="control"
         v-model="fields.name"
         required
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <div class="grid grid-cols-2 gap-3">
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Quantité totale"
-        :errors="fieldErrors('total_quantity')"
+        :errors="errors?.fields.total_quantity"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.total"
           type="number"
           min="0"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="En réparation"
-        :errors="fieldErrors('repair_quantity')"
+        :errors="errors?.fields.repair_quantity"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.repair"
           type="number"
           min="0"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
     </div>
     <UiField
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Note de réparation"
       optional
-      :errors="fieldErrors('repair_note')"
+      :errors="errors?.fields.repair_note"
     >
       <UiTextarea
-        :id
+        v-bind="control"
         v-model="fields.repairNote"
         rows="2"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <div class="flex flex-wrap items-center gap-2">

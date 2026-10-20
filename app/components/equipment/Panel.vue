@@ -41,7 +41,7 @@ const repairNote = computed(() => {
 
 async function save(fields: EquipmentFields): Promise<FormErrors | null> {
   const result = await changeEquipment(equipment.value.id, equipmentPayload(fields))
-  return result.errors ?? null
+  return result.errors
 }
 
 function saved(): void {

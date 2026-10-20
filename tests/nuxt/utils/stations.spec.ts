@@ -19,11 +19,6 @@ describe('the stations of an event', () => {
     expect(movedStation([1, 2, 3], 0, 1)).toEqual([2, 1, 3])
   })
 
-  it('names the fields of a station for the errors its form cannot place', () => {
-    expect(stationFieldLabel('required_count')).toBe('Personnes requises')
-    expect(stationFieldLabel('other')).toBe('other')
-  })
-
   it('reminds how the former committee staffed its stations', () => {
     expect(FORMER_STAFFING.map(row => `${row.station} ${row.people}`)).toEqual([
       'Vélos 2–3', 'Caisse 2', 'Buvette (brocante) 3', 'Buvette (13 juillet) 4', 'BBQ 3', 'Service 2–3', 'Frites 2',

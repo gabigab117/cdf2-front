@@ -19,11 +19,11 @@ describe('the address of the Matériel page', () => {
   })
 })
 
-describe('the figures of the inventory', () => {
+describe('the totals of the inventory', () => {
   it('count the references, those partly taken today and the pieces under repair', () => {
-    expect(inventoryFigures({ references: 14, taken_today: 3, pieces_under_repair: 5 }))
+    expect(inventoryTotalsText({ references: 14, taken_today: 3, pieces_under_repair: 5 }))
       .toBe('14 références · 3 en partie prêtées aujourd’hui · 5 pièces en réparation')
-    expect(inventoryFigures({ references: 1, taken_today: 0, pieces_under_repair: 1 }))
+    expect(inventoryTotalsText({ references: 1, taken_today: 0, pieces_under_repair: 1 }))
       .toBe('1 référence · 0 en partie prêtée aujourd’hui · 1 pièce en réparation')
   })
 })
@@ -54,10 +54,5 @@ describe('the equipment form', () => {
     const payload = equipmentPayload({ ...equipmentFields(equipmentOut()), total: ' ' })
 
     expect(payload.total_quantity).toBeNaN()
-  })
-
-  it('names a field the form cannot show its error under', () => {
-    expect(equipmentFieldLabel('repair_quantity')).toBe('En réparation')
-    expect(equipmentFieldLabel('lines')).toBe('lines')
   })
 })

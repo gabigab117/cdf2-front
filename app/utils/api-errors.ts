@@ -47,12 +47,13 @@ export function toFormErrors(error: unknown): FormErrors | null {
  * Lays out the errors of a form on the fields it shows. An error about any
  * other field goes to the form as a whole, after the name of its field, so
  * that none is lost: « Adresse de la page : Un autre événement utilise déjà
- * cette adresse. ».
+ * cette adresse. ». A form that shows every field of its payload names none:
+ * only an unforeseen path reaches the form, as it is.
  */
 export function placeErrors(
   errors: FormErrors,
   shown: ReadonlySet<string>,
-  label: (path: string) => string,
+  label: (path: string) => string = path => path,
 ): FormErrors {
   const placed: FormErrors = { form: [...errors.form], fields: {} }
   for (const [path, messages] of Object.entries(errors.fields)) {
