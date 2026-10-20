@@ -69,7 +69,7 @@ describe('the Stock page', () => {
     expect(juice.classes()).toContain('bg-ambre-25')
     expect(juice.get('a').attributes('href')).toBe('/bureau/stock/articles/3')
     expect(juice.get('output').text()).toBe('18')
-    expect(juice.get('[role="progressbar"]').attributes('aria-valuenow')).toBe('38')
+    expect(juice.get('[role="progressbar"]').attributes('aria-valuenow')).toBe('75')
     expect(juice.text()).toContain('févr. 2027')
     const sweets = rowOf(stock, 'Bonbons assortis')
     expect(readable(sweets.get('output').text())).toBe('1,5 kg')

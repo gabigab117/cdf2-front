@@ -32,13 +32,13 @@ describe('« Liste de courses »', () => {
 
   enableAutoUnmount(afterEach)
 
-  it('lists what brings each low item back to twice its threshold, as the mockup does', async () => {
+  it('lists what brings each low item back to its threshold', async () => {
     const list = await mountSuspended(StockShoppingList, { props: { lines: LINES } })
 
     expect(list.get('h2').text()).toBe('Liste de courses')
     expect(list.text()).toContain('2 articles')
-    expect(list.findAll('li').map(row => readable(row.text()))).toEqual(['Jus de fruits 1 L30', 'Bonbons assortis4,5 kg'])
-    expect(list.text()).toContain('Quantités calculées pour revenir au double du seuil.')
+    expect(list.findAll('li').map(row => readable(row.text()))).toEqual(['Jus de fruits 1 L6', 'Bonbons assortis1,5 kg'])
+    expect(list.text()).toContain('Quantités calculées pour revenir au seuil.')
   })
 
   it('says when there is nothing to buy', async () => {
@@ -57,7 +57,7 @@ describe('« Liste de courses »', () => {
     await button(list, 'Copier').trigger('click')
 
     await vi.waitFor(() => expect(button(list, 'Liste copiée').exists()).toBe(true))
-    expect(readable(writeText.mock.calls[0]![0] as string)).toBe('Liste de courses\n- Jus de fruits 1 L : 30\n- Bonbons assortis : 4,5 kg')
+    expect(readable(writeText.mock.calls[0]![0] as string)).toBe('Liste de courses\n- Jus de fruits 1 L : 6\n- Bonbons assortis : 1,5 kg')
     expect(list.get('[aria-live="polite"]').text()).toBe('La liste est copiée.')
   })
 
@@ -87,7 +87,7 @@ describe('« Liste de courses »', () => {
     const body = sent.find(request => request.method === 'POST')?.body as Record<string, unknown>
     expect({ ...body, text: readable(body.text as string) }).toEqual({
       event: null,
-      text: 'Liste de courses : 30 Jus de fruits 1 L, 4,5 kg Bonbons assortis.',
+      text: 'Liste de courses : 6 Jus de fruits 1 L, 1,5 kg Bonbons assortis.',
       tag: 'logistics',
       pinned: false,
     })

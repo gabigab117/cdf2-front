@@ -3550,8 +3550,8 @@ export interface components {
         };
         /**
          * ShoppingLineOut
-         * @description An item below its threshold, and what brings it back to twice its
-         *     threshold, rounded up to its step (A19).
+         * @description An item below its threshold, and what brings it back to it, rounded up
+         *     to its step (A19).
          */
         ShoppingLineOut: {
             item: components["schemas"]["StockMovementItemOut"];

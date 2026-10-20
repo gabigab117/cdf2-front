@@ -3,9 +3,9 @@ import type { components } from '~/types/api'
 
 type ShoppingLineOut = components['schemas']['ShoppingLineOut']
 
-// « Liste de courses »: what brings each item below its threshold back to twice
-// its threshold, as the API counts it (A19). It is copied, or sent to the board
-// as a note of logistics without event (A3, A11).
+// « Liste de courses »: what brings each item below its threshold back to it,
+// as the API counts it (A19). It is copied, or sent to the board as a note of
+// logistics without event (A3, A11).
 const { lines } = defineProps<{ lines: readonly ShoppingLineOut[] }>()
 
 const { quantity } = useQuantityFormat()
@@ -135,7 +135,7 @@ async function send(): Promise<void> {
       {{ announcement }}
     </p>
     <p class="px-5 pb-4 text-caption text-argent-600">
-      Quantités calculées pour revenir au double du seuil.
+      Quantités calculées pour revenir au seuil.
     </p>
   </UiCard>
 </template>

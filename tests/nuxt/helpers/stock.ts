@@ -30,7 +30,7 @@ export function stockedItem(
   changes: Partial<StockItemOut> = {},
   figures: Partial<Omit<StockedItemOut, 'item'>> = {},
 ): StockedItemOut {
-  return { item: stockItem(changes), quantity: '18.00', low: true, level: 38, ...figures }
+  return { item: stockItem(changes), quantity: '18.00', low: true, level: 75, ...figures }
 }
 
 /** The juice of the mockup, as the bell lists it. */
@@ -45,17 +45,17 @@ export function lowStockItem(changes: Partial<LowStockItemOut> = {}): LowStockIt
 export function stockOverview(changes: Partial<StockOverviewOut> = {}): StockOverviewOut {
   return {
     items: [
-      stockedItem({ id: 1, name: 'Canettes de soda 33 cl', threshold: '96.00', step: '24.00', best_before: '2027-05-01' }, { quantity: '144.00', low: false, level: 75 }),
-      stockedItem({ id: 4, name: 'Fûts de bière 20 L', unit: 'fûts', threshold: '2.00', step: '1.00', best_before: '2026-12-01' }, { quantity: '2.00', low: false, level: 50 }),
+      stockedItem({ id: 1, name: 'Canettes de soda 33 cl', threshold: '96.00', step: '24.00', best_before: '2027-05-01' }, { quantity: '144.00', low: false, level: 100 }),
+      stockedItem({ id: 4, name: 'Fûts de bière 20 L', unit: 'fûts', threshold: '2.00', step: '1.00', best_before: '2026-12-01' }, { quantity: '2.00', low: false, level: 100 }),
       stockedItem(),
-      stockedItem({ id: 6, name: 'Bonbons assortis', category: 'food', unit: 'kg', threshold: '3.00', step: '0.50', best_before: null }, { quantity: '1.50', low: true, level: 25 }),
+      stockedItem({ id: 6, name: 'Bonbons assortis', category: 'food', unit: 'kg', threshold: '3.00', step: '0.50', best_before: null }, { quantity: '1.50', low: true, level: 50 }),
     ],
     counts: { total: 4, low: 2, drinks: 3, food: 1, supplies: 0, lotto_raffle: 0 },
     last_stocktake: null,
     recent_operations: [],
     shopping_list: [
-      { item: { id: 3, name: 'Jus de fruits 1 L', unit: '' }, quantity: '30.00' },
-      { item: { id: 6, name: 'Bonbons assortis', unit: 'kg' }, quantity: '4.50' },
+      { item: { id: 3, name: 'Jus de fruits 1 L', unit: '' }, quantity: '6.00' },
+      { item: { id: 6, name: 'Bonbons assortis', unit: 'kg' }, quantity: '1.50' },
     ],
     orders: [],
     ...changes,
