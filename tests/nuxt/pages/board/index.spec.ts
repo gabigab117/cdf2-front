@@ -116,13 +116,14 @@ describe('the dashboard', () => {
     expect(card.get('[role="progressbar"]').attributes()).toMatchObject({ 'aria-valuenow': '9', 'aria-valuemax': '14' })
   })
 
-  it('shows the board\'s latest notes beside the events, each leading to its event', async () => {
+  it('shows the board\'s latest notes beside the events, each leading to where it is managed', async () => {
     /**
      * Given a note of Julie on Halloween, two hours ago, and a general note of
      * a former member, the day before
      * When the member opens the dashboard
      * Then the block « Notes du bureau » shows them, the event and the time
-     * gone by after the author, the first leading to its event
+     * gone by after the author, the first leading to its event, the second to
+     * the general notes, where the block always leads too
      */
     mockOverview(overview([overviewEvent()], 1, [
       { id: 31, author: julie, text: 'Salle réservée de 13 h à 20 h.', created_at: '2026-10-01T06:00:00Z', event: { id: 12, title: 'Halloween des enfants' } },
@@ -137,8 +138,10 @@ describe('the dashboard', () => {
     const [julieNote, general] = notes.findAll('li')
     expect(julieNote!.get('a').attributes('href')).toBe('/bureau/evenements/12')
     expect(julieNote!.text().replaceAll('\u00A0', ' ')).toContain('Julie R.Halloween des enfants · il y a 2 h')
-    expect(general!.find('a').exists()).toBe(false)
+    expect(general!.get('a').attributes('href')).toBe('/bureau/notes')
     expect(general!.text()).toContain('Ancien membrehier')
+    const all = notes.findAll('a').at(-1)!
+    expect([all.text(), all.attributes('href')]).toEqual(['Voir les notes générales', '/bureau/notes'])
   })
 
   it('says when the board has no note yet', async () => {

@@ -2,6 +2,9 @@ import type { components } from '~/types/api'
 
 type NoteTag = components['schemas']['NoteTag']
 
+/** The general notes, those without an event (A11). */
+export const GENERAL_NOTES_PATH = '/bureau/notes'
+
 /** What a member writes: a text, and a tag and a file to join for a note. */
 export interface NoteDraft {
   text: string
