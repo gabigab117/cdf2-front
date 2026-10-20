@@ -5,9 +5,9 @@ const { tone = 'neutral', size = 'md', dot = false } = defineProps<{
    * needs attention, solid amber for what is late, black for the committee's
    * own use, an outline for a category on the board. The public agenda colours
    * its categories with them, and with steel; the documents, with slate and
-   * mist too.
+   * mist too; an order to receive, on its azur block, with white.
    */
-  tone?: 'azur' | 'accent' | 'ambre' | 'alert' | 'neutral' | 'steel' | 'dark' | 'outline' | 'slate' | 'mist'
+  tone?: 'azur' | 'accent' | 'ambre' | 'alert' | 'neutral' | 'steel' | 'dark' | 'outline' | 'slate' | 'mist' | 'white'
   /** 22, 26 or 28 px high. */
   size?: 'sm' | 'md' | 'lg'
   /** A dot before the text, as for "Publié sur le site". */
@@ -32,6 +32,7 @@ const classes = {
     outline: 'border border-argent-200 bg-white font-medium text-sable-600',
     slate: 'bg-argent-100 text-sable-800',
     mist: 'bg-argent-75 text-sable-600',
+    white: 'bg-white text-azur-700',
   },
 }
 

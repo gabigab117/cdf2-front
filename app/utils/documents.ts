@@ -145,8 +145,8 @@ export function validationText(document: DocumentOut): string {
 
 /**
  * The action that validates a document awaiting review: an invoice creates its
- * expense once paid (A18), the order is validated alone until the stock
- * (phase 7), minutes create the tasks they list.
+ * expense once paid (A18), an order is validated, its lines then wait on the
+ * Stock page to be received (7.4), minutes create the tasks they list.
  */
 export function validationAction(document: Pick<DocumentOut, 'category' | 'extracted'>): string {
   const tasks = listedTasks(document)

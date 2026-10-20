@@ -4,7 +4,7 @@ import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import StockPage from '~/pages/board/stock/index.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
-import { stockedItem, stockOperation, stockOverview } from '../../../helpers/stock'
+import { stockedItem, stockOperation, stockOrder, stockOverview } from '../../../helpers/stock'
 
 const { navigateToMock } = vi.hoisted(() => ({ navigateToMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
@@ -207,6 +207,15 @@ describe('the Stock page', () => {
     expect(stock.get('a[href="/bureau/stock/inventaire"]').text()).toBe('Faire l’inventaire')
     await vi.waitFor(() => expect(stock.text()).toContain('Courses buvette · Julie R.'))
     expect(stock.findComponent({ name: 'StockShoppingList' }).text()).toContain('2 articles')
+  })
+
+  it('shows a block for each order to receive', async () => {
+    mockStock(stockOverview({ orders: [stockOrder(), stockOrder({ id: 22, title: 'Lots du loto', issuer: 'Cadeaux & Co' })] }))
+
+    const stock = await mountPage('/bureau/stock')
+
+    await vi.waitFor(() => expect(stock.findAllComponents({ name: 'StockOrderToReceive' })).toHaveLength(2))
+    expect(stock.text()).toContain('Commande Cadeaux & Co.')
   })
 
   it('offers to try again when the stock cannot be read', async () => {

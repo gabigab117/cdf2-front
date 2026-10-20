@@ -25,6 +25,7 @@ const loading = computed(() => status.value === 'pending')
 const items = computed(() => shownItems(stock.value?.items ?? [], query.value))
 const recent = computed(() => stock.value?.recent_operations ?? [])
 const shopping = computed(() => stock.value?.shopping_list ?? [])
+const orders = computed(() => stock.value?.orders ?? [])
 const emptyText = computed(() =>
   query.value.filter !== null || query.value.search !== ''
     ? 'Aucun article ne correspond à cette recherche.'
@@ -181,6 +182,11 @@ async function adjust(id: number, direction: StockDirection): Promise<void> {
         </div>
       </UiCard>
       <div class="flex min-w-0 flex-1 basis-85 flex-col gap-5 md:max-w-100">
+        <StockOrderToReceive
+          v-for="order in orders"
+          :key="order.id"
+          :order
+        />
         <StockShoppingList :lines="shopping" />
         <StockRecentOperations :operations="recent" />
       </div>

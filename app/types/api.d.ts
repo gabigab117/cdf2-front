@@ -1114,6 +1114,73 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/stock/orders/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the lines and the delivery of an order
+         * @description What an order brings to the stock, and whether it was received.
+         */
+        get: operations["stock_api_read_order"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/stock/orders/{document_id}/delivery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Receive the delivery of an order
+         * @description « Réceptionner la livraison »: each line of a validated order comes into
+         *     the stock, by a single delivery of the member.
+         */
+        post: operations["stock_api_receive_delivery"];
+        /**
+         * Cancel the delivery of an order
+         * @description « Annuler »: the delivery is undone the day it was received, unless some
+         *     of it has left the stock, or a stocktake has counted it, since.
+         */
+        delete: operations["stock_api_cancel_order_delivery"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/stock/orders/{document_id}/lines": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Write the lines of an order
+         * @description The lines of an order, all at once, until it is received: without any,
+         *     the order leaves the Stock page.
+         */
+        put: operations["stock_api_write_order_lines"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/stock/stocktakes": {
         parameters: {
             query?: never;
@@ -2986,6 +3053,34 @@ export interface components {
             start: string;
         };
         /**
+         * OrderLineIn
+         * @description A line of an order: an item, and how much of it comes.
+         */
+        OrderLineIn: {
+            /** Item */
+            item: number;
+            /** Quantity */
+            quantity: number | string;
+        };
+        /**
+         * OrderLineOut
+         * @description A line of an order: « Bonbons assortis +12 kg ».
+         */
+        OrderLineOut: {
+            item: components["schemas"]["StockMovementItemOut"];
+            /** Quantity */
+            quantity: string;
+        };
+        /**
+         * OrderLinesIn
+         * @description The lines of an order, all at once: without any, the order brings
+         *     nothing to the stock.
+         */
+        OrderLinesIn: {
+            /** Lines */
+            lines: components["schemas"]["OrderLineIn"][];
+        };
+        /**
          * OverviewEventOut
          * @description An event of the dashboard's table: a row of the board's list, with how
          *     far its tasks have gone and how many notes it has.
@@ -3570,6 +3665,18 @@ export interface components {
             total: number;
         };
         /**
+         * StockDeliveryOut
+         * @description When, and by whom, an order was received.
+         */
+        StockDeliveryOut: {
+            author: components["schemas"]["BoardMemberOut"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
          * StockDirection
          * @description Which way an operation moves the stock (« Entrée ou sortie »).
          * @enum {string}
@@ -3710,6 +3817,28 @@ export interface components {
          */
         StockOperationReason: "purchase" | "consumption" | "stocktake" | "delivery" | "adjustment";
         /**
+         * StockOrderOut
+         * @description An order of the stock (7.4): its document, its lines and its delivery.
+         */
+        StockOrderOut: {
+            delivery: components["schemas"]["StockDeliveryOut"] | null;
+            /** Delivery Date */
+            delivery_date: string | null;
+            event: components["schemas"]["StockEventOut"] | null;
+            /** Id */
+            id: number;
+            /** Issuer */
+            issuer: string;
+            /** Lines */
+            lines: components["schemas"]["OrderLineOut"][];
+            /** Title */
+            title: string;
+            /** Undoable */
+            undoable: boolean;
+            /** Validated */
+            validated: boolean;
+        };
+        /**
          * StockOverviewOut
          * @description The stock, item by item, and its figures: a bounded aggregate (A7).
          */
@@ -3718,6 +3847,8 @@ export interface components {
             /** Items */
             items: components["schemas"]["StockedItemOut"][];
             last_stocktake: components["schemas"]["LastStocktakeOut"] | null;
+            /** Orders */
+            orders: components["schemas"]["StockOrderOut"][];
             /** Recent Operations */
             recent_operations: components["schemas"]["StockOperationOut"][];
             /** Shopping List */
@@ -7937,6 +8068,242 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    stock_api_read_order: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOrderOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    stock_api_receive_delivery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOrderOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    stock_api_cancel_order_delivery: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOrderOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    stock_api_write_order_lines: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OrderLinesIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOrderOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

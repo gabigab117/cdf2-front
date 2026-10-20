@@ -4,6 +4,7 @@ type LowStockItemOut = components['schemas']['LowStockItemOut']
 type PendingOut = components['schemas']['PendingOut']
 type StockItemOut = components['schemas']['StockItemOut']
 type StockOperationOut = components['schemas']['StockOperationOut']
+type StockOrderOut = components['schemas']['StockOrderOut']
 type StockedItemOut = components['schemas']['StockedItemOut']
 type StockOverviewOut = components['schemas']['StockOverviewOut']
 
@@ -56,6 +57,7 @@ export function stockOverview(changes: Partial<StockOverviewOut> = {}): StockOve
       { item: { id: 3, name: 'Jus de fruits 1 L', unit: '' }, quantity: '30.00' },
       { item: { id: 6, name: 'Bonbons assortis', unit: 'kg' }, quantity: '4.50' },
     ],
+    orders: [],
     ...changes,
   }
 }
@@ -73,6 +75,25 @@ export function stockOperation(changes: Partial<StockOperationOut> = {}): StockO
       { item: { id: 1, name: 'Canettes de soda 33 cl', unit: '' }, delta: '288.00' },
       { item: { id: 2, name: 'Bouteilles d’eau 50 cl', unit: '' }, delta: '120.00' },
     ],
+    ...changes,
+  }
+}
+
+/** The order of sweets for Halloween, validated, to be delivered on 27 October, not received yet. */
+export function stockOrder(changes: Partial<StockOrderOut> = {}): StockOrderOut {
+  return {
+    id: 21,
+    title: 'Bon de commande — Bonbons et goûter',
+    issuer: 'Confiserie du Nord',
+    delivery_date: '2026-10-27',
+    event: { id: 12, title: 'Halloween des enfants' },
+    validated: true,
+    lines: [
+      { item: { id: 6, name: 'Bonbons assortis', unit: 'kg' }, quantity: '12.00' },
+      { item: { id: 3, name: 'Jus de fruits 1 L', unit: '' }, quantity: '60.00' },
+    ],
+    delivery: null,
+    undoable: false,
     ...changes,
   }
 }

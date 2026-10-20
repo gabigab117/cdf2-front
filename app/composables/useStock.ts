@@ -10,6 +10,12 @@ export function useStock() {
     loadData(useApi().GET('/api/board/stock', { signal })))
 }
 
+/** What an order brings to the stock, and its delivery, for its panel. Lazy. */
+export function useStockOrder(id: number) {
+  return useLazyAsyncData(`board:stock:order:${id}`, (_nuxtApp, { signal }) =>
+    loadData(useApi().GET('/api/board/stock/orders/{document_id}', { params: { path: { document_id: id } }, signal })))
+}
+
 /** Fetches the stock again, after a write changed it. */
 export function refreshStock(): Promise<void> {
   return refreshNuxtData(STOCK_KEY)

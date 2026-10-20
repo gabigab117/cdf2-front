@@ -8,6 +8,7 @@ type StockOperationIn = components['schemas']['StockOperationIn']
 type StockOperationReason = components['schemas']['StockOperationReason']
 type StockItemOut = components['schemas']['StockItemOut']
 type StockLineIn = components['schemas']['StockLineIn']
+type OrderLineOut = components['schemas']['OrderLineOut']
 type StockedItemOut = components['schemas']['StockedItemOut']
 
 /** The Stock page: the goods of the bar and the games, item by item. */
@@ -94,6 +95,11 @@ export interface LineFields {
 /** A line to fill. */
 export function newLine(): LineFields {
   return { item: '', quantity: '' }
+}
+
+/** The lines of an order to correct, as a member types their quantities; one to fill without any. */
+export function orderLineFields(lines: readonly OrderLineOut[]): LineFields[] {
+  return lines.length > 0 ? lines.map(({ item, quantity }) => ({ item: item.id, quantity: typed(quantity) })) : [newLine()]
 }
 
 /** The lines to send: the item a select requires, the quantity as the API reads it. */

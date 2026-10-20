@@ -7,6 +7,7 @@ import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpe
 import { boardDocument, extracted } from '../../helpers/documents'
 import { eventItem, julie, page } from '../../helpers/events'
 import { forgetPdfViewer, pdfViewer } from '../../helpers/files'
+import { stockOrder } from '../../helpers/stock'
 import { ledgerEntry } from '../../helpers/treasury'
 
 type DocumentOut = components['schemas']['DocumentOut']
@@ -89,7 +90,8 @@ describe('the panel of a document', () => {
     expect(rows(panel)).toContain('Échéance Payée le 29 sept.')
   })
 
-  it('shows an order: its delivery, items and amount', async () => {
+  it('shows an order: its delivery, items and amount, then its lines of stock', async () => {
+    mockApi('/api/board/stock/orders/{document_id}', { method: 'GET', handler: () => apiResponse(200, stockOrder()) }, { document_id: 21 })
     const panel = await mountPanel(boardDocument({
       category: 'order',
       title: 'Bon de commande — Bonbons',
@@ -106,6 +108,8 @@ describe('the panel of a document', () => {
       'Montant 380,00 €',
     ])
     expect(button(panel, 'Valider la commande').exists()).toBe(true)
+    await vi.waitFor(() => expect(panel.text()).toContain('Lignes de commande'))
+    expect(panel.text()).toContain('Validez la commande pour la réceptionner depuis la page Stock.')
   })
 
   it('shows minutes: their abstract, decisions and the tasks to create', async () => {

@@ -34,6 +34,8 @@ const failure = ref<string | null>(null)
 
 const look = computed(() => (document.value ? DOCUMENT_CATEGORIES[document.value.category] : null))
 const toReview = computed(() => document.value?.status === 'to_review')
+// What an order brings to the stock, entered by hand before the assistant (7.4).
+const isOrder = computed(() => document.value?.category === 'order')
 const payment = computed(() => (document.value ? paymentAction(document.value) : null))
 // « Validée par Sophie L. · écriture créée le 29 sept. »
 const validated = computed(() => {
@@ -179,10 +181,14 @@ async function download(): Promise<void> {
       @cancel="editing = false"
       @deleted="emit('deleted')"
     />
-    <DocumentsDetails
-      v-else
-      :document
-    />
+    <template v-else>
+      <DocumentsDetails :document />
+      <DocumentsOrderLines
+        v-if="isOrder"
+        :id
+        :validated="!toReview"
+      />
+    </template>
     <template
       v-if="!editing && !paying"
       #footer
