@@ -21,10 +21,7 @@ const failure = ref<string | null>(null)
 const statement = computed(() => eventLocation(STATEMENT_PATH, entry.event?.id ?? null))
 
 async function picked(event: Event): Promise<void> {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  // The same file chosen again is a new choice.
-  input.value = ''
+  const file = chosenFile(event)
   if (!file) return
   pending.value = true
   const result = await attachReceipt(entry.id, file)
@@ -122,12 +119,8 @@ async function picked(event: Event): Promise<void> {
       :accept="DOCUMENT_TYPES"
       @change="picked"
     >
-    <p
-      v-if="failure"
-      role="alert"
-      class="text-sm font-semibold text-ambre-800"
-    >
+    <UiAlertText v-if="failure">
       {{ failure }}
-    </p>
+    </UiAlertText>
   </UiCard>
 </template>

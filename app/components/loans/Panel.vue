@@ -66,10 +66,7 @@ const agreementText = computed(() => {
 })
 
 async function upload(event: Event): Promise<void> {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  // Picked again, the same file is sent again.
-  input.value = ''
+  const file = chosenFile(event)
   if (!file || uploading.value) return
   uploading.value = true
   uploadFailure.value = ''

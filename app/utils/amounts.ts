@@ -10,3 +10,8 @@ export function amountInput(text: string): string | null {
   const amount = text.replace(/[\s€]/g, '').replace(',', '.')
   return amount === '' ? null : amount
 }
+
+/** An amount of the API as its field shows it: "150.00" becomes « 150,00 ». */
+export function amountField(amount: string): string {
+  return amount.replace('.', ',')
+}

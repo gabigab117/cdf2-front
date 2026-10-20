@@ -42,7 +42,7 @@ async function save(): Promise<void> {
     return
   }
   const shown = new Set(fields.value.flatMap((_line, index) => [`lines.${index}.item`, `lines.${index}.quantity`]))
-  errors.value = placeErrors(result.errors, shown, path => path)
+  errors.value = placeErrors(result.errors, shown)
   await focusErrors(form)
 }
 </script>

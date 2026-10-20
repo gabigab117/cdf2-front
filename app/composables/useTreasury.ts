@@ -1,4 +1,4 @@
-import type { LedgerFilter, PendingLines } from '~/utils/treasury'
+import type { LedgerFilter, PendingEntries } from '~/utils/treasury'
 
 /**
  * A fiscal year's results: its figures, its events with lines, its years.
@@ -31,7 +31,7 @@ export interface LedgerPage {
   page: number
   size: number
   /** Every year's pending lines, in place of the year's. */
-  pending?: PendingLines | null
+  pending?: PendingEntries | null
 }
 
 /** A page of the journal, the latest line first. Lazy. */

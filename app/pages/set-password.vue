@@ -47,7 +47,7 @@ async function submit(): Promise<void> {
   const result = await setPassword({ ...link.value, ...fields })
   pending.value = false
   if (result.errors) {
-    errors.value = placeErrors(result.errors, FIELDS, path => path)
+    errors.value = placeErrors(result.errors, FIELDS)
     fields.password = ''
     fields.confirmation = ''
     return

@@ -16,7 +16,7 @@ watch(error, (failure) => {
 
 useHead({ title: () => entry.value?.label ?? 'Ligne de trésorerie' })
 
-const { correctEntry, deleteEntry } = useTreasuryWrites()
+const { updateEntry, deleteEntry } = useTreasuryWrites()
 
 const editing = ref(false)
 const trigger = useTemplateRef<ComponentPublicInstance>('trigger')
@@ -25,14 +25,12 @@ const { confirming, pending, failure, ask, dismiss, confirm } = useConfirmation(
 // The journal of the line's fiscal year.
 const journal = computed(() => ledgerLocation(TREASURY_PATH, {
   year: entry.value ? Number(entry.value.date.slice(0, 4)) : null,
-  filter: null,
-  page: 1,
 }))
 const breadcrumb = computed(() => [{ label: 'Trésorerie', to: journal.value }, { label: entry.value?.label ?? '' }])
 const question = computed(() => `Supprimer la ligne « ${entry.value?.label} » ?`)
 
-async function correct(fields: EntryFields) {
-  const result = await correctEntry(id, entryPayload(fields))
+async function update(fields: EntryFields) {
+  const result = await updateEntry(id, entryPayload(fields))
   if (result.errors) return result.errors
   entry.value = result.data
   editing.value = false
@@ -69,7 +67,7 @@ async function remove(): Promise<void> {
         title="Corriger la ligne"
         :initial="entryFields(entry)"
         :advancer="entry.advanced_by"
-        :save="correct"
+        :save="update"
         full
         cancelable
         submit-label="Enregistrer"
@@ -87,10 +85,7 @@ async function remove(): Promise<void> {
               size="sm"
               @click="editing = true"
             >
-              <Pencil
-                :size="16"
-                aria-hidden="true"
-              />
+              <Pencil :size="16" />
               Corriger
             </UiButton>
             <UiButton
@@ -99,10 +94,7 @@ async function remove(): Promise<void> {
               size="sm"
               @click="ask"
             >
-              <Trash2
-                :size="16"
-                aria-hidden="true"
-              />
+              <Trash2 :size="16" />
               Supprimer
             </UiButton>
           </div>

@@ -4,13 +4,10 @@ import { afterEach, describe, expect, it } from 'vitest'
 import TreasuryEventResults from '~/components/treasury/EventResults.vue'
 import type { LedgerFilter } from '~/utils/treasury'
 import { fiscalYearResults, NO_TOTALS } from '../../helpers/treasury'
+import { readable } from '../../helpers/text'
 
 function location(filter: LedgerFilter) {
   return { query: treasuryQuery({ year: 2026, filter, page: 1 }) }
-}
-
-function readable(text: string): string {
-  return text.replace(/[\u202F\u00A0]/g, ' ')
 }
 
 describe('the result of each event', () => {

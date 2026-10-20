@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { RouteLocationRaw } from 'vue-router'
 import type { components } from '~/types/api'
-import type { LedgerFilter, PendingLines } from '~/utils/treasury'
+import type { LedgerFilter, PendingEntries } from '~/utils/treasury'
 
 type FiscalYearResultsOut = components['schemas']['FiscalYearResultsOut']
 type PagedLedgerEntryOut = components['schemas']['PagedLedgerEntryOut']
@@ -11,7 +11,7 @@ type PagedLedgerEntryOut = components['schemas']['PagedLedgerEntryOut']
 const { year, results, page, filter, location, error = null, loading = false, highlighted = null, pending = null } = defineProps<{
   year: number
   /** Every year's pending lines: no chip of a year. */
-  pending?: PendingLines | null
+  pending?: PendingEntries | null
   /** The fiscal year's results, which count the lines of each chip. */
   results: FiscalYearResultsOut | null
   /** The page of lines the filter keeps, and how many it keeps in all. */
@@ -35,7 +35,7 @@ const chips = computed(() => [
   ...(results?.events ?? []).map(result => ({ label: result.event.title, filter: result.event.id, count: result.count })),
 ])
 const entries = computed(() => page?.items ?? [])
-const emptyText = computed(() => (pending ? PENDING_LINES_TEXTS[pending].empty : `Aucune ligne pour l’exercice ${year}.`))
+const emptyText = computed(() => (pending ? PENDING_ENTRIES_TEXTS[pending].empty : `Aucune ligne pour l’exercice ${year}.`))
 const countText = computed(() => {
   const count = page?.count ?? 0
   return `${count} ${count < 2 ? 'ligne' : 'lignes'}`

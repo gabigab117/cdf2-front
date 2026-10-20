@@ -94,3 +94,16 @@ describe('protected files', () => {
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:http://localhost:3000/file')
   })
 })
+
+describe('chosenFile', () => {
+  it('reads the file chosen in an input, or none', () => {
+    const file = new File(['%PDF-1.4'], 'facture.pdf', { type: 'application/pdf' })
+    const input = document.createElement('input')
+    input.type = 'file'
+    Object.defineProperty(input, 'files', { value: [file], configurable: true })
+
+    expect(chosenFile({ target: input } as unknown as Event)).toBe(file)
+    Object.defineProperty(input, 'files', { value: [], configurable: true })
+    expect(chosenFile({ target: input } as unknown as Event)).toBeNull()
+  })
+})

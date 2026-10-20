@@ -7,3 +7,10 @@ describe('amountInput', () => {
     expect(amountInput('  ')).toBeNull()
   })
 })
+
+describe('amountField', () => {
+  it('writes an amount of the API as its field shows it', () => {
+    expect(amountField('150.00')).toBe('150,00')
+    expect(amountField('1260.50')).toBe('1260,50')
+  })
+})

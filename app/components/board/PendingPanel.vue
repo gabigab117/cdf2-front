@@ -65,7 +65,7 @@ const receipts = computed(() =>
 )
 const allReceipts = computed(() => {
   const count = pending?.receipts.count ?? 0
-  return count > receipts.value.length ? { label: `Voir les ${count} justificatifs manquants`, to: pendingLinesLocation('receipts') } : null
+  return count > receipts.value.length ? { label: `Voir les ${count} justificatifs manquants`, to: pendingEntriesLocation('receipts') } : null
 })
 
 // The advances the committee owes its members, the oldest first.
@@ -79,7 +79,7 @@ const advances = computed(() =>
 )
 const allAdvances = computed(() => {
   const count = pending?.advances.count ?? 0
-  return count > advances.value.length ? { label: `Voir les ${count} avances à rembourser`, to: pendingLinesLocation('advances') } : null
+  return count > advances.value.length ? { label: `Voir les ${count} avances à rembourser`, to: pendingEntriesLocation('advances') } : null
 })
 
 // The invoices to pay, the first due first.

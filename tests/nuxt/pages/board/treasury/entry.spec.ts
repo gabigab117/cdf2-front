@@ -5,6 +5,8 @@ import EntryPage from '~/pages/board/treasury/entries/[id].vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
 import { eventItem, julie, page } from '../../../helpers/events'
 import { ledgerEntry } from '../../../helpers/treasury'
+import { button } from '../../../helpers/form'
+import { readable } from '../../../helpers/text'
 
 const { navigateToMock, showErrorMock } = vi.hoisted(() => ({ navigateToMock: vi.fn(), showErrorMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
@@ -20,10 +22,6 @@ function mockEntry(entry = ledgerEntry()) {
 
 function mountPage() {
   return mountSuspended(EntryPage, { route: '/bureau/tresorerie/ecritures/4', attachTo: document.body })
-}
-
-function readable(text: string): string {
-  return text.replace(/[\u202F\u00A0]/g, ' ')
 }
 
 describe('the page of a line', () => {
@@ -84,7 +82,7 @@ describe('the page of a line', () => {
     const view = await mountPage()
     await vi.waitFor(() => expect(view.find('h1').exists()).toBe(true))
 
-    await view.findAll('button').find(button => button.text() === 'Corriger')!.trigger('click')
+    await button(view, 'Corriger')!.trigger('click')
     await view.get('input[placeholder="Ex. Courses buvette"]').setValue('Courses de la buvette')
     await view.get('form').trigger('submit')
 
@@ -113,10 +111,10 @@ describe('the page of a line', () => {
     const view = await mountPage()
     await vi.waitFor(() => expect(view.find('h1').exists()).toBe(true))
 
-    await view.findAll('button').find(button => button.text() === 'Supprimer')!.trigger('click')
+    await button(view, 'Supprimer')!.trigger('click')
 
     expect(view.text()).toContain('Supprimer la ligne « Courses buvette » ?')
-    await view.findAll('button').find(button => button.text() === 'Supprimer définitivement')!.trigger('click')
+    await button(view, 'Supprimer définitivement')!.trigger('click')
     await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith({
       path: '/bureau/tresorerie',
       query: { exercice: '2026', evenement: undefined, page: undefined, justificatif: undefined },

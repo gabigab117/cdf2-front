@@ -13,10 +13,9 @@ const emit = defineEmits<{ saved: [entry: LedgerEntryOut], cancel: [] }>()
 
 const SHOWN: ReadonlySet<string> = new Set(['reimbursed_on'])
 
-const now = useNow()
+const today = useToday()
 const { markReimbursed } = useTreasuryWrites()
 
-const today = computed(() => parisDate(now.value))
 const reimbursedOn = ref(today.value)
 const method = ref<ReimbursementMethod>('transfer')
 const errors = ref<FormErrors | null>(null)
@@ -34,8 +33,7 @@ async function submit(): Promise<void> {
 // The refusal takes the focus, as in every form of the board.
 async function refuse(refusal: FormErrors): Promise<void> {
   errors.value = refusal
-  await nextTick()
-  form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+  await focusErrors(form)
 }
 </script>
 
@@ -48,20 +46,18 @@ async function refuse(refusal: FormErrors): Promise<void> {
   >
     <div class="flex flex-wrap items-end gap-3">
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Remboursée le"
         class="grow basis-40"
         :errors="errors?.fields.reimbursed_on"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="reimbursedOn"
           type="date"
           :min="entry.date"
           :max="today"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiSegmentedControl
@@ -70,14 +66,12 @@ async function refuse(refusal: FormErrors): Promise<void> {
         label="Moyen de remboursement"
       />
     </div>
-    <p
+    <UiAlertText
       v-if="errors?.form.length"
-      role="alert"
       tabindex="-1"
-      class="text-sm font-semibold text-ambre-800"
     >
       {{ errors.form.join(' ') }}
-    </p>
+    </UiAlertText>
     <div class="flex flex-wrap gap-2">
       <UiButton
         type="submit"

@@ -5,6 +5,7 @@ import TreasuryPage from '~/pages/board/treasury/index.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
 import { eventItem, julie, page } from '../../../helpers/events'
 import { fiscalYearResults, ledgerEntry } from '../../../helpers/treasury'
+import { readable } from '../../../helpers/text'
 
 const { navigateToMock } = vi.hoisted(() => ({ navigateToMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
@@ -19,10 +20,6 @@ function mockPage(entries = [ledgerEntry()]) {
 // The page's own action, « Bilan pour l’AG », shows in place, without the top bar.
 function mountPage(route: string) {
   return mountSuspended(TreasuryPage, { route, global: { stubs: { teleport: true } } })
-}
-
-function readable(text: string): string {
-  return text.replace(/[\u202F\u00A0]/g, ' ')
 }
 
 describe('the Trésorerie page', () => {

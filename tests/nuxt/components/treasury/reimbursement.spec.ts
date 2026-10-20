@@ -5,6 +5,7 @@ import TreasuryReimbursement from '~/components/treasury/Reimbursement.vue'
 import type { components } from '~/types/api'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
 import { ledgerEntry } from '../../helpers/treasury'
+import { button } from '../../helpers/form'
 
 type LedgerEntryOut = components['schemas']['LedgerEntryOut']
 
@@ -32,11 +33,26 @@ describe('the reimbursement of an advance', () => {
     const card = await mountSuspended(TreasuryReimbursement, { props: { entry: ledgerEntry() } })
 
     expect(card.text()).toContain('À rembourser à Julie R.')
-    await card.findAll('button').find(button => button.text() === 'Marquer remboursée')!.trigger('click')
+    await button(card, 'Marquer remboursée')!.trigger('click')
     await card.get('form').trigger('submit')
 
     await vi.waitFor(() => expect(card.emitted('changed')).toEqual([[paid]]))
     expect(card.find('form').exists()).toBe(false)
+  })
+
+  it('tells why an advance could not be marked reimbursed, and takes the focus to it', async () => {
+    mockApi(REIMBURSEMENT, { method: 'POST', handler: () => apiResponse(422, {
+      detail: [{ type: 'value_error', loc: ['body'], msg: 'Cette avance est déjà remboursée.' }],
+    }) }, { entry_id: 4 })
+    const card = await mountSuspended(TreasuryReimbursement, { props: { entry: ledgerEntry() }, attachTo: document.body })
+
+    await button(card, 'Marquer remboursée')!.trigger('click')
+    await card.get('form').trigger('submit')
+
+    await vi.waitFor(() => expect(card.find('form [role="alert"]').exists()).toBe(true))
+    expect(card.get('form [role="alert"]').text()).toBe('Cette avance est déjà remboursée.')
+    expect(document.activeElement).toBe(card.get('form [role="alert"]').element)
+    expect(card.emitted('changed')).toBeUndefined()
   })
 
   it('names a member who has left the board', async () => {
@@ -59,7 +75,7 @@ describe('the reimbursement of an advance', () => {
     })
 
     expect(card.text()).toContain('Remboursée le 20 sept. par virement')
-    await card.findAll('button').find(button => button.text() === 'Annuler le remboursement')!.trigger('click')
+    await button(card, 'Annuler le remboursement')!.trigger('click')
     expect(card.text()).toContain('Annuler le remboursement de cette avance ?')
     expect(card.findAll('button').map(button => button.text())).toEqual(['Annuler le remboursement', 'Garder le remboursement'])
     await card.findAll('button')[0]!.trigger('click')
@@ -79,11 +95,11 @@ describe('the reimbursement of an advance', () => {
       attachTo: document.body,
     })
 
-    await card.findAll('button').find(button => button.text() === 'Annuler le remboursement')!.trigger('click')
+    await button(card, 'Annuler le remboursement')!.trigger('click')
     await card.findAll('button')[0]!.trigger('click')
     await vi.waitFor(() => expect(document.activeElement?.textContent?.trim()).toBe('Marquer remboursée'))
-    await card.findAll('button').find(button => button.text() === 'Marquer remboursée')!.trigger('click')
-    await card.findAll('button').find(button => button.text() === 'Annuler')!.trigger('click')
+    await button(card, 'Marquer remboursée')!.trigger('click')
+    await button(card, 'Annuler')!.trigger('click')
     await vi.waitFor(() => expect(document.activeElement?.textContent?.trim()).toBe('Marquer remboursée'))
   })
 
@@ -96,7 +112,7 @@ describe('the reimbursement of an advance', () => {
     })
 
     expect(card.text()).toContain('Remboursée le 20 sept. en espèces')
-    await card.findAll('button').find(button => button.text() === 'Annuler le remboursement')!.trigger('click')
+    await button(card, 'Annuler le remboursement')!.trigger('click')
     await card.findAll('button')[0]!.trigger('click')
 
     await vi.waitFor(() => expect(card.get('[role="alert"]').text()).toBe('Cette avance n’est pas remboursée.'))

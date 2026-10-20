@@ -1,4 +1,4 @@
-/** The files the board may deposit, as the file picker offers them (D9). */
+/** The files the board may upload, as the file picker offers them (D9). */
 export const DOCUMENT_TYPES = 'application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif'
 
 /** The title a file gives to start with: its name, without its extension. */
@@ -77,4 +77,15 @@ function objectUrl(file: Blob): string {
 function mediaType(file: Blob): string {
   const [type = ''] = file.type.split(';')
   return type.trim().toLowerCase()
+}
+
+/**
+ * The file a member chose in a file input, which is emptied: the same file
+ * chosen again is a new choice.
+ */
+export function chosenFile(event: Event): File | null {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0] ?? null
+  input.value = ''
+  return file
 }

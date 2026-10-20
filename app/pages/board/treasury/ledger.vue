@@ -9,12 +9,12 @@ const query = computed(() => parseTreasuryQuery(route.query))
 const year = computed(() => shownYear(query.value, now.value))
 // Every year's pending lines, as the bell leads to them.
 const pending = computed(() => query.value.pending ?? null)
-const title = computed(() => (pending.value ? PENDING_LINES_TEXTS[pending.value].title : 'Journal'))
+const title = computed(() => (pending.value ? PENDING_ENTRIES_TEXTS[pending.value].title : 'Journal'))
 
 useHead({ title: () => (pending.value ? title.value : 'Journal de la trésorerie') })
 
 const { data: results } = useTreasuryResults(() => (pending.value ? null : year.value))
-const { data: page, status, error, refresh } = useLedgerEntries(() => ({
+const { data: page, pending: loading, error, refresh } = useLedgerEntries(() => ({
   year: year.value,
   filter: query.value.filter,
   page: query.value.page,
@@ -24,7 +24,7 @@ const { data: page, status, error, refresh } = useLedgerEntries(() => ({
 
 const pageCount = computed(() => Math.ceil((page.value?.count ?? 0) / LEDGER_PAGE_SIZE))
 const breadcrumb = computed(() => [
-  { label: 'Trésorerie', to: ledgerLocation(TREASURY_PATH, { ...query.value, filter: null, page: 1, pending: null }) },
+  { label: 'Trésorerie', to: ledgerLocation(TREASURY_PATH, { year: query.value.year }) },
   { label: title.value },
 ])
 
@@ -59,7 +59,7 @@ function pageLocation(target: number) {
       :filter="query.filter"
       :location
       :error="error?.message ?? null"
-      :loading="status === 'pending'"
+      :loading
       :pending
       @retry="refresh()"
     >

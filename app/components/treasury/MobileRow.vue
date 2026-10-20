@@ -59,7 +59,6 @@ const id = useId()
       v-if="options"
       :size="18"
       class="shrink-0 text-argent-400"
-      aria-hidden="true"
     />
   </div>
 </template>

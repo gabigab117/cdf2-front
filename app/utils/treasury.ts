@@ -18,7 +18,7 @@ export const TREASURY_PATH = '/bureau/tresorerie'
 export const LEDGER_PATH = `${TREASURY_PATH}/journal`
 
 /** The form of a new line, on the Trésorerie page: the « Nouveau » menu leads to it. */
-export const NEW_LINE_ANCHOR = 'nouvelle-ligne'
+export const NEW_ENTRY_ANCHOR = 'nouvelle-ligne'
 
 /** An expense entered on a phone, its ticket taken in photo. */
 export const NEW_EXPENSE_PATH = `${TREASURY_PATH}/nouvelle`
@@ -32,7 +32,7 @@ export function entryPath(id: number): string {
 }
 
 /** How many lines the Trésorerie page shows, the latest first. */
-export const LATEST_LINES = 10
+export const LATEST_ENTRIES = 10
 
 /** How many lines a page of the whole journal holds. */
 export const LEDGER_PAGE_SIZE = 25
@@ -82,7 +82,7 @@ export const PAYMENT_METHOD_LABELS: Readonly<Record<LedgerPaymentMethod, string>
 }
 
 /** How the committee pays an advance back, in the order of the form. */
-export const REIMBURSEMENT_METHOD_OPTIONS: ReadonlyArray<Option<ReimbursementMethod>> = (['cash', 'cheque', 'transfer'] as const)
+export const REIMBURSEMENT_METHOD_OPTIONS: ReadonlyArray<Option<ReimbursementMethod>> = keysOf(REIMBURSED_BY)
   .map(method => ({ value: method, label: PAYMENT_METHOD_LABELS[method] }))
 
 // An income is never advanced by a member: the API refuses it.
@@ -149,7 +149,7 @@ export function entryFields(entry: LedgerEntryOut): EntryFields {
   return {
     kind: entry.kind,
     label: entry.label,
-    amount: entry.amount.replace('.', ','),
+    amount: amountField(entry.amount),
     date: entry.date,
     category: entry.category,
     paymentMethod: entry.payment_method,
@@ -230,7 +230,7 @@ export function signedAmount(entry: Pick<LedgerEntryOut, 'kind' | 'amount'>): nu
 /** « Avancé par Marc D. », or the payment method of the line. */
 export function paymentText(entry: Pick<LedgerEntryOut, 'payment_method' | 'advanced_by'>): string {
   if (entry.payment_method !== 'advance') return PAYMENT_METHOD_LABELS[entry.payment_method]
-  return entry.advanced_by ? `Avancé par ${memberShortName(entry.advanced_by)}` : 'Avancé par un ancien membre'
+  return `Avancé par ${memberMention(entry.advanced_by)}`
 }
 
 /** The lines a journal keeps: all, those of an event, or those without one. */
@@ -240,10 +240,10 @@ export type LedgerFilter = number | 'general' | null
  * The lines the bell lists, every year's in place of a fiscal year's: those
  * whose receipt is missing, and the advances the committee owes.
  */
-export type PendingLines = 'receipts' | 'advances'
+export type PendingEntries = 'receipts' | 'advances'
 
 /** What a list of pending lines is called, and what it says when it has none: the journal's, the report's. */
-export const PENDING_LINES_TEXTS: Readonly<Record<PendingLines, { title: string, empty: string }>> = {
+export const PENDING_ENTRIES_TEXTS: Readonly<Record<PendingEntries, { title: string, empty: string }>> = {
   receipts: { title: 'Justificatifs manquants', empty: 'Tous les justificatifs sont joints.' },
   advances: { title: 'Avances à rembourser', empty: 'Aucune avance à rembourser.' },
 }
@@ -255,7 +255,7 @@ export interface TreasuryQuery {
   filter: LedgerFilter
   page: number
   /** Every year's pending lines, in place of a fiscal year's. */
-  pending?: PendingLines | null
+  pending?: PendingEntries | null
 }
 
 // The word of the address for the lines without an event: `?evenement=aucun`.
@@ -275,7 +275,7 @@ export function parseTreasuryQuery(query: LocationQuery): TreasuryQuery {
   return {
     year: queryId(query.exercice),
     filter: event === GENERAL ? 'general' : queryId(event),
-    page: queryId(query.page) ?? 1,
+    page: queryPage(query.page),
     pending: query.justificatif === MISSING ? 'receipts' : query.avance === TO_REIMBURSE ? 'advances' : null,
   }
 }
@@ -293,35 +293,35 @@ export function yearSpan(year: number, now: number, current = 'Depuis le 1er jan
   return year === parisCalendar(now).year ? current : `Du 1er janvier au 31 décembre ${year}`
 }
 
-/** The address of a fiscal year, filter and page: the defaults are left out. */
-export function treasuryQuery({ year, filter, page, pending = null }: TreasuryQuery): LocationQueryRaw {
+/** The address of a fiscal year, filter and page: the defaults need not be given, and are left out. */
+export function treasuryQuery({ year = null, filter = null, page = 1, pending = null }: Partial<TreasuryQuery>): LocationQueryRaw {
   return {
     exercice: year === null ? undefined : String(year),
     evenement: filter === null ? undefined : filter === 'general' ? GENERAL : String(filter),
-    page: page > 1 ? String(page) : undefined,
+    page: pageParam(page),
     justificatif: pending === 'receipts' ? MISSING : undefined,
     avance: pending === 'advances' ? TO_REIMBURSE : undefined,
   }
 }
 
 /** A page of the treasury for a fiscal year, a filter and a page, the defaults left out. */
-export function ledgerLocation(path: string, query: TreasuryQuery): RouteLocationRaw {
+export function ledgerLocation(path: string, query: Partial<TreasuryQuery>): RouteLocationRaw {
   return { path, query: treasuryQuery(query) }
 }
 
 /** Every year's pending lines, as the bell leads to them. */
-export function pendingLinesLocation(pending: PendingLines): RouteLocationRaw {
-  return ledgerLocation(LEDGER_PATH, { year: null, filter: null, page: 1, pending })
+export function pendingEntriesLocation(pending: PendingEntries): RouteLocationRaw {
+  return ledgerLocation(LEDGER_PATH, { pending })
 }
 
 /** The page shown, with another filter, from its first lines. */
 export function filterLocation(query: TreasuryQuery, filter: LedgerFilter): RouteLocationRaw {
-  return { query: treasuryQuery({ year: query.year, filter, page: 1 }) }
+  return { query: treasuryQuery({ year: query.year, filter }) }
 }
 
 /** The page shown, for another fiscal year, without filter. */
 export function yearLocation(year: number): RouteLocationRaw {
-  return { query: treasuryQuery({ year, filter: null, page: 1 }) }
+  return { query: treasuryQuery({ year }) }
 }
 
 /**
@@ -331,7 +331,7 @@ export function yearLocation(year: number): RouteLocationRaw {
 export function ledgerFilters(
   year: number,
   filter: LedgerFilter,
-  pending: PendingLines | null = null,
+  pending: PendingEntries | null = null,
 ): Omit<LedgerQuery, 'page' | 'page_size'> {
   if (pending === 'receipts') return { receipt_state: 'missing' }
   if (pending === 'advances') return { to_reimburse: true }

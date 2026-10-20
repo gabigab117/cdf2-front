@@ -21,12 +21,12 @@ const UNNAMED = 'Indiquez un fournisseur ou une note.'
 const NO_AMOUNT = 'Indiquez un montant supérieur à zéro.'
 
 const now = useNow()
+const today = useToday()
 const session = useSessionStore()
-const events = useEventChoices()
+const eventOptions = useEventChoices('Aucun — hors événement')
 const { calendarInWords } = useDateFormat()
 const { recordEntry } = useTreasuryWrites()
 
-const today = computed(() => parisDate(now.value))
 const fields = ref<EntryFields>(newEntryFields('expense', today.value))
 // A file is kept as it is: nothing in it is to be watched.
 const photo = shallowRef<File | null>(null)
@@ -37,7 +37,6 @@ const picker = useTemplateRef<HTMLInputElement>('picker')
 const alert = useTemplateRef<HTMLElement>('alert')
 
 const categories = categoryOptions('expense')
-const eventOptions = computed(() => [{ value: null, label: 'Aucun — hors événement' }, ...events.value])
 // « TTC · mercredi 30 septembre »
 const day = computed(() => (fields.value.date ? `TTC · ${calendarInWords(fields.value.date, now.value, { weekday: true })}` : 'TTC'))
 // The amount's field fits what it holds, « 0,00 » at least: the euro sign follows it.
@@ -50,10 +49,7 @@ const advance = computed(() => fields.value.paymentMethod === 'advance')
 const advancer = computed(() => (session.member ? memberName(session.member) : null))
 
 function taken(event: Event): void {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  // The same photo taken again is a new choice.
-  input.value = ''
+  const file = chosenFile(event)
   if (!file) return
   forget()
   photo.value = file
@@ -100,10 +96,7 @@ async function refuse(messages: string[]): Promise<void> {
         label="Retour à la trésorerie"
         surface="plain"
       >
-        <ChevronLeft
-          :size="22"
-          aria-hidden="true"
-        />
+        <ChevronLeft :size="22" />
       </UiIconButton>
       <h1 class="flex-1 text-center text-base font-semibold">
         Nouvelle dépense
@@ -235,10 +228,7 @@ async function refuse(messages: string[]): Promise<void> {
         :loading="pending"
         @click="save"
       >
-        <Check
-          :size="18"
-          aria-hidden="true"
-        />
+        <Check :size="18" />
         Enregistrer la dépense
       </UiButton>
     </div>

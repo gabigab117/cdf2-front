@@ -46,7 +46,7 @@ export function useTreasuryWrites() {
   }
 
   /** Rewrites a line whole: its receipt and its reimbursement stay as they are. */
-  function correctEntry(id: number, payload: LedgerEntryIn): Promise<Written<LedgerEntryOut>> {
+  function updateEntry(id: number, payload: LedgerEntryIn): Promise<Written<LedgerEntryOut>> {
     return written(formWrite(api.PUT('/api/board/treasury/entries/{entry_id}', { ...path(id), body: payload })))
   }
 
@@ -90,5 +90,5 @@ export function useTreasuryWrites() {
     return written(formWrite(api.DELETE('/api/board/treasury/entries/{entry_id}/reimbursement', path(id))))
   }
 
-  return { recordEntry, correctEntry, deleteEntry, attachReceipt, createInvoiceExpense, attachInvoice, markReimbursed, cancelReimbursement }
+  return { recordEntry, updateEntry, deleteEntry, attachReceipt, createInvoiceExpense, attachInvoice, markReimbursed, cancelReimbursement }
 }

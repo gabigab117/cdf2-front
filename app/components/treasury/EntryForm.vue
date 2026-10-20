@@ -38,9 +38,8 @@ const KIND_OPTIONS: ReadonlyArray<{ value: LedgerEntryKind, label: string, tone?
 // The mockup's own words, before anything is sent: the API checks the rest.
 const INCOMPLETE = 'Indiquez un libellé et un montant supérieur à zéro.'
 
-const now = useNow()
 const session = useSessionStore()
-const events = useEventChoices()
+const eventOptions = useEventChoices('Aucun — hors événement')
 const { data: eventList } = useEventList()
 const { data: members } = useBoardMembers()
 
@@ -63,10 +62,9 @@ const kind = computed({
 })
 const isExpense = computed(() => fields.value.kind === 'expense')
 const advance = computed(() => fields.value.paymentMethod === 'advance')
-const today = computed(() => parisDate(now.value))
+const today = useToday()
 const categories = computed(() => categoryOptions(fields.value.kind))
 const paymentMethods = computed(() => paymentMethodOptions(fields.value.kind))
-const eventOptions = computed(() => [{ value: null, label: 'Aucun — hors événement' }, ...events.value])
 const eventTitle = computed(() => eventList.value?.items.find(event => event.id === fields.value.event)?.title)
 const eventHint = computed(() => (eventTitle.value
   ? `Comptera dans le résultat de « ${eventTitle.value} ».`
@@ -82,10 +80,6 @@ watch(advance, (isAdvance) => {
   if (isAdvance && fields.value.advancedBy === null) fields.value.advancedBy = session.member?.id ?? null
 })
 
-function fieldErrors(path: string): readonly string[] | undefined {
-  return errors.value?.fields[path]
-}
-
 async function submit(): Promise<void> {
   if (!isEntryComplete(fields.value)) return refuse({ form: [INCOMPLETE], fields: {} })
   pending.value = true
@@ -99,17 +93,13 @@ async function submit(): Promise<void> {
 }
 
 function picked(event: Event): void {
-  const input = event.target as HTMLInputElement
-  receipt.value = input.files?.[0] ?? null
-  // The same file chosen again is a new choice.
-  input.value = ''
+  receipt.value = chosenFile(event)
 }
 
 // The refusal takes the focus, as in every form of the board.
 async function refuse(refusal: FormErrors): Promise<void> {
   errors.value = refusal
-  await nextTick()
-  form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+  await focusErrors(form)
 }
 </script>
 
@@ -139,24 +129,22 @@ async function refuse(refusal: FormErrors): Promise<void> {
       <div class="flex flex-col gap-4 p-5.5">
         <div class="flex flex-wrap gap-3.5">
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Libellé"
             class="grow-3 basis-75"
-            :errors="fieldErrors('label')"
+            :errors="errors?.fields.label"
           >
             <UiInput
-              :id
+              v-bind="control"
               v-model="fields.label"
               :placeholder="isExpense ? 'Ex. Courses buvette' : 'Ex. Recette buvette'"
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
           <UiField
             v-slot="{ id, describedby, invalid }"
             label="Montant"
             class="grow basis-40"
-            :errors="fieldErrors('amount')"
+            :errors="errors?.fields.amount"
           >
             <span
               class="flex h-11.5 items-center gap-1.5 rounded-field border bg-white px-3.5 has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-azur-600"
@@ -183,83 +171,73 @@ async function refuse(refusal: FormErrors): Promise<void> {
             </span>
           </UiField>
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Date"
             class="grow basis-40"
-            :errors="fieldErrors('date')"
+            :errors="errors?.fields.date"
           >
             <UiInput
-              :id
+              v-bind="control"
               v-model="fields.date"
               type="date"
               :max="today"
               required
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
         </div>
         <div class="flex flex-wrap gap-3.5">
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Catégorie"
             class="grow basis-50"
-            :errors="fieldErrors('category')"
+            :errors="errors?.fields.category"
           >
             <UiSelect
-              :id
+              v-bind="control"
               v-model="fields.category"
               :options="categories"
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Moyen de paiement"
             class="grow basis-50"
-            :errors="fieldErrors('payment_method')"
+            :errors="errors?.fields.payment_method"
           >
             <UiSelect
-              :id
+              v-bind="control"
               v-model="fields.paymentMethod"
               :options="paymentMethods"
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Événement"
             optional
             :help="eventHint"
             class="grow basis-60"
-            :errors="fieldErrors('event')"
+            :errors="errors?.fields.event"
           >
             <UiSelect
-              :id
+              v-bind="control"
               v-model="fields.event"
               :options="eventOptions"
               :highlighted="fields.event !== null"
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
         </div>
         <UiField
           v-if="advance"
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           label="Avancé par"
           class="sm:max-w-80"
-          :errors="fieldErrors('advanced_by')"
+          :errors="errors?.fields.advanced_by"
         >
           <UiSelect
-            :id
+            v-bind="control"
             v-model="fields.advancedBy"
             :options="advancers"
             placeholder="Choisir un membre"
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <div
@@ -267,31 +245,27 @@ async function refuse(refusal: FormErrors): Promise<void> {
           class="flex flex-wrap gap-3.5"
         >
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Fournisseur"
             optional
             class="grow basis-60"
-            :errors="fieldErrors('supplier')"
+            :errors="errors?.fields.supplier"
           >
             <UiInput
-              :id
+              v-bind="control"
               v-model="fields.supplier"
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Note"
             optional
             class="grow-3 basis-75"
-            :errors="fieldErrors('note')"
+            :errors="errors?.fields.note"
           >
             <UiInput
-              :id
+              v-bind="control"
               v-model="fields.note"
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
         </div>
@@ -318,7 +292,6 @@ async function refuse(refusal: FormErrors): Promise<void> {
               >
                 <Paperclip
                   :size="16"
-                  aria-hidden="true"
                   class="shrink-0 text-azur-600"
                 />
                 <span class="truncate">{{ receipt.name }}</span>
@@ -336,10 +309,7 @@ async function refuse(refusal: FormErrors): Promise<void> {
                 size="sm"
                 @click="picker?.click()"
               >
-                <Paperclip
-                  :size="16"
-                  aria-hidden="true"
-                />
+                <Paperclip :size="16" />
                 Joindre le justificatif
               </UiButton>
               <input
@@ -370,7 +340,6 @@ async function refuse(refusal: FormErrors): Promise<void> {
               <Plus
                 v-if="!submitLabel"
                 :size="18"
-                aria-hidden="true"
               />
               {{ addLabel }}
             </UiButton>

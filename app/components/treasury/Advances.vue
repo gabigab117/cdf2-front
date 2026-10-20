@@ -10,7 +10,7 @@ const { calendarDay } = useDateFormat()
 const now = useNow()
 const titleId = useId()
 
-const ALL_ADVANCES = pendingLinesLocation('advances')
+const ALL_ADVANCES = pendingEntriesLocation('advances')
 
 // The advance whose form shows.
 const opened = ref<number | null>(null)

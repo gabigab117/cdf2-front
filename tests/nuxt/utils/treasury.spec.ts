@@ -21,8 +21,9 @@ describe('treasuryQuery', () => {
   it('writes the fiscal year, the filter and the page, the defaults left out', () => {
     expect(treasuryQuery({ year: 2025, filter: 'general', page: 2 })).toEqual({ exercice: '2025', evenement: 'aucun', page: '2', justificatif: undefined })
     expect(treasuryQuery({ year: null, filter: 12, page: 1 })).toEqual({ exercice: undefined, evenement: '12', page: undefined, justificatif: undefined })
-    expect(treasuryQuery({ year: null, filter: null, page: 1, pending: 'receipts' })).toEqual({ justificatif: 'manquant' })
-    expect(treasuryQuery({ year: null, filter: null, page: 1, pending: 'advances' })).toEqual({ avance: 'a-rembourser' })
+    expect(treasuryQuery({ pending: 'receipts' })).toEqual({ justificatif: 'manquant' })
+    expect(treasuryQuery({ pending: 'advances' })).toEqual({ avance: 'a-rembourser' })
+    expect(treasuryQuery({})).toEqual({})
   })
 
   it('leads to the journal of a page', () => {
@@ -156,7 +157,7 @@ describe('the words of the treasury assistant', () => {
   })
 
   it('leads to every year’s receipts missing, and advances to pay back', () => {
-    expect(pendingLinesLocation('receipts')).toEqual({ path: '/bureau/tresorerie/journal', query: { justificatif: 'manquant' } })
-    expect(pendingLinesLocation('advances')).toEqual({ path: '/bureau/tresorerie/journal', query: { avance: 'a-rembourser' } })
+    expect(pendingEntriesLocation('receipts')).toEqual({ path: '/bureau/tresorerie/journal', query: { justificatif: 'manquant' } })
+    expect(pendingEntriesLocation('advances')).toEqual({ path: '/bureau/tresorerie/journal', query: { avance: 'a-rembourser' } })
   })
 })

@@ -7,22 +7,14 @@ import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../he
 import { eventItem, page } from '../../../helpers/events'
 import { chooseFile } from '../../../helpers/files'
 import { ledgerEntry } from '../../../helpers/treasury'
+import { button, field } from '../../../helpers/form'
+import { readable } from '../../../helpers/text'
 
 const { navigateToMock } = vi.hoisted(() => ({ navigateToMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
 
-// The field of a row, by the name it shows.
-function row(expense: VueWrapper, label: string) {
-  const name = expense.findAll('label').find(element => element.text() === label)!
-  return expense.get(`#${name.attributes('for')}`)
-}
-
 function record(expense: VueWrapper) {
-  return expense.findAll('button').find(button => button.text() === 'Enregistrer la dépense')!.trigger('click')
-}
-
-function readable(text: string): string {
-  return text.replace(/[\u202F\u00A0]/g, ' ')
+  return button(expense, 'Enregistrer la dépense')!.trigger('click')
 }
 
 describe('the expense entered on a phone', () => {
@@ -60,10 +52,10 @@ describe('the expense entered on a phone', () => {
 
     await chooseFile(expense.get('input[type="file"]'), new File(['jpeg'], 'ticket.jpg', { type: 'image/jpeg' }))
     await expense.get('input[aria-label="Montant TTC"]').setValue('47,85')
-    await row(expense, 'Fournisseur').setValue('Supermarché, Beauvais')
-    await vi.waitFor(() => expect(row(expense, 'Événement').findAll('option')).toHaveLength(2))
-    await row(expense, 'Événement').setValue('12')
-    await row(expense, 'Note').setValue('Jus de fruits et gâteaux pour le goûter')
+    await field(expense, 'Fournisseur').setValue('Supermarché, Beauvais')
+    await vi.waitFor(() => expect(field(expense, 'Événement').findAll('option')).toHaveLength(2))
+    await field(expense, 'Événement').setValue('12')
+    await field(expense, 'Note').setValue('Jus de fruits et gâteaux pour le goûter')
     await expense.get('input[type="radio"][value="advance"]').setValue(true)
     expect(expense.text()).toContain('Avancé par vous. Le remboursement sera ajouté aux écritures à traiter.')
     expect(expense.text()).toContain('Reprendre')
@@ -90,7 +82,7 @@ describe('the expense entered on a phone', () => {
     const expense = await mountSuspended(NewExpensePage, { route: '/bureau/tresorerie/nouvelle' })
 
     await expense.get('input[aria-label="Montant TTC"]').setValue('12')
-    await row(expense, 'Fournisseur').setValue('Boulangerie')
+    await field(expense, 'Fournisseur').setValue('Boulangerie')
     await record(expense)
 
     await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith('/bureau/tresorerie/ecritures/32'))
@@ -105,8 +97,8 @@ describe('the expense entered on a phone', () => {
     const photo = expense.get('input[type="file"]')
     expect(photo.attributes('accept')).toBe('image/*')
     expect(photo.attributes('capture')).toBe('environment')
-    expect(row(expense, 'Catégorie').findAll('option').map(option => option.text())).toContain('Achats alimentaires')
-    expect(row(expense, 'Date').attributes('max')).toBe('2026-09-30')
+    expect(field(expense, 'Catégorie').findAll('option').map(option => option.text())).toContain('Achats alimentaires')
+    expect(field(expense, 'Date').attributes('max')).toBe('2026-09-30')
     expect(expense.get('a[aria-label="Retour à la trésorerie"]').attributes('href')).toBe('/bureau/tresorerie')
   })
 
@@ -131,7 +123,7 @@ describe('the expense entered on a phone', () => {
     const expense = await mountSuspended(NewExpensePage, { route: '/bureau/tresorerie/nouvelle' })
 
     await expense.get('input[aria-label="Montant TTC"]').setValue('12')
-    await row(expense, 'Note').setValue('Pain')
+    await field(expense, 'Note').setValue('Pain')
     await record(expense)
 
     await vi.waitFor(() => expect(expense.get('[role="alert"]').text()).toContain('Date : La date ne peut pas être dans le futur.'))

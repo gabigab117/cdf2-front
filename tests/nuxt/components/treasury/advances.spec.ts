@@ -5,6 +5,8 @@ import TreasuryAdvances from '~/components/treasury/Advances.vue'
 import type { components } from '~/types/api'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
 import { ledgerEntry, NOTHING_PENDING } from '../../helpers/treasury'
+import { button } from '../../helpers/form'
+import { readable } from '../../helpers/text'
 
 type LedgerEntryOut = components['schemas']['LedgerEntryOut']
 
@@ -12,10 +14,6 @@ function mockAdvances(items: LedgerEntryOut[], count = items.length, total = '28
   mockApi('/api/board/overview', { handler: () => apiResponse(200, {
     pending: { ...NOTHING_PENDING, total: count, advances: { count, total, items } },
   }) })
-}
-
-function readable(text: string): string {
-  return text.replace(/[\u202F\u00A0]/g, ' ')
 }
 
 const REIMBURSEMENT = '/api/board/treasury/entries/{entry_id}/reimbursement'
@@ -77,7 +75,7 @@ describe('the advances to pay back', () => {
     const card = await mountSuspended(TreasuryAdvances)
     await vi.waitFor(() => expect(card.findAll('li')).toHaveLength(1))
 
-    await card.findAll('button').find(button => button.text() === 'Marquer remboursée')!.trigger('click')
+    await button(card, 'Marquer remboursée')!.trigger('click')
     const form = card.get('form')
     expect((form.get('input[type="date"]').element as HTMLInputElement).value).toBe('2026-10-01')
     expect(form.get('input[type="date"]').attributes('min')).toBe('2026-09-12')
@@ -102,7 +100,7 @@ describe('the advances to pay back', () => {
     const card = await mountSuspended(TreasuryAdvances, { attachTo: document.body })
     await vi.waitFor(() => expect(card.findAll('li')).toHaveLength(1))
 
-    await card.findAll('button').find(button => button.text() === 'Marquer remboursée')!.trigger('click')
+    await button(card, 'Marquer remboursée')!.trigger('click')
     await card.get('form').trigger('submit')
 
     await vi.waitFor(() => expect(card.get('[role="alert"]').text()).toBe('Cette avance est déjà remboursée.'))

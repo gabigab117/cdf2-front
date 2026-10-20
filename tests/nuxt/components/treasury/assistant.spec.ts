@@ -6,6 +6,7 @@ import type { components } from '~/types/api'
 import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
 import { julie } from '../../helpers/events'
 import { ledgerEntry, NOTHING_PENDING, unpaidInvoice } from '../../helpers/treasury'
+import { readable } from '../../helpers/text'
 
 type LedgerEntryOut = components['schemas']['LedgerEntryOut']
 type UnpaidInvoiceOut = components['schemas']['UnpaidInvoiceOut']
@@ -19,10 +20,6 @@ function mockPending(receipts: LedgerEntryOut[], receiptsCount: number, invoices
       invoices: { count: invoicesCount, items: invoices },
     },
   }) })
-}
-
-function readable(text: string): string {
-  return text.replace(/[\u202F\u00A0]/g, ' ')
 }
 
 describe('the treasury assistant', () => {

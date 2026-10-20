@@ -13,11 +13,11 @@ const query = computed(() => parseTreasuryQuery(route.query))
 const year = computed(() => shownYear(query.value, now.value))
 
 const { data: results, refresh: refreshResults } = useTreasuryResults(() => year.value)
-const { data: page, status, error, refresh: refreshEntries } = useLedgerEntries(() => ({
+const { data: page, pending: loading, error, refresh: refreshEntries } = useLedgerEntries(() => ({
   year: year.value,
   filter: query.value.filter,
   page: 1,
-  size: LATEST_LINES,
+  size: LATEST_ENTRIES,
 }))
 
 const { amount, signed } = useMoneyFormat()
@@ -25,7 +25,7 @@ const { recordEntry } = useTreasuryWrites()
 
 const totals = computed(() => results.value?.totals ?? null)
 const span = computed(() => yearSpan(year.value, now.value))
-const newLine = computed(() => newEntryFields('expense', parisDate(now.value)))
+const newEntry = computed(() => newEntryFields('expense', parisDate(now.value)))
 // The line just recorded, shown in azur as in the mockup.
 const highlighted = ref<number | null>(null)
 
@@ -35,7 +35,7 @@ function location(filter: LedgerFilter) {
 
 const ledgerLink = computed(() => ledgerLocation(LEDGER_PATH, { ...query.value, page: 1 }))
 // The report tells the whole fiscal year shown: the journal's filter is left out.
-const reportLink = computed(() => ledgerLocation(REPORT_PATH, { year: query.value.year, filter: null, page: 1 }))
+const reportLink = computed(() => ledgerLocation(REPORT_PATH, { year: query.value.year }))
 
 // A line recorded shows first in the journal of its year, the filter left out.
 async function record(fields: EntryFields, receipt: File | null) {
@@ -81,10 +81,7 @@ async function record(fields: EntryFields, receipt: File | null) {
       block
       class="md:hidden"
     >
-      <Camera
-        :size="18"
-        aria-hidden="true"
-      />
+      <Camera :size="18" />
       Photographier un ticket
     </UiButton>
     <div class="grid grid-cols-kpis gap-3.5">
@@ -113,10 +110,10 @@ async function record(fields: EntryFields, receipt: File | null) {
       </UiKpiCard>
     </div>
     <TreasuryEntryForm
-      :id="NEW_LINE_ANCHOR"
+      :id="NEW_ENTRY_ANCHOR"
       class="scroll-mt-20"
       title="Nouvelle ligne"
-      :initial="newLine"
+      :initial="newEntry"
       :save="record"
       clears-after-save
       attachable
@@ -130,7 +127,7 @@ async function record(fields: EntryFields, receipt: File | null) {
         :filter="query.filter"
         :location
         :error="error?.message ?? null"
-        :loading="status === 'pending'"
+        :loading
         :highlighted
         @retry="refreshEntries()"
       >

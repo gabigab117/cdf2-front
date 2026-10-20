@@ -244,7 +244,7 @@ export function documentFields(document: DocumentOut): DocumentFields {
     documentDate: document.document_date ?? '',
     issuer: document.issuer,
     reference: document.reference,
-    amount: document.amount === null ? '' : document.amount.replace('.', ','),
+    amount: document.amount === null ? '' : amountField(document.amount),
     dueDate: document.due_date ?? '',
     paidOn: document.paid_on ?? '',
     note: document.note,

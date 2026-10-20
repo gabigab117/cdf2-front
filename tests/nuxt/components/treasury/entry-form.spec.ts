@@ -7,6 +7,7 @@ import type { EntryFields } from '~/utils/treasury'
 import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
 import { eventItem, julie, page } from '../../helpers/events'
 import { chooseFile } from '../../helpers/files'
+import { button, field } from '../../helpers/form'
 
 const marc = { id: 9, first_name: 'Marc', last_name: 'Durand', email: 'marc.durand@example.test' }
 
@@ -20,13 +21,6 @@ function mountForm(props: Partial<InstanceType<typeof TreasuryEntryForm>['$props
       ...props,
     },
   })
-}
-
-type Form = Awaited<ReturnType<typeof mountForm>>
-
-function select(form: Form, label: string) {
-  const field = form.findAll('label').find(element => element.text().startsWith(label))!
-  return form.get(`#${field.attributes('for')}`)
 }
 
 describe('the form of a line', () => {
@@ -59,8 +53,8 @@ describe('the form of a line', () => {
 
     expect(form.get('[role="radiogroup"]').attributes('aria-label')).toBe('Type de ligne')
     expect(form.get('input[value="expense"]').element).toHaveProperty('checked', true)
-    expect((select(form, 'Catégorie').element as HTMLSelectElement).value).toBe('food')
-    expect((select(form, 'Moyen de paiement').element as HTMLSelectElement).value).toBe('association_card')
+    expect((field(form, 'Catégorie').element as HTMLSelectElement).value).toBe('food')
+    expect((field(form, 'Moyen de paiement').element as HTMLSelectElement).value).toBe('association_card')
     expect(form.text()).toContain('−')
     expect(form.text()).toContain('Ligne de fonctionnement général du comité.')
     expect(form.get('button[type="submit"]').text()).toBe('Ajouter la dépense')
@@ -84,16 +78,16 @@ describe('the form of a line', () => {
 
     await vi.waitFor(() => expect(save).toHaveBeenCalledOnce())
     expect(save.mock.calls[0]![0]).toMatchObject({ kind: 'income', category: 'bar', paymentMethod: 'cash' })
-    expect(select(form, 'Moyen de paiement').findAll('option').map(option => option.text())).not.toContain('Avancé par un membre')
+    expect(field(form, 'Moyen de paiement').findAll('option').map(option => option.text())).not.toContain('Avancé par un membre')
     expect(form.text()).toContain('+')
     expect(form.get('button[type="submit"]').text()).toBe('Ajouter la recette')
   })
 
   it('tells the event a line counts for', async () => {
     const form = await mountForm()
-    await vi.waitFor(() => expect(select(form, 'Événement').findAll('option')).toHaveLength(2))
+    await vi.waitFor(() => expect(field(form, 'Événement').findAll('option')).toHaveLength(2))
 
-    await select(form, 'Événement').setValue('12')
+    await field(form, 'Événement').setValue('12')
 
     expect(form.text()).toContain('Comptera dans le résultat de « Halloween des enfants ».')
   })
@@ -101,9 +95,9 @@ describe('the form of a line', () => {
   it('names the member signed in for an advance, until another is chosen', async () => {
     const form = await mountForm()
 
-    await select(form, 'Moyen de paiement').setValue('advance')
+    await field(form, 'Moyen de paiement').setValue('advance')
 
-    await vi.waitFor(() => expect((select(form, 'Avancé par').element as HTMLSelectElement).value).toBe(String(julie.id)))
+    await vi.waitFor(() => expect((field(form, 'Avancé par').element as HTMLSelectElement).value).toBe(String(julie.id)))
   })
 
   it('tells what is missing before anything is sent', async () => {
@@ -191,11 +185,11 @@ describe('the form of a line', () => {
     const fields = { ...newEntryFields('expense', '2026-09-12'), label: 'Courses', amount: '12,50', paymentMethod: 'advance' as const, advancedBy: marc.id }
     const form = await mountForm({ title: 'Corriger la ligne', initial: fields, advancer: marc, full: true, cancelable: true, clearsAfterSave: false, submitLabel: 'Enregistrer' })
 
-    await vi.waitFor(() => expect(select(form, 'Avancé par').findAll('option').map(option => option.text())).toContain('Marc Durand'))
+    await vi.waitFor(() => expect(field(form, 'Avancé par').findAll('option').map(option => option.text())).toContain('Marc Durand'))
     expect(form.findAll('label').map(label => label.text())).toEqual(expect.arrayContaining(['Fournisseur (facultatif)', 'Note (facultatif)']))
     expect(form.get('button[type="submit"]').text()).toBe('Enregistrer')
 
-    await form.findAll('button').find(button => button.text() === 'Annuler')!.trigger('click')
+    await button(form, 'Annuler')!.trigger('click')
 
     expect(form.emitted('cancel')).toHaveLength(1)
   })

@@ -5,10 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ReportPage from '~/pages/board/treasury/report.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
 import { generalMeetingReport, NO_TOTALS } from '../../../helpers/treasury'
-
-function readable(text: string): string {
-  return text.replace(/[\u202F\u00A0]/g, ' ')
-}
+import { button } from '../../../helpers/form'
+import { readable } from '../../../helpers/text'
 
 // Each table of the sheet, by the title of its section: its rows as they read.
 function table(sheet: Pick<DOMWrapper<Element>, 'findAll'>, title: string): string[] {
@@ -110,7 +108,7 @@ describe('the report for the general meeting', () => {
     const page = await mountPage('/bureau/tresorerie/bilan')
 
     await vi.waitFor(() => expect(page.find('article').exists()).toBe(true))
-    await page.findAll('button').find(button => button.text() === 'Imprimer / Enregistrer en PDF')!.trigger('click')
+    await button(page, 'Imprimer / Enregistrer en PDF')!.trigger('click')
     expect(print).toHaveBeenCalledOnce()
   })
 })

@@ -31,7 +31,7 @@ async function submit(): Promise<void> {
     position: fields.position === NO_POSITION ? null : fields.position,
   })
   pending.value = false
-  errors.value = refused ? placeErrors(refused, FIELDS, path => path) : null
+  errors.value = refused ? placeErrors(refused, FIELDS) : null
   if (!refused) Object.assign(fields, emptyFields())
 }
 </script>

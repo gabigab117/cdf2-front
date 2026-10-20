@@ -41,10 +41,7 @@ const form = useTemplateRef<HTMLFormElement>('form')
 const picker = useTemplateRef<HTMLInputElement>('picker')
 
 function attach(event: Event): void {
-  const input = event.target as HTMLInputElement
-  const file = input.files?.[0]
-  // The same file chosen again is a new choice.
-  input.value = ''
+  const file = chosenFile(event)
   if (file) draft.value = { ...draft.value, file }
 }
 

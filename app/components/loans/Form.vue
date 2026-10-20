@@ -39,7 +39,7 @@ const look = computed(() => BORROWER_TYPES[fields.value.borrowerType])
 // A type changed brings its own deposit; a new loan starts with its type's.
 function defaultDeposit(kind: LoanBorrowerType): string | null {
   const found = deposits.value?.deposits.find(deposit => deposit.borrower_type === kind)
-  return found ? depositText(found.amount) : null
+  return found ? amountField(found.amount) : null
 }
 watch(() => fields.value.borrowerType, (kind) => {
   fields.value.deposit = defaultDeposit(kind) ?? fields.value.deposit

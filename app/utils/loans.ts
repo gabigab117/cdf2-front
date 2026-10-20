@@ -62,11 +62,6 @@ export interface LoanFields {
   quantities: Record<number, number>
 }
 
-/** A deposit as its field shows it: « 150,00 ». */
-export function depositText(amount: string): string {
-  return amount.replace('.', ',')
-}
-
 /** The fields of a new loan, from a day: an association's, without equipment. */
 export function newLoanFields(day: string): LoanFields {
   return {
@@ -93,7 +88,7 @@ export function loanFields(loan: LoanOut): LoanFields {
     event: loan.event?.id ?? null,
     startDate: loan.start_date,
     endDate: loan.end_date,
-    deposit: depositText(loan.deposit_amount),
+    deposit: amountField(loan.deposit_amount),
     notes: loan.notes,
     quantities: Object.fromEntries(loan.lines.map(line => [line.equipment.id, line.quantity])),
   }

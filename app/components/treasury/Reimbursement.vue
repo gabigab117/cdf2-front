@@ -27,15 +27,13 @@ const state = computed(() => {
   if (entry.reimbursed_on !== null && entry.reimbursement_method !== null) {
     return `Remboursée le ${calendarDay(entry.reimbursed_on, now.value)} ${REIMBURSED_BY[entry.reimbursement_method]}`
   }
-  return `À rembourser à ${entry.advanced_by ? memberShortName(entry.advanced_by) : 'un ancien membre'}`
+  return `À rembourser à ${memberMention(entry.advanced_by)}`
 })
 
 async function closed(updated?: LedgerEntryOut): Promise<void> {
   marking.value = false
   if (updated) emit('changed', updated)
-  await nextTick()
-  const element: unknown = trigger.value?.$el
-  if (element instanceof HTMLElement) element.focus()
+  await dismiss()
 }
 
 async function cancel(): Promise<void> {

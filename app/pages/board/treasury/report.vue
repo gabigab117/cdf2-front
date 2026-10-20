@@ -30,7 +30,7 @@ const { calendarNumeric } = useDateFormat()
 
 const today = computed(() => calendarNumeric(parisDate(now.value)))
 const breadcrumb = computed(() => [
-  { label: 'Trésorerie', to: ledgerLocation(TREASURY_PATH, { year: query.value.year, filter: null, page: 1 }) },
+  { label: 'Trésorerie', to: ledgerLocation(TREASURY_PATH, { year: query.value.year }) },
   { label: 'Bilan pour l’AG' },
 ])
 
@@ -142,11 +142,11 @@ function print(): void {
             empty="Aucune dépense pour cet exercice."
           />
         </TreasuryReportSection>
-        <TreasuryReportSection :title="PENDING_LINES_TEXTS.receipts.title">
+        <TreasuryReportSection :title="PENDING_ENTRIES_TEXTS.receipts.title">
           <TreasuryReportTable
             :columns="MISSING_COLUMNS"
             :rows="sheet.missing"
-            :empty="PENDING_LINES_TEXTS.receipts.empty"
+            :empty="PENDING_ENTRIES_TEXTS.receipts.empty"
           />
         </TreasuryReportSection>
         <p class="mt-3 text-right text-xs text-sable-600">

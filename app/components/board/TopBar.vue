@@ -29,7 +29,7 @@ const NEW_ENTRIES: readonly Entry[] = [
   { label: 'Tâche', to: NEW_TASK_PATH, icon: ListChecks },
   { label: 'Document', to: NEW_DOCUMENT_PATH, icon: FileText },
   { label: 'Prêt', to: NEW_LOAN_PATH, icon: ArrowRightLeft },
-  { label: 'Dépense ou recette', to: `${TREASURY_PATH}#${NEW_LINE_ANCHOR}`, icon: Wallet },
+  { label: 'Dépense ou recette', to: `${TREASURY_PATH}#${NEW_ENTRY_ANCHOR}`, icon: Wallet },
 ]
 </script>
 

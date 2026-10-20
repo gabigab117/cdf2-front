@@ -19,10 +19,7 @@ function choose(): void {
 }
 
 function chosen(event: Event): void {
-  const picker = event.target as HTMLInputElement
-  const file = picker.files?.[0]
-  // The same file chosen again is a new choice.
-  picker.value = ''
+  const file = chosenFile(event)
   if (file) emit('choose', file)
 }
 
