@@ -26,7 +26,7 @@ describe('privacy page', () => {
 
     expect(page.get('h1').text()).toBe('Données personnelles')
     expect(page.findAll('h2').map(title => title.text())).toEqual([
-      'Visiteurs du site', 'Membres du bureau', 'Documents du bureau', 'Trésorerie', 'Bénévoles et réservations', 'Prêts de matériel', 'Durées de conservation', 'Vos droits',
+      'Visiteurs du site', 'Membres du bureau', 'Documents du bureau', 'Trésorerie', 'Stock', 'Bénévoles et réservations', 'Prêts de matériel', 'Durées de conservation', 'Vos droits',
     ])
     expect(page.text()).toContain('Le site ne dépose aucun cookie, ne mesure pas son audience et ne vous demande rien.')
     expect(page.text()).toContain('Les notes du bureau portent le nom de leur auteur, les tâches celui de la personne qui les a créées et de celle à qui elles sont assignées. Seul le bureau les lit.')
@@ -36,11 +36,13 @@ describe('privacy page', () => {
     expect(page.text()).toContain('La convention de prêt, imprimée depuis l’espace du bureau, reprend ce nom, ce téléphone et cet objet ; les remarques n’y figurent pas.')
     expect(page.text()).toContain('Ces e-mails passent par Mailo, qui en reçoit le texte et l’adresse du membre.')
     expect(page.text()).toContain('Une ligne porte le nom du membre qui l’a saisie et, pour une dépense qu’un membre a payée de son argent, le nom de ce membre, jusqu’à ce que le comité le rembourse.')
+    expect(page.text()).toContain('Chaque mouvement porte le nom du membre qui l’a enregistré : un clic sur − ou +, une entrée ou une sortie, un inventaire, la réception d’une commande.')
     expect(page.findAll('tbody tr').map(row => [row.get('th').text(), row.get('td').text()])).toEqual([
-      ['Compte d’un membre du bureau', 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés, ses notes, ses tâches, les documents qu’elle a déposés ou validés et les lignes de trésorerie qu’elle a saisies ou avancées. Il est supprimé si elle le demande : ses notes, ses tâches, ses documents et ses lignes de trésorerie restent, sans son nom, sauf dans le texte d’une attestation sur l’honneur qu’elle a faite.'],
+      ['Compte d’un membre du bureau', 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés, ses notes, ses tâches, les documents qu’elle a déposés ou validés, les lignes de trésorerie qu’elle a saisies ou avancées et les mouvements du stock qu’elle a enregistrés. Il est supprimé si elle le demande : ses notes, ses tâches, ses documents, ses lignes de trésorerie et ses mouvements du stock restent, sans son nom, sauf dans le texte d’une attestation sur l’honneur qu’elle a faite.'],
       ['Notes et tâches du bureau', 'Supprimées avec leur événement, ou à la main : une note par son auteur'],
       ['Documents du bureau', 'Gardés pour la gestion de l’association, factures et attestations sur l’honneur comprises ; un membre du bureau peut en supprimer un'],
       ['Lignes de la trésorerie', 'Gardées pour la comptabilité de l’association ; un membre du bureau peut en corriger ou en supprimer une'],
+      ['Mouvements du stock', 'Gardés pour la gestion de l’association'],
       ['Noms des bénévoles affectés aux postes', 'Effacés 2 ans après l’événement'],
       ['Noms et remarques des réservations', 'Effacés 3 mois après l’événement, les totaux conservés'],
       ['Téléphone d’un emprunteur', 'Effacé 3 mois après le retour du matériel, ou après la date de retour prévue d’un prêt annulé'],

@@ -58,6 +58,21 @@ describe('UiFilterChip', () => {
     expect(chip.attributes('aria-current')).toBe(current)
     expect(chip.attributes('aria-pressed')).toBeUndefined()
   })
+
+  it.each([
+    ['some items', false, 3, true],
+    ['none', false, 0, false],
+    ['its filter applied', true, 3, false],
+  ])('turns amber while it keeps items calling for attention: %s', async (_case, pressed, count, amber) => {
+    /**
+     * Given the chip « Sous le seuil »
+     * Then it is amber while some items are below their threshold, plain
+     * without any, and black once its filter applies
+     */
+    const chip = await mountSuspended(UiFilterChip, { props: { pressed, count, tone: 'ambre' }, slots: { default: () => 'Sous le seuil' } })
+
+    expect(chip.classes().includes('bg-ambre-50')).toBe(amber)
+  })
 })
 
 describe('UiSelectableRow', () => {
@@ -118,7 +133,7 @@ describe('UiSegmentedControl', () => {
 })
 
 describe('UiStepper', () => {
-  async function mountStepper(modelValue: number, props: { min?: number, max?: number, step?: number } = {}) {
+  async function mountStepper(modelValue: number, props: { min?: number, max?: number, step?: number, disabled?: boolean } = {}) {
     return mountSuspended(UiStepper, { props: { modelValue, label: 'Gobelets', ...props } })
   }
 
@@ -155,6 +170,12 @@ describe('UiStepper', () => {
 
     expect(buttons[disabledButton]?.attributes('disabled')).toBeDefined()
     expect(buttons[1 - disabledButton]?.attributes('disabled')).toBeUndefined()
+  })
+
+  it('waits, both its buttons unavailable, while a change is sent', async () => {
+    const stepper = await mountStepper(3, { disabled: true })
+
+    expect(stepper.findAll('button').map(button => button.attributes('disabled'))).toEqual(['', ''])
   })
 
   it('names its buttons after what it counts', async () => {

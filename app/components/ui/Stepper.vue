@@ -3,7 +3,7 @@ import { Minus, Plus } from '@lucide/vue'
 
 const quantity = defineModel<number>({ required: true })
 
-const { label, min = 0, max = Number.POSITIVE_INFINITY, step = 1, invalid = false } = defineProps<{
+const { label, min = 0, max = Number.POSITIVE_INFINITY, step = 1, invalid = false, disabled = false } = defineProps<{
   /** What is counted, which names the buttons for screen readers. */
   label: string
   min?: number
@@ -11,6 +11,8 @@ const { label, min = 0, max = Number.POSITIVE_INFINITY, step = 1, invalid = fals
   step?: number
   /** A quantity the API refused, such as more than is free. */
   invalid?: boolean
+  /** While a change is sent, as each click of the stock is: the buttons wait. */
+  disabled?: boolean
 }>()
 
 const atMin = computed(() => quantity.value <= min)
@@ -48,7 +50,7 @@ const state = computed(() => (invalid ? 'invalid' : 'valid'))
       type="button"
       :class="classes.button"
       :aria-label="`Retirer : ${label}`"
-      :disabled="atMin"
+      :disabled="disabled || atMin"
       @click="decrease"
     >
       <Minus :size="14" />
@@ -63,7 +65,7 @@ const state = computed(() => (invalid ? 'invalid' : 'valid'))
       type="button"
       :class="classes.button"
       :aria-label="`Ajouter : ${label}`"
-      :disabled="atMax"
+      :disabled="disabled || atMax"
       @click="increase"
     >
       <Plus :size="14" />

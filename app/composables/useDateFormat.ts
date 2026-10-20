@@ -29,6 +29,7 @@ const FORMATS = {
   weekday: paris({ weekday: 'short', day: 'numeric', month: 'short' }),
   weekdayAndYear: paris({ weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }),
   longWeekday: paris({ weekday: 'long' }),
+  monthAndYear: paris({ month: 'short', year: 'numeric' }),
 }
 
 // The days with their month in full (« samedi 31 octobre »), by the weekday
@@ -56,6 +57,14 @@ function written(format: Intl.DateTimeFormat, iso: string): string {
 
 function capitalized(text: string): string {
   return `${text.charAt(0).toUpperCase()}${text.slice(1)}`
+}
+
+/**
+ * The month of a day of the calendar, such as the best-before date of an item
+ * of the stock: « mai 2027 », « févr. 2027 ».
+ */
+function calendarMonth(date: string): string {
+  return FORMATS.monthAndYear.format(new Date(`${date}T12:00:00Z`))
 }
 
 /** « 31/10 ». */
@@ -296,5 +305,5 @@ function season(now: number): string {
  * the browser: the formats of the mockup.
  */
 export function useDateFormat() {
-  return { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarLong, calendarNumeric, calendarWeekday, calendarInWords, calendarPeriod, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
+  return { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarMonth, calendarLong, calendarNumeric, calendarWeekday, calendarInWords, calendarPeriod, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
 }

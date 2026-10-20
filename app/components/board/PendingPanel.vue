@@ -6,10 +6,12 @@ type PendingOut = components['schemas']['PendingOut']
 // The « À traiter » panel the bell opens (A6): what awaits the board, each item
 // leading to where it is dealt with. The documents to review, the loans late or
 // to prepare, then what the treasury leaves to do: the receipts missing, the
-// invoices to pay and the advances to pay back. The stock joins with its phase.
+// invoices to pay and the advances to pay back; last, the items of the stock
+// below their threshold.
 const { pending } = defineProps<{ pending: PendingOut | null }>()
 
 const { amount } = useMoneyFormat()
+const { quantity } = useQuantityFormat()
 const { calendarDay, calendarWeekday } = useDateFormat()
 const now = useNow()
 
@@ -95,6 +97,21 @@ const otherInvoices = computed(() => {
   return { label: others === 1 ? 'Et 1 autre facture' : `Et ${others} autres factures` }
 })
 
+// The items of the stock below their threshold, in the stock's order: each
+// leads to the stock, where its − and + are.
+const lowItems = computed(() =>
+  (pending?.stock.items ?? []).map(item => ({
+    key: item.id,
+    to: LOW_STOCK_LOCATION,
+    title: item.name,
+    line: `${quantity(item.quantity, item.unit)} en stock, seuil ${quantity(item.threshold, item.unit)}`,
+  })),
+)
+const allLowItems = computed(() => {
+  const count = pending?.stock.count ?? 0
+  return count > lowItems.value.length ? { label: `Voir les ${count} articles sous le seuil`, to: LOW_STOCK_LOCATION } : null
+})
+
 function dueText({ due_date, overdue }: { due_date: string | null, overdue: boolean }): string {
   if (due_date === null) return 'sans échéance'
   const day = calendarDay(due_date, now.value)
@@ -148,6 +165,13 @@ function dueText({ due_date, overdue }: { due_date: string | null, overdue: bool
       title="Avances à rembourser"
       :items="advances"
       :more="allAdvances"
+    />
+    <BoardPendingSection
+      v-if="lowItems.length > 0"
+      id="pending-stock"
+      title="Stock bas"
+      :items="lowItems"
+      :more="allLowItems"
     />
   </div>
 </template>

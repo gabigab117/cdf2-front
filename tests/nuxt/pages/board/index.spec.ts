@@ -8,7 +8,7 @@ import { julie, overviewEvent } from '../../helpers/events'
 import { documentItem } from '../../helpers/documents'
 import { loanBrief } from '../../helpers/equipment'
 import { boardTask } from '../../helpers/tasks'
-import { NOTHING_TO_PAY } from '../../helpers/treasury'
+import { NOTHING_PENDING } from '../../helpers/treasury'
 
 type BoardOverviewOut = components['schemas']['BoardOverviewOut']
 
@@ -17,17 +17,6 @@ const camille = { id: 1, email: 'camille.martin@example.test', first_name: 'Cami
 
 /** No general task yet. */
 const NO_GENERAL_TASK: BoardOverviewOut['general_tasks'] = { tasks_done: 0, tasks_total: 0, next_tasks: [], recently_done_tasks: [] }
-
-/** No loan to prepare or late. */
-const NO_PENDING_LOAN: BoardOverviewOut['pending']['loans'] = { overdue: 0, to_prepare: 0, items: [] }
-
-/** Nothing awaiting the board. */
-const NOTHING_PENDING: BoardOverviewOut['pending'] = {
-  total: 0,
-  documents: { counts: { total: 0, invoice: 0, order: 0, minutes: 0, misc: 0 }, items: [] },
-  loans: NO_PENDING_LOAN,
-  ...NOTHING_TO_PAY,
-}
 
 /** No equipment out, none to prepare. */
 const NOTHING_LENT: BoardOverviewOut['loans'] = { out_count: 0, to_prepare_count: 0, next_return: null }
@@ -236,7 +225,7 @@ describe('the dashboard', () => {
      * Then the azur card counts them, by category, and leads to the documents to review
      */
     const counts = { total: 4, invoice: 2, order: 1, minutes: 1, misc: 0 }
-    mockOverview(overview([], 0, [], NO_GENERAL_TASK, { total: 4, documents: { counts, items: [] }, loans: NO_PENDING_LOAN, ...NOTHING_TO_PAY }))
+    mockOverview(overview([], 0, [], NO_GENERAL_TASK, { ...NOTHING_PENDING, total: 4, documents: { counts, items: [] } }))
 
     const dashboard = await mountDashboard()
 

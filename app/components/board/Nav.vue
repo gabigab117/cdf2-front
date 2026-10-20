@@ -24,7 +24,7 @@ const SECTIONS: ReadonlyArray<{ title?: string, entries: readonly Entry[] }> = [
     title: 'Gestion',
     entries: [
       { label: 'Trésorerie', path: '/bureau/tresorerie', icon: Wallet },
-      { label: 'Stock', path: '/bureau/stock', icon: Package },
+      { label: 'Stock', path: STOCK_PATH, icon: Package },
       { label: 'Matériel', path: EQUIPMENT_PATH, icon: Tent },
       { label: 'Prêts', path: LOANS_PATH, icon: ArrowRightLeft },
       { label: 'Membres', path: ACCOUNTS_PATH, icon: Users, superuser: true },
@@ -39,8 +39,17 @@ const session = useSessionStore()
 const { data: upcoming } = useUpcomingEvents()
 
 // What awaits the board, from its overview (A6): the documents to review, the
-// loans to prepare or late.
+// loans to prepare or late, the items of the stock below their threshold.
 const { data: overview } = useBoardOverview()
+
+// An entry's count, in grey: the events to come, or the items of the stock
+// below their threshold, « 3 bas ». Screen readers hear what it counts.
+function count(path: string): { value: number, word: string, spoken: string } | null {
+  if (path === EVENTS_PATH && upcoming.value?.count) return { value: upcoming.value.count, word: '', spoken: ' à venir' }
+  const low = overview.value?.pending.stock.count
+  if (path === STOCK_PATH && low) return { value: low, word: ' bas', spoken: ' sous le seuil' }
+  return null
+}
 
 // An entry's badge: how many items await, and what they await, for screen
 // readers. The label keeps the space that parts it from the count: Vue drops a
@@ -65,7 +74,7 @@ const sections = computed(() =>
     entries: section.entries.filter(entry => !entry.superuser || session.member?.is_superuser).map(entry => ({
       ...entry,
       current: isCurrent(entry),
-      count: entry.path === EVENTS_PATH && upcoming.value?.count ? upcoming.value.count : null,
+      count: count(entry.path),
       badge: badge(entry.path),
     })),
   })),
@@ -100,7 +109,7 @@ const sections = computed(() =>
         <span
           v-if="entry.count"
           class="font-mono text-xs text-argent-450"
-        >{{ entry.count }}<span class="sr-only"> à venir</span></span>
+        >{{ entry.count.value }}<span aria-hidden="true">{{ entry.count.word }}</span><span class="sr-only">{{ entry.count.spoken }}</span></span>
         <span
           v-if="entry.badge?.count"
           class="inline-flex h-5.5 min-w-5.5 items-center justify-center rounded-full bg-azur-600 px-1.5 text-xs font-semibold text-white"

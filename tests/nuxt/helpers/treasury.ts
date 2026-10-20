@@ -1,5 +1,6 @@
 import type { components } from '~/types/api'
 import { julie } from './events'
+import { NO_LOW_STOCK } from './stock'
 
 type FiscalYearResultsOut = components['schemas']['FiscalYearResultsOut']
 type GeneralMeetingReportOut = components['schemas']['GeneralMeetingReportOut']
@@ -45,12 +46,16 @@ export const NOTHING_TO_PAY = {
   advances: { count: 0, total: '0.00', items: [] },
 }
 
-/** Nothing awaits the board: no document to review, no loan late or to prepare, nothing in the treasury. */
+/**
+ * Nothing awaits the board: no document to review, no loan late or to prepare,
+ * nothing in the treasury, no item of the stock below its threshold.
+ */
 export const NOTHING_PENDING: PendingOut = {
   total: 0,
   documents: { counts: { total: 0, invoice: 0, order: 0, minutes: 0, misc: 0 }, items: [] },
   loans: { overdue: 0, to_prepare: 0, items: [] },
   ...NOTHING_TO_PAY,
+  stock: NO_LOW_STOCK,
 }
 
 function totals(income: string, expense: string, result: string, count: number): LedgerTotalsOut {

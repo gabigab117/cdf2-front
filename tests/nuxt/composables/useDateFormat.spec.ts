@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { useDateFormat } from '~/composables/useDateFormat'
 
 const formats = useDateFormat()
-const { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarNumeric, calendarWeekday, calendarInWords, calendarPeriod, longDay, dayParts, clock, period, eventDays, countdown, countdownText, season } = formats
+const { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarMonth, calendarNumeric, calendarWeekday, calendarInWords, calendarPeriod, longDay, dayParts, clock, period, eventDays, countdown, countdownText, season } = formats
 
 // The texts as they read: the spaces of a time do not break, which a test
 // checks once.
@@ -60,6 +60,12 @@ describe('useDateFormat', () => {
 
     expect(calendarDay('2026-10-08', now)).toBe('8 oct.')
     expect(calendarDay('2027-01-01', now)).toBe('1er janv. 2027')
+  })
+
+  it('writes the month of a day of the calendar, as a best-before date', () => {
+    expect(calendarMonth('2027-05-01')).toBe('mai 2027')
+    expect(calendarMonth('2027-02-01')).toBe('févr. 2027')
+    expect(calendarMonth('2026-12-01')).toBe('déc. 2026')
   })
 
   it('writes a day of the calendar in figures, as a form to sign does', () => {

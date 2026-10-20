@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import BoardNav from '~/components/board/Nav.vue'
 import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
 import { eventItem, page } from '../../helpers/events'
-import { NOTHING_TO_PAY } from '../../helpers/treasury'
+import { NOTHING_PENDING } from '../../helpers/treasury'
 
 describe('BoardNav', () => {
   beforeEach(() => {
@@ -70,12 +70,7 @@ describe('BoardNav', () => {
      * Then the « Documents » entry shows their number in its badge, for screen readers too
      */
     mockApi('/api/board/overview', { handler: () => apiResponse(200, {
-      pending: {
-        total: 4,
-        documents: { counts: { total: 4, invoice: 2, order: 1, minutes: 1, misc: 0 }, items: [] },
-        loans: { overdue: 0, to_prepare: 0, items: [] },
-        ...NOTHING_TO_PAY,
-      },
+      pending: { ...NOTHING_PENDING, total: 4, documents: { counts: { total: 4, invoice: 2, order: 1, minutes: 1, misc: 0 }, items: [] } },
     }) })
 
     const nav = await mountSuspended(BoardNav, { route: '/bureau' })
@@ -87,12 +82,7 @@ describe('BoardNav', () => {
 
   it('shows on « Prêts » how many are to prepare or late', async () => {
     mockApi('/api/board/overview', { handler: () => apiResponse(200, {
-      pending: {
-        total: 3,
-        documents: { counts: { total: 0, invoice: 0, order: 0, minutes: 0, misc: 0 }, items: [] },
-        loans: { overdue: 1, to_prepare: 2, items: [] },
-        ...NOTHING_TO_PAY,
-      },
+      pending: { ...NOTHING_PENDING, total: 3, loans: { overdue: 1, to_prepare: 2, items: [] } },
     }) })
 
     const nav = await mountSuspended(BoardNav, { route: '/bureau' })
@@ -100,6 +90,23 @@ describe('BoardNav', () => {
     const loans = nav.get('a[href="/bureau/prets"]')
     await vi.waitFor(() => expect(loans.text()).toBe('Prêts3 à préparer ou en retard'))
     expect(nav.get('a[href="/bureau/documents"]').text()).toBe('Documents')
+  })
+
+  it('counts on « Stock » the items below their threshold', async () => {
+    /**
+     * Given three items of the stock below their threshold
+     * Then the « Stock » entry reads « 3 bas », and screen readers hear what
+     * they are
+     */
+    mockApi('/api/board/overview', { handler: () => apiResponse(200, {
+      pending: { ...NOTHING_PENDING, total: 3, stock: { count: 3, items: [] } },
+    }) })
+
+    const nav = await mountSuspended(BoardNav, { route: '/bureau' })
+
+    const stock = nav.get('a[href="/bureau/stock"]')
+    await vi.waitFor(() => expect(stock.text()).toBe('Stock3 bas sous le seuil'))
+    expect(stock.get('span[aria-hidden="true"]').text()).toBe('bas')
   })
 
   it('shows « Membres » to the superuser alone', async () => {

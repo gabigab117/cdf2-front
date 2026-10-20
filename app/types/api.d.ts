@@ -1009,6 +1009,89 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/stock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the stock
+         * @description Every item, by category then by name, with its quantity, whether it is
+         *     low and how full its bar is; the figures of the chips; the latest stocktake.
+         */
+        get: operations["stock_api_read_stock"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/stock/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a stock item */
+        post: operations["stock_api_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/stock/items/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Correct a stock item
+         * @description Rewrite an item whole: its movements stay as they are.
+         */
+        put: operations["stock_api_correct"];
+        post?: never;
+        /**
+         * Delete a stock item
+         * @description Delete an item that has never moved: the history keeps the others.
+         */
+        delete: operations["stock_api_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/stock/items/{item_id}/adjustments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Adjust a stock item by its step
+         * @description A click on minus or plus: the item's step, in or out, recorded with the member.
+         *     Out, what is left when less than a step is.
+         */
+        post: operations["stock_api_adjust_item"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/tasks": {
         parameters: {
             query?: never;
@@ -2149,6 +2232,18 @@ export interface components {
             payment_method: components["schemas"]["LedgerPaymentMethod"];
         };
         /**
+         * LastStocktakeOut
+         * @description The latest stocktake, which dates the stock's title.
+         */
+        LastStocktakeOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            event: components["schemas"]["StockEventOut"] | null;
+        };
+        /**
          * LatestNoteOut
          * @description A note of the board, as the dashboard lists the latest.
          */
@@ -2684,6 +2779,22 @@ export interface components {
             /** Password */
             password: string;
         };
+        /**
+         * LowStockItemOut
+         * @description An item below its threshold, as the bell names it.
+         */
+        LowStockItemOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Quantity */
+            quantity: string;
+            /** Threshold */
+            threshold: string;
+            /** Unit */
+            unit: string;
+        };
         /** MeOut */
         MeOut: {
             /** Email */
@@ -3019,6 +3130,7 @@ export interface components {
             invoices: components["schemas"]["PendingInvoicesOut"];
             loans: components["schemas"]["PendingLoansOut"];
             receipts: components["schemas"]["PendingReceiptsOut"];
+            stock: components["schemas"]["PendingStockOut"];
             /** Total */
             total: number;
         };
@@ -3031,6 +3143,16 @@ export interface components {
             count: number;
             /** Items */
             items: components["schemas"]["LedgerEntryOut"][];
+        };
+        /**
+         * PendingStockOut
+         * @description The items of the stock below their threshold (7.1).
+         */
+        PendingStockOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["LowStockItemOut"][];
         };
         /**
          * PracticalInfoIcon
@@ -3358,6 +3480,114 @@ export interface components {
             name: string;
             /** Required Count */
             required_count: number;
+        };
+        /**
+         * StockAdjustmentIn
+         * @description A click on minus or plus: the item's step, in or out.
+         */
+        StockAdjustmentIn: {
+            direction: components["schemas"]["StockDirection"];
+        };
+        /**
+         * StockCountsOut
+         * @description How many items the stock holds, in all, low, and by category: the chips.
+         */
+        StockCountsOut: {
+            /** Drinks */
+            drinks: number;
+            /** Food */
+            food: number;
+            /** Lotto Raffle */
+            lotto_raffle: number;
+            /** Low */
+            low: number;
+            /** Supplies */
+            supplies: number;
+            /** Total */
+            total: number;
+        };
+        /**
+         * StockDirection
+         * @description Which way an operation moves the stock (« Entrée ou sortie »).
+         * @enum {string}
+         */
+        StockDirection: "in" | "out";
+        /**
+         * StockEventOut
+         * @description The event of an operation.
+         */
+        StockEventOut: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+        };
+        /**
+         * StockItemCategory
+         * @description The chips of the stock, in their order.
+         * @enum {string}
+         */
+        StockItemCategory: "drinks" | "food" | "supplies" | "lotto_raffle";
+        /**
+         * StockItemIn
+         * @description An item as the board writes it: whole, every key required.
+         *
+         *     Its values are checked by the model, whose messages are in French.
+         */
+        StockItemIn: {
+            /** Best Before */
+            best_before: string | null;
+            category: components["schemas"]["StockItemCategory"];
+            /** Name */
+            name: string;
+            /** Step */
+            step: number | string;
+            /** Threshold */
+            threshold: number | string;
+            /** Unit */
+            unit: string;
+        };
+        /**
+         * StockItemOut
+         * @description An item, as its form writes it.
+         */
+        StockItemOut: {
+            /** Best Before */
+            best_before: string | null;
+            category: components["schemas"]["StockItemCategory"];
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Step */
+            step: string;
+            /** Threshold */
+            threshold: string;
+            /** Unit */
+            unit: string;
+        };
+        /**
+         * StockOverviewOut
+         * @description The stock, item by item, and its figures: a bounded aggregate (A7).
+         */
+        StockOverviewOut: {
+            counts: components["schemas"]["StockCountsOut"];
+            /** Items */
+            items: components["schemas"]["StockedItemOut"][];
+            last_stocktake: components["schemas"]["LastStocktakeOut"] | null;
+        };
+        /**
+         * StockedItemOut
+         * @description An item and where its stock stands.
+         */
+        StockedItemOut: {
+            item: components["schemas"]["StockItemOut"];
+            /** Level */
+            level: number;
+            /** Low */
+            low: boolean;
+            /** Quantity */
+            quantity: string;
         };
         /**
          * SwornStatementIn
@@ -7160,6 +7390,302 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AssignmentOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    stock_api_read_stock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOverviewOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    stock_api_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockItemIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockItemOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    stock_api_correct: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockItemIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockItemOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    stock_api_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    stock_api_adjust_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockAdjustmentIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockedItemOut"];
                 };
             };
             /** @description Bad Request */
