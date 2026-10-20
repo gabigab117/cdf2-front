@@ -20,7 +20,7 @@ describe('the stations of an event', () => {
   })
 
   it('names the fields of a station for the errors its form cannot place', () => {
-    expect(stationFieldLabel('stations')).toBe('Postes')
+    expect(stationFieldLabel('required_count')).toBe('Personnes requises')
     expect(stationFieldLabel('other')).toBe('other')
   })
 

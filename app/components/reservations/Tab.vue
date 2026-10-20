@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import type { components } from '~/types/api'
-import type { FormErrors } from '~/utils/api-errors'
 
 type EventOut = components['schemas']['EventOut']
-type ReservationIn = components['schemas']['ReservationIn']
 
 // The « Réservations » tab of an event (D1): its figures, its types of place
 // and capacity, the form of a new reservation, then the reservations.
@@ -17,10 +15,6 @@ const { data: stats, error, refresh } = useReservationStats(event.id)
 const { createReservation } = useReservationWrites(event.id)
 
 const table = useTemplateRef<{ refresh: () => Promise<void> }>('table')
-
-function create(payload: ReservationIn): Promise<FormErrors | null> {
-  return createReservation(payload)
-}
 
 // Every write changes the figures, and the count of the tab; a new
 // reservation also shows in the table.
@@ -57,7 +51,7 @@ async function created(): Promise<void> {
           :ticket-types="stats.ticket_types"
           :initial="reservationFields(stats.ticket_types)"
           action="Enregistrer la réservation"
-          :save="create"
+          :save="createReservation"
           @saved="created"
         />
         <p

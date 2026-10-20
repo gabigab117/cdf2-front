@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { CircleAlert } from '@lucide/vue'
+import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
 import type { StationFields } from '~/utils/stations'
+
+type StationIn = components['schemas']['StationIn']
 
 const { initial = stationFields(), action, cancellable = false, save } = defineProps<{
   initial?: StationFields
@@ -9,7 +11,7 @@ const { initial = stationFields(), action, cancellable = false, save } = defineP
   action: string
   cancellable?: boolean
   /** Sends the station: the errors to show, or null once it is saved. */
-  save: (fields: StationFields) => Promise<FormErrors | null>
+  save: (payload: StationIn) => Promise<FormErrors | null>
 }>()
 
 const emit = defineEmits<{ saved: [], cancel: [] }>()
@@ -22,18 +24,13 @@ const form = useTemplateRef<HTMLFormElement>('form')
 
 const SHOWN = new Set(['name', 'description', 'required_count'])
 
-function fieldErrors(path: string): readonly string[] | undefined {
-  return errors.value?.fields[path]
-}
-
 async function submit(): Promise<void> {
   pending.value = true
-  const result = await save(fields.value)
+  const result = await save(stationPayload(fields.value))
   pending.value = false
   if (result) {
     errors.value = placeErrors(result, SHOWN, stationFieldLabel)
-    await nextTick()
-    form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+    await focusErrors(form)
     return
   }
   errors.value = null
@@ -49,12 +46,9 @@ async function submit(): Promise<void> {
     class="flex flex-col gap-4"
     @submit.prevent="submit"
   >
-    <UiCallout
+    <UiAlert
       v-if="errors?.form.length"
-      tone="ambre"
-      role="alert"
       tabindex="-1"
-      :icon="CircleAlert"
     >
       <p
         v-for="message in errors.form"
@@ -62,54 +56,48 @@ async function submit(): Promise<void> {
       >
         {{ message }}
       </p>
-    </UiCallout>
+    </UiAlert>
     <div class="flex flex-wrap items-start gap-4">
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Nom du poste"
         class="min-w-52 flex-1"
-        :errors="fieldErrors('name')"
+        :errors="errors?.fields.name"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.name"
           required
           placeholder="Frites, BBQ…"
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Personnes requises"
         class="w-full sm:w-40"
-        :errors="fieldErrors('required_count')"
+        :errors="errors?.fields.required_count"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.requiredCount"
           type="number"
           min="1"
           inputmode="numeric"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
     </div>
     <UiField
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Description"
       optional
-      :errors="fieldErrors('description')"
+      :errors="errors?.fields.description"
     >
       <UiTextarea
-        :id
+        v-bind="control"
         v-model="fields.description"
         rows="2"
         placeholder="Horaires, consignes…"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <div class="flex gap-2">

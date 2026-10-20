@@ -2,7 +2,6 @@ import type { components } from '~/types/api'
 
 type TaskIn = components['schemas']['TaskIn']
 type TaskOut = components['schemas']['TaskOut']
-type BoardMemberOut = components['schemas']['BoardMemberOut']
 
 /** The general tasks, those without an event (D10). */
 export const GENERAL_TASKS_PATH = '/bureau/taches'
@@ -16,13 +15,8 @@ export const NEW_TASK_PATH = `${GENERAL_TASKS_PATH}/nouvelle`
  */
 export const NO_EVENT = 'general'
 
-/** How many tasks a page of an event's tasks holds. */
+/** How many tasks a page of tasks holds, an event's or the general ones. */
 export const TASKS_PAGE_SIZE = 25
-
-/** « Gabriel », as a task names whom it is assigned to: « Julie R. » without a first name. */
-export function memberFirstName(member: BoardMemberOut): string {
-  return member.first_name || memberShortName(member)
-}
 
 /**
  * The line under a task's title: « Gabriel · avant le 8 oct. », « Sophie · fait
@@ -33,7 +27,7 @@ export function taskLine(task: TaskOut, now: number): string {
   const when = task.done_at !== null
     ? `fait le ${writtenDay(task.done_at, now)}`
     : task.due_date !== null ? `avant le ${calendarDay(task.due_date, now)}` : null
-  if (task.assignee === null) return when ? `${when.charAt(0).toUpperCase()}${when.slice(1)}` : ''
+  if (task.assignee === null) return when ? capitalized(when) : ''
   const who = memberFirstName(task.assignee)
   return when ? `${who} · ${when}` : who
 }

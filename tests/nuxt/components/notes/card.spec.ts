@@ -5,17 +5,12 @@ import NotesCard from '~/components/notes/Card.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
 import { julie } from '../../helpers/events'
 import { boardNote, marc, noteReply } from '../../helpers/notes'
+import { button } from '../../helpers/form'
 
 const NOTE = '/api/board/notes/{note_id}'
 
 function mountCard(note = boardNote()) {
   return mountSuspended(NotesCard, { props: { note, leadId: julie.id }, attachTo: document.body })
-}
-
-type Mounted = Awaited<ReturnType<typeof mountCard>>
-
-function button(wrapper: Mounted, name: string) {
-  return wrapper.findAll('button').find(element => element.text() === name || element.attributes('aria-label') === name)
 }
 
 describe('a note of the board', () => {

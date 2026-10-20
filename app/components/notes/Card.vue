@@ -25,7 +25,6 @@ const trigger = useTemplateRef<ComponentPublicInstance>('trigger')
 const { confirming, pending, failure, ask, dismiss, confirm } = useConfirmation(trigger)
 
 const tag = computed(() => (note.tag ? NOTE_TAGS[note.tag] : null))
-const byLead = computed(() => note.author !== null && note.author.id === leadId)
 const repliesGone = computed(() => {
   const count = note.replies.length
   if (count === 0) return null
@@ -46,7 +45,7 @@ async function togglePin(): Promise<void> {
   pinning.value = true
   const errors = await rewriteNote(note.id, { text: note.text, tag: note.tag, pinned: !note.pinned })
   pinning.value = false
-  pinFailure.value = errors ? [...errors.form, ...Object.values(errors.fields).flat()].join(' ') : null
+  pinFailure.value = errors ? refusalText(errors) : null
   if (!errors) emit('changed')
 }
 
@@ -61,17 +60,14 @@ async function remove(): Promise<void> {
       <NotesByline
         :author="note.author"
         :written-at="note.created_at"
-        :lead="byLead"
+        :lead-id
       />
       <div class="ml-auto flex items-center gap-2">
         <span
           v-if="note.pinned"
           class="inline-flex items-center gap-1.5 text-caption font-semibold text-argent-600"
         >
-          <Pin
-            :size="14"
-            aria-hidden="true"
-          />
+          <Pin :size="14" />
           Épinglée
         </span>
         <UiStatusPill
@@ -106,7 +102,6 @@ async function remove(): Promise<void> {
     >
       <FileText
         :size="16"
-        aria-hidden="true"
         class="shrink-0 text-argent-600"
       />
       <span class="truncate">{{ note.document.original_name }}</span>

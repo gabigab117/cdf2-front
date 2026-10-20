@@ -7,7 +7,8 @@ type ReplyIn = components['schemas']['ReplyIn']
 
 /**
  * Writes the board's notes and their replies. Each write gives the errors to
- * show on its form, or null; the tab that shows the notes fetches them again.
+ * show on its form, or null; the list that shows the notes, an event's tab or
+ * the general notes, fetches them again.
  */
 export function useNoteWrites() {
   const api = useApi()

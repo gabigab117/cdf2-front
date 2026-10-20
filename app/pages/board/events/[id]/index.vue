@@ -121,7 +121,7 @@ function show(saved: components['schemas']['EventOut']): void {
           :page="query.page"
         />
         <aside class="flex min-w-0 flex-1 basis-80 flex-col gap-4 md:max-w-100">
-          <TasksBlock :event-id="event.id" />
+          <TasksEventBlock :event-id="event.id" />
           <LoansReservedBlock :event-id="event.id" />
           <DocumentsRelatedBlock :event-id="event.id" />
         </aside>

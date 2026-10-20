@@ -20,10 +20,10 @@ describe('the reservations of an event', () => {
   it('draws five types at most, the others gathered as « Autres »', () => {
     const types = ['A', 'B', 'C', 'D', 'E', 'F', 'G'].map((name, index) => ({ id: index, name, seats: index + 1, reservations: 1 }))
 
-    expect(seatShares(types).map(share => [share.label, share.value, share.tone])).toEqual([
+    expect(seatSegments(types).map(segment => [segment.label, segment.value, segment.tone])).toEqual([
       ['A', 1, 'azur'], ['B', 2, 'ambre'], ['C', 3, 'sable'], ['D', 4, 'azurLight'], ['E', 5, 'ambreLight'], ['Autres', 13, 'argent'],
     ])
-    expect(seatShares(TYPES)).toHaveLength(2)
+    expect(seatSegments(TYPES)).toHaveLength(2)
   })
 
   it('counts the places taken, out of the capacity when there is one', () => {

@@ -1,7 +1,7 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import TasksBlock from '~/components/tasks/Block.vue'
+import TasksEventBlock from '~/components/tasks/EventBlock.vue'
 import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
 import { boardTask } from '../../helpers/tasks'
 
@@ -19,10 +19,10 @@ function dashboard(changes = {}) {
 }
 
 function mountBlock() {
-  return mountSuspended(TasksBlock, { props: { eventId: 12 } })
+  return mountSuspended(TasksEventBlock, { props: { eventId: 12 } })
 }
 
-describe('TasksBlock', () => {
+describe('TasksEventBlock', () => {
   beforeEach(() => {
     useSessionStore().accessToken = 'access-1'
     useNow().value = Date.parse('2026-10-10T08:00:00Z')

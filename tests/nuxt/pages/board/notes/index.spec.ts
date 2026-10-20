@@ -1,17 +1,13 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import type { VueWrapper } from '@vue/test-utils'
 import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import GeneralNotesPage from '~/pages/board/notes/index.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
 import { page } from '../../../helpers/events'
 import { boardNote } from '../../../helpers/notes'
+import { button } from '../../../helpers/form'
 
 const GENERAL_NOTES = '/api/board/notes/general'
-
-function button(wrapper: VueWrapper, name: string) {
-  return wrapper.findAll('button').find(element => element.text() === name || element.attributes('aria-label') === name)!
-}
 
 describe('the page of the general notes', () => {
   beforeEach(() => {
@@ -78,8 +74,8 @@ describe('the page of the general notes', () => {
     const notes = await mountSuspended(GeneralNotesPage, { route: '/bureau/notes', attachTo: document.body })
     await vi.waitFor(() => expect(notes.findAll('article')).toHaveLength(1))
 
-    await button(notes, 'Supprimer la note').trigger('click')
-    await button(notes, 'Supprimer définitivement').trigger('click')
+    await button(notes, 'Supprimer la note')!.trigger('click')
+    await button(notes, 'Supprimer définitivement')!.trigger('click')
 
     await vi.waitFor(() => expect(list).toHaveBeenCalledTimes(2))
     expect(deleted).toHaveBeenCalledOnce()

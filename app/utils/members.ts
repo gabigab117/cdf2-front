@@ -18,6 +18,11 @@ export function memberShortName(member: Named): string {
   return last_name ? `${first_name} ${last_name.charAt(0)}.` : first_name
 }
 
+/** « Julie », as a task names whom it is assigned to; a member without a first name by their name. */
+export function memberFirstName(member: Named): string {
+  return member.first_name || memberName(member)
+}
+
 /**
  * How a note, a line or an advance names its member: « Julie R. », or « Ancien
  * membre » once the account is deleted.

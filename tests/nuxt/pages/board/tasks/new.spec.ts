@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import NewTaskPage from '~/pages/board/tasks/new.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
 import { eventItem, julie, page } from '../../../helpers/events'
+import { field } from '../../../helpers/form'
 import { boardTask } from '../../../helpers/tasks'
 
 const { navigateToMock } = vi.hoisted(() => ({ navigateToMock: vi.fn() }))
@@ -41,14 +42,14 @@ describe('the page of a new task', () => {
     mockApi('/api/board/tasks', { method: 'POST', handler: () => apiResponse(201, boardTask({ event: 13 })) })
     const sent = recordRequests()
     const newTask = await mountPage()
-    await vi.waitFor(() => expect(newTask.findAll('select')[0]!.findAll('option').map(option => option.text())).toEqual([
+    await vi.waitFor(() => expect(field(newTask, 'Événement').findAll('option').map(option => option.text())).toEqual([
       'Choisir un événement',
       'Aucun événement (tâche générale)',
       'Halloween des enfants · sam. 31 oct.',
       'Loto d’automne · dim. 15 nov.',
     ]))
 
-    await newTask.findAll('select')[0]!.setValue('13')
+    await field(newTask, 'Événement').setValue('13')
     await newTask.get('input:not([type])').setValue('Lots du loto')
     await newTask.get('form').trigger('submit')
 
@@ -68,9 +69,9 @@ describe('the page of a new task', () => {
     mockApi('/api/board/tasks', { method: 'POST', handler: () => apiResponse(201, boardTask({ event: null })) })
     const sent = recordRequests()
     const newTask = await mountPage()
-    await vi.waitFor(() => expect(newTask.findAll('select')[0]!.findAll('option')).toHaveLength(4))
+    await vi.waitFor(() => expect(field(newTask, 'Événement').findAll('option')).toHaveLength(4))
 
-    await newTask.findAll('select')[0]!.setValue('general')
+    await field(newTask, 'Événement').setValue('general')
     await newTask.get('input:not([type])').setValue('Renouveler l’assurance')
     await newTask.get('form').trigger('submit')
 
@@ -86,7 +87,7 @@ describe('the page of a new task', () => {
     await newTask.get('form').trigger('submit')
 
     expect(sent.filter(request => request.method === 'POST')).toEqual([])
-    expect(newTask.findAll('select')[0]!.attributes('required')).toBeDefined()
+    expect(field(newTask, 'Événement').attributes('required')).toBeDefined()
   })
 
   it('stays on the page with the reason a task was refused', async () => {
@@ -94,9 +95,9 @@ describe('the page of a new task', () => {
       detail: [{ type: 'validation_error', loc: ['body', 'event'], msg: 'Choisissez un événement existant.' }],
     }) })
     const newTask = await mountPage()
-    await vi.waitFor(() => expect(newTask.findAll('select')[0]!.findAll('option')).toHaveLength(4))
+    await vi.waitFor(() => expect(field(newTask, 'Événement').findAll('option')).toHaveLength(4))
 
-    await newTask.findAll('select')[0]!.setValue('12')
+    await field(newTask, 'Événement').setValue('12')
     await newTask.get('input:not([type])').setValue('Lots du loto')
     await newTask.get('form').trigger('submit')
 

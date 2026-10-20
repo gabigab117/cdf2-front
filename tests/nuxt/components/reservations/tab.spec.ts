@@ -5,6 +5,7 @@ import ReservationsTab from '~/components/reservations/Tab.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
 import { boardEvent, page } from '../../helpers/events'
 import { boardReservation, reservationStats } from '../../helpers/reservations'
+import { button } from '../../helpers/form'
 
 const { refreshNuxtDataMock } = vi.hoisted(() => ({ refreshNuxtDataMock: vi.fn() }))
 // The count of the tab is the page's: the tab only asks for it again.
@@ -16,12 +17,6 @@ const RESERVATION = '/api/board/reservations/{reservation_id}'
 
 function mountTab(currentPage = 1) {
   return mountSuspended(ReservationsTab, { props: { event: boardEvent(), page: currentPage }, attachTo: document.body })
-}
-
-type Mounted = Awaited<ReturnType<typeof mountTab>>
-
-function button(wrapper: Mounted, name: string) {
-  return wrapper.findAll('button').find(element => element.text() === name || element.attributes('aria-label') === name)
 }
 
 function serve({ stats = reservationStats(), reservations = [boardReservation(), boardReservation({ id: 92, name: 'Famille Petit', note: '', lines: [{ ticket_type: 82, quantity: 1 }], seats: 1 })], count = 2 } = {}) {
@@ -246,6 +241,17 @@ describe('the « Réservations » tab', () => {
     await button(tab, 'Exporter (Excel)')!.trigger('click')
 
     await vi.waitFor(() => expect(tab.text()).toContain('Le service est momentanément indisponible.'))
+  })
+
+  it('says the export could not reach the server', async () => {
+    serve()
+    const tab = await mountTab()
+    await vi.waitFor(() => expect(tab.findAll('table tbody tr')).toHaveLength(2))
+    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new TypeError('Failed to fetch'))
+
+    await button(tab, 'Exporter (Excel)')!.trigger('click')
+
+    await vi.waitFor(() => expect(tab.text()).toContain('Impossible de joindre le serveur.'))
   })
 
   it('says why the figures could not load, and leads from a page of reservations to the next', async () => {

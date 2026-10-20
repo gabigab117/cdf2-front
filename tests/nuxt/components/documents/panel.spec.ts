@@ -389,6 +389,15 @@ describe('the panel of a document', () => {
     await vi.waitFor(() => expect(panel.get('[role="alert"]').text()).toBe('Introuvable.'))
   })
 
+  it('tells that the file could not be downloaded without the server', async () => {
+    const panel = await mountPanel(boardDocument())
+    vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new TypeError('Failed to fetch'))
+
+    await button(panel, 'Télécharger').trigger('click')
+
+    await vi.waitFor(() => expect(panel.get('[role="alert"]').text()).toBe('Impossible de joindre le serveur. Vérifiez votre connexion, puis réessayez.'))
+  })
+
   it('closes on demand', async () => {
     const panel = await mountPanel(boardDocument())
 

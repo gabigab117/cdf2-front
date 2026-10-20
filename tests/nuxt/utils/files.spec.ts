@@ -66,16 +66,17 @@ describe('protected files', () => {
   it('downloads a file under the given name', async () => {
     const links = clickedLinks()
 
-    await downloadFile(async () => ({ data: pdf }), 'facture.pdf')
+    expect(await downloadFile(async () => ({ data: pdf, response: new Response() }), 'facture.pdf')).toBeNull()
 
     expect(links).toEqual([{ href: 'blob:http://localhost:3000/file', download: 'facture.pdf' }])
   })
 
-  it('downloads nothing when the file cannot be fetched', async () => {
+  it('downloads nothing when the file cannot be fetched, and says why', async () => {
     const links = clickedLinks()
 
-    await downloadFile(async () => ({ data: undefined, error: { detail: 'Not Found' } }), 'facture.pdf')
+    const response = new Response(null, { status: 404 })
 
+    expect(await downloadFile(async () => ({ error: { detail: 'Introuvable.' }, response }), 'facture.pdf')).toBe('Introuvable.')
     expect(links).toEqual([])
   })
 
@@ -86,7 +87,7 @@ describe('protected files', () => {
      */
     clickedLinks()
 
-    await downloadFile(async () => ({ data: pdf }), 'facture.pdf')
+    await downloadFile(async () => ({ data: pdf, response: new Response() }), 'facture.pdf')
 
     expect(URL.revokeObjectURL).not.toHaveBeenCalled()
     vi.advanceTimersByTime(60_000)

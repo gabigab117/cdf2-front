@@ -29,8 +29,6 @@ const STATION_FIELD_LABELS: Readonly<Record<string, string>> = {
   name: 'Nom du poste',
   description: 'Description',
   required_count: 'Personnes requises',
-  role: 'Rôle',
-  stations: 'Postes',
 }
 
 /** The name of a field of a station, for an error its form cannot show under it. */

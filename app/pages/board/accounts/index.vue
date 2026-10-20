@@ -16,7 +16,7 @@ useHead({ title: 'Membres' })
 const route = useRoute()
 const page = computed(() => queryPage(route.query.page))
 
-const { data, status, error, refresh } = useAccounts(() => page.value)
+const { data, pending: loading, error, refresh } = useAccounts(() => page.value)
 const { inviteMember, sendNewLink } = useAccountWrites()
 
 // The page is the superuser's: anyone else meets the error page.
@@ -26,7 +26,6 @@ watch(error, (failure) => {
 
 const accounts = computed(() => data.value?.items ?? [])
 const pageCount = computed(() => Math.ceil((data.value?.count ?? 0) / ACCOUNTS_PAGE_SIZE))
-const loading = computed(() => status.value === 'pending')
 
 // What the last write told: an email gone, or not.
 const notice = ref<{ tone: 'azur' | 'ambre', text: string } | null>(null)

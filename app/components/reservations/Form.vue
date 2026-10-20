@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { CircleAlert } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
 import type { ReservationFields } from '~/utils/reservations'
@@ -28,10 +27,6 @@ const form = useTemplateRef<HTMLFormElement>('form')
 
 const SHOWN = new Set(['name', 'note'])
 
-function fieldErrors(path: string): readonly string[] | undefined {
-  return errors.value?.fields[path]
-}
-
 async function submit(): Promise<void> {
   const payload = reservationPayload(fields.value, ticketTypes)
   // An error of a line names its type, by its place among the lines sent.
@@ -41,8 +36,7 @@ async function submit(): Promise<void> {
   pending.value = false
   if (result) {
     errors.value = placeErrors(result, SHOWN, path => reservationFieldLabel(path, sent))
-    await nextTick()
-    form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+    await focusErrors(form)
     return
   }
   errors.value = null
@@ -57,12 +51,9 @@ async function submit(): Promise<void> {
     class="flex flex-col gap-4"
     @submit.prevent="submit"
   >
-    <UiCallout
+    <UiAlert
       v-if="errors?.form.length"
-      tone="ambre"
-      role="alert"
       tabindex="-1"
-      :icon="CircleAlert"
     >
       <p
         v-for="message in errors.form"
@@ -70,36 +61,32 @@ async function submit(): Promise<void> {
       >
         {{ message }}
       </p>
-    </UiCallout>
+    </UiAlert>
     <div class="flex flex-wrap items-start gap-4">
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Nom"
         class="min-w-52 flex-1"
-        :errors="fieldErrors('name')"
+        :errors="errors?.fields.name"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.name"
           required
           placeholder="Nom de la personne"
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Remarque"
         optional
         class="min-w-52 flex-1"
-        :errors="fieldErrors('note')"
+        :errors="errors?.fields.note"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.note"
           placeholder="Remarque (table, placement…)"
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
     </div>

@@ -19,13 +19,12 @@ const { event, stats, page } = defineProps<{
 
 const emit = defineEmits<{ changed: [] }>()
 
-const { data, status, error, refresh } = useEventReservations(event.id, () => page)
+const { data, pending: loading, error, refresh } = useEventReservations(event.id, () => page)
 const { rewriteReservation, deleteReservation, exportReservations } = useReservationWrites(event.id)
 const { recordedAt } = useDateFormat()
 
 const reservations = computed(() => data.value?.items ?? [])
 const pageCount = computed(() => Math.ceil((data.value?.count ?? 0) / RESERVATIONS_PAGE_SIZE))
-const loading = computed(() => status.value === 'pending')
 const columns = computed(() => stats.ticket_types.length + 5)
 
 const editing = ref<number | null>(null)

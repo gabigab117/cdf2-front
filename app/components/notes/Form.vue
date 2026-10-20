@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleAlert, FileText, Paperclip, X } from '@lucide/vue'
+import { FileText, Paperclip, X } from '@lucide/vue'
 import type { FormErrors } from '~/utils/api-errors'
 import type { NoteDraft } from '~/utils/notes'
 
@@ -24,7 +24,7 @@ const {
   tagged?: boolean
   /** The input zone of the mockup: a card of its own, its text without a frame. */
   composer?: boolean
-  /** « Joindre un fichier »: a new note takes a file, deposited as a document. */
+  /** « Joindre un fichier »: a new note takes a file, uploaded as a document. */
   attachable?: boolean
   cancellable?: boolean
   /** Sends the draft: the errors to show, or null once it is saved. */
@@ -40,7 +40,7 @@ const pending = ref(false)
 const form = useTemplateRef<HTMLFormElement>('form')
 const picker = useTemplateRef<HTMLInputElement>('picker')
 
-function joined(event: Event): void {
+function attach(event: Event): void {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   // The same file chosen again is a new choice.
@@ -48,7 +48,7 @@ function joined(event: Event): void {
   if (file) draft.value = { ...draft.value, file }
 }
 
-function unjoin(): void {
+function detach(): void {
   draft.value = { ...draft.value, file: null }
 }
 
@@ -77,8 +77,7 @@ async function submit(): Promise<void> {
   pending.value = false
   if (result) {
     errors.value = placeErrors(result, SHOWN, noteFieldLabel)
-    await nextTick()
-    form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+    await focusErrors(form)
     return
   }
   errors.value = null
@@ -94,12 +93,9 @@ async function submit(): Promise<void> {
     :class="classes.form[look]"
     @submit.prevent="submit"
   >
-    <UiCallout
+    <UiAlert
       v-if="errors?.form.length"
-      tone="ambre"
-      role="alert"
       tabindex="-1"
-      :icon="CircleAlert"
       :class="classes.callout[look]"
     >
       <p
@@ -108,22 +104,20 @@ async function submit(): Promise<void> {
       >
         {{ message }}
       </p>
-    </UiCallout>
+    </UiAlert>
     <UiField
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       :label
       hidden-label
       :errors="errors?.fields.text"
     >
       <UiTextarea
-        :id
+        v-bind="control"
         v-model="draft.text"
         :rows="composer ? 3 : 2"
         :placeholder
         required
         :bare="composer"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <div
@@ -132,7 +126,6 @@ async function submit(): Promise<void> {
     >
       <FileText
         :size="16"
-        aria-hidden="true"
         class="shrink-0 text-argent-600"
       />
       <span class="truncate">{{ draft.file.name }}</span>
@@ -140,7 +133,7 @@ async function submit(): Promise<void> {
         label="Retirer la pièce jointe"
         size="sm"
         surface="plain"
-        @click="unjoin"
+        @click="detach"
       >
         <X :size="14" />
       </UiIconButton>
@@ -162,7 +155,7 @@ async function submit(): Promise<void> {
           tabindex="-1"
           aria-hidden="true"
           :accept="DOCUMENT_TYPES"
-          @change="joined"
+          @change="attach"
         >
       </template>
       <div

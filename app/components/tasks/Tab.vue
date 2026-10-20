@@ -10,11 +10,10 @@ const { event, page } = defineProps<{
   page: number
 }>()
 
-const { data, status, error, refresh } = useEventTasks(event.id, () => page)
+const { data, pending: loading, error, refresh } = useEventTasks(event.id, () => page)
 
 const tasks = computed(() => data.value?.items ?? [])
 const count = computed(() => data.value?.count ?? 0)
-const loading = computed(() => status.value === 'pending')
 
 // A write changes the tasks, and the count of their tab.
 async function changed(): Promise<void> {

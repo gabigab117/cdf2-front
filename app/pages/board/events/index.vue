@@ -21,7 +21,7 @@ const period = computed({
   set: period => navigateTo({ query: eventListQuery({ period, page: 1 }) }),
 })
 
-const { data, status, error, refresh } = await useAsyncData(
+const { data, pending: loading, error, refresh } = await useAsyncData(
   () => `board:events:${query.value.period}:${query.value.page}`,
   (_nuxtApp, { signal }) =>
     loadData(useApi().GET('/api/board/events', {
@@ -33,7 +33,6 @@ const { data, status, error, refresh } = await useAsyncData(
 const events = computed(() => data.value?.items ?? [])
 const count = computed(() => data.value?.count ?? 0)
 const pageCount = computed(() => Math.ceil(count.value / EVENTS_PAGE_SIZE))
-const loading = computed(() => status.value === 'pending')
 // A page past the end of the list, such as an old link, holds nothing.
 const beyondTheEnd = computed(() => events.value.length === 0 && count.value > 0)
 const emptyMessage = computed(() =>

@@ -45,17 +45,11 @@ export function useReservationWrites(eventId: number) {
    *
    * @returns null once downloaded, or the message to show.
    */
-  async function exportReservations(filename: string): Promise<string | null> {
-    try {
-      const { error, response } = await downloadFile(
-        () => api.GET('/api/board/events/{event_id}/reservations.xlsx', { params: { path: event }, parseAs: 'blob' }),
-        filename,
-      )
-      return response.ok ? null : errorMessage(error, response)
-    }
-    catch (failure) {
-      return errorMessage(failure)
-    }
+  function exportReservations(filename: string): Promise<string | null> {
+    return downloadFile(
+      () => api.GET('/api/board/events/{event_id}/reservations.xlsx', { params: { path: event }, parseAs: 'blob' }),
+      filename,
+    )
   }
 
   return { createReservation, rewriteReservation, deleteReservation, addTicketType, deleteTicketType, setCapacity, exportReservations }

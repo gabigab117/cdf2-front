@@ -6,7 +6,7 @@ type ReservationStatsOut = components['schemas']['ReservationStatsOut']
 // The figures of the reservations, as the API counts them: none is counted here.
 const { stats } = defineProps<{ stats: ReservationStatsOut }>()
 
-const shares = computed(() => seatShares(stats.ticket_types))
+const segments = computed(() => seatSegments(stats.ticket_types))
 const scale = computed(() => stats.capacity ?? stats.seats)
 </script>
 
@@ -32,7 +32,7 @@ const scale = computed(() => stats.capacity ?? stats.seats)
       title="Places par type"
     >
       <UiStackedBar
-        :segments="shares"
+        :segments
         :total="scale"
         label="Places réservées"
         legend

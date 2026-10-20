@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import type { components } from '~/types/api'
-import type { FormErrors } from '~/utils/api-errors'
-import type { StationFields } from '~/utils/stations'
 
 type EventOut = components['schemas']['EventOut']
 
@@ -9,16 +7,11 @@ type EventOut = components['schemas']['EventOut']
 // the stations themselves, and how the former committee staffed its own.
 const { event } = defineProps<{ event: EventOut }>()
 
-const { data: board, status, error, refresh } = useStationBoard(event.id)
+const { data: board, pending: loading, error, refresh } = useStationBoard(event.id)
 const { createStation, reorderStations } = useStationWrites(event.id)
 
 const stations = computed(() => board.value?.stations ?? [])
-const loading = computed(() => status.value === 'pending')
 const moveFailure = ref<string | null>(null)
-
-function add(fields: StationFields): Promise<FormErrors | null> {
-  return createStation(stationPayload(fields))
-}
 
 // Every write changes the stations' totals, and the count of their tab: both
 // come again from the API, never counted here.
@@ -97,7 +90,7 @@ async function move(index: number, step: -1 | 1): Promise<void> {
     >
       <StationsForm
         action="Ajouter le poste"
-        :save="add"
+        :save="createStation"
         @saved="changed"
       />
     </UiCard>

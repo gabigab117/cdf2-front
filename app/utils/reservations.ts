@@ -38,29 +38,29 @@ export function quantityOf(reservation: ReservationOut, ticketTypeId: number): n
   return reservation.lines.find(line => line.ticket_type === ticketTypeId)?.quantity ?? 0
 }
 
-// The tones of the shares of the bar, in the order of the types. Past them,
-// the other types make one share, in grey.
-const SHARE_TONES = ['azur', 'ambre', 'sable', 'azurLight', 'ambreLight'] as const
+// The tones of the segments of the bar, in the order of the types. Past them,
+// the other types make one segment, in grey.
+const SEGMENT_TONES = ['azur', 'ambre', 'sable', 'azurLight', 'ambreLight'] as const
 
-/** A share of the places of a type, in the tones of UiStackedBar. */
-export interface SeatShare {
+/** A segment of the places of a type, in the tones of UiStackedBar. */
+interface SeatSegment {
   value: number
   label: string
-  tone: typeof SHARE_TONES[number] | 'argent'
+  tone: typeof SEGMENT_TONES[number] | 'argent'
 }
 
-/** The places by type as the shares of a bar: five types at most, then « Autres ». */
-export function seatShares(ticketTypes: readonly TicketTypeStatsOut[]): SeatShare[] {
-  const shares: SeatShare[] = ticketTypes.slice(0, SHARE_TONES.length).map((ticketType, index) => ({
+/** The places by type as the segments of a bar: five types at most, then « Autres ». */
+export function seatSegments(ticketTypes: readonly TicketTypeStatsOut[]): SeatSegment[] {
+  const segments: SeatSegment[] = ticketTypes.slice(0, SEGMENT_TONES.length).map((ticketType, index) => ({
     value: ticketType.seats,
     label: ticketType.name,
-    tone: SHARE_TONES[index] ?? 'argent',
+    tone: SEGMENT_TONES[index] ?? 'argent',
   }))
-  const others = ticketTypes.slice(SHARE_TONES.length)
+  const others = ticketTypes.slice(SEGMENT_TONES.length)
   if (others.length > 0) {
-    shares.push({ value: others.reduce((sum, ticketType) => sum + ticketType.seats, 0), label: 'Autres', tone: 'argent' })
+    segments.push({ value: others.reduce((sum, ticketType) => sum + ticketType.seats, 0), label: 'Autres', tone: 'argent' })
   }
-  return shares
+  return segments
 }
 
 /** What the tab counts: the places reserved, out of the capacity when there is one. */
@@ -80,5 +80,5 @@ export function seatsTaken(stats: Pick<ReservationStatsOut, 'seats' | 'capacity'
 export function reservationFieldLabel(path: string, sentTypes: readonly { name: string }[]): string {
   const line = /^lines\.(\d+)\./.exec(path)
   if (line) return sentTypes[Number(line[1])]?.name ?? 'Places'
-  return { name: 'Nom', note: 'Remarque', lines: 'Places', capacity: 'Capacité' }[path] ?? path
+  return { name: 'Nom', note: 'Remarque', lines: 'Places' }[path] ?? path
 }

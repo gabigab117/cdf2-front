@@ -15,6 +15,8 @@ export function fileSize(bytes: number): string {
 /** A file fetched through the API: `api.GET(…, { parseAs: 'blob' })`. */
 interface FileFetch {
   data?: Blob
+  error?: unknown
+  response: Response
 }
 
 /** How the page shows a file it can show. */
@@ -43,12 +45,17 @@ export function fileView(file: Blob): FileView | null {
 /**
  * Downloads a protected file under the given name.
  *
- * @returns The API's answer, for the caller to show its error, if any.
+ * @returns null once downloaded, or the message to show.
  */
-export async function downloadFile<T extends FileFetch>(load: () => Promise<T>, filename: string): Promise<T> {
-  const result = await load()
-  if (result.data) save(result.data, filename)
-  return result
+export async function downloadFile(load: () => Promise<FileFetch>, filename: string): Promise<string | null> {
+  try {
+    const { data, error, response } = await load()
+    if (data) save(data, filename)
+    return response.ok ? null : errorMessage(error, response)
+  }
+  catch (failure) {
+    return errorMessage(failure)
+  }
 }
 
 function save(file: Blob, filename: string): void {

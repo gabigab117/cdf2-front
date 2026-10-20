@@ -55,10 +55,6 @@ function written(format: Intl.DateTimeFormat, iso: string): string {
     .join('')
 }
 
-function capitalized(text: string): string {
-  return `${text.charAt(0).toUpperCase()}${text.slice(1)}`
-}
-
 // A day of the calendar, which the API gives without a time ("2026-10-08"), is
 // read at noon: it never moves to another day, whatever the time zone.
 function atNoon(date: string): string {

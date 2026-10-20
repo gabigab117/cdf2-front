@@ -1,5 +1,5 @@
 /** The key of the figures of an event's reservations. */
-export function reservationStatsKey(eventId: number): string {
+function reservationStatsKey(eventId: number): string {
   return `board:event:${eventId}:reservation-stats`
 }
 

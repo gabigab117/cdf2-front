@@ -11,14 +11,13 @@ import { ChevronDown } from '@lucide/vue'
       Rappel — organisation de l’ancien comité
       <ChevronDown
         :size="18"
-        aria-hidden="true"
         class="text-argent-600 transition-transform group-open:rotate-180"
       />
     </summary>
     <div class="flex flex-col gap-3 border-t border-argent-100 px-5 py-4">
       <table class="w-full max-w-md text-left text-ui">
         <thead>
-          <tr class="text-caption font-semibold tracking-overline text-argent-600 uppercase">
+          <UiOverline as="tr">
             <th
               scope="col"
               class="pb-2 font-semibold"
@@ -31,7 +30,7 @@ import { ChevronDown } from '@lucide/vue'
             >
               Personnes
             </th>
-          </tr>
+          </UiOverline>
         </thead>
         <tbody class="divide-y divide-argent-100">
           <tr

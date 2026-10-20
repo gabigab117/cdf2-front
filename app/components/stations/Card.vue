@@ -3,8 +3,8 @@ import { ChevronDown, ChevronUp, Pencil, Plus, Trash2, X } from '@lucide/vue'
 import type { ComponentPublicInstance } from 'vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
-import type { StationFields } from '~/utils/stations'
 
+type StationIn = components['schemas']['StationIn']
 type StationOut = components['schemas']['StationOut']
 
 const { station, eventId, first, last } = defineProps<{
@@ -20,8 +20,8 @@ const emit = defineEmits<{ changed: [], move: [step: -1 | 1] }>()
 const { rewriteStation, deleteStation, assign, unassign } = useStationWrites(eventId)
 
 const editing = ref(false)
-const person = ref({ name: '', role: '' })
-const personErrors = ref<FormErrors | null>(null)
+const volunteer = ref({ name: '', role: '' })
+const volunteerErrors = ref<FormErrors | null>(null)
 const assigning = ref(false)
 const removalFailure = ref<string | null>(null)
 
@@ -30,14 +30,14 @@ const { confirming, pending, failure, ask, dismiss, confirm } = useConfirmation(
 
 const question = computed(() => `Supprimer le poste « ${station.name} » et toutes ses affectations ?`)
 
-// The person's form is a single line: its errors read after the name of their field.
-const PERSON_FIELDS: Readonly<Record<string, string>> = { name: 'Nom', role: 'Rôle' }
-const personMessages = computed(() =>
-  personErrors.value ? placeErrors(personErrors.value, new Set(), path => PERSON_FIELDS[path] ?? path).form : [],
+// The volunteer's form is a single line: its errors read after the name of their field.
+const VOLUNTEER_FIELDS: Readonly<Record<string, string>> = { name: 'Nom', role: 'Rôle' }
+const volunteerMessages = computed(() =>
+  volunteerErrors.value ? placeErrors(volunteerErrors.value, new Set(), path => VOLUNTEER_FIELDS[path] ?? path).form : [],
 )
 
-function rewrite(fields: StationFields): Promise<FormErrors | null> {
-  return rewriteStation(station.id, stationPayload(fields))
+function rewrite(payload: StationIn): Promise<FormErrors | null> {
+  return rewriteStation(station.id, payload)
 }
 
 function rewritten(): void {
@@ -49,16 +49,16 @@ async function remove(): Promise<void> {
   if (await confirm(() => deleteStation(station.id))) emit('changed')
 }
 
-async function addPerson(): Promise<void> {
+async function addVolunteer(): Promise<void> {
   assigning.value = true
-  personErrors.value = await assign(station.id, person.value)
+  volunteerErrors.value = await assign(station.id, volunteer.value)
   assigning.value = false
-  if (personErrors.value) return
-  person.value = { name: '', role: '' }
+  if (volunteerErrors.value) return
+  volunteer.value = { name: '', role: '' }
   emit('changed')
 }
 
-async function removePerson(id: number): Promise<void> {
+async function removeVolunteer(id: number): Promise<void> {
   removalFailure.value = await unassign(id)
   if (!removalFailure.value) emit('changed')
 }
@@ -119,7 +119,7 @@ async function removePerson(id: number): Promise<void> {
           <UiIconButton
             :label="`Retirer ${assignment.name} du poste`"
             size="sm"
-            @click="removePerson(assignment.id)"
+            @click="removeVolunteer(assignment.id)"
           >
             <X :size="16" />
           </UiIconButton>
@@ -140,18 +140,18 @@ async function removePerson(id: number): Promise<void> {
       </p>
       <form
         class="flex flex-wrap items-center gap-2"
-        @submit.prevent="addPerson"
+        @submit.prevent="addVolunteer"
       >
         <UiInput
-          v-model="person.name"
+          v-model="volunteer.name"
           aria-label="Nom"
           placeholder="Nom"
           required
           class="min-w-32 flex-1"
-          :invalid="Boolean(personErrors?.fields.name)"
+          :invalid="Boolean(volunteerErrors?.fields.name)"
         />
         <UiInput
-          v-model="person.role"
+          v-model="volunteer.role"
           aria-label="Rôle"
           placeholder="Rôle (facultatif)"
           class="min-w-32 flex-1"
@@ -165,11 +165,11 @@ async function removePerson(id: number): Promise<void> {
           <Plus :size="16" />
         </UiButton>
         <p
-          v-if="personMessages.length"
+          v-if="volunteerMessages.length"
           role="alert"
           class="w-full text-sm font-semibold text-ambre-800"
         >
-          {{ personMessages.join(' ') }}
+          {{ volunteerMessages.join(' ') }}
         </p>
       </form>
       <div class="flex flex-wrap gap-1.5 border-t border-argent-100 pt-3">

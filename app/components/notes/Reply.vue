@@ -42,7 +42,7 @@ async function remove(): Promise<void> {
       <NotesByline
         :author="reply.author"
         :written-at="reply.created_at"
-        :lead="reply.author !== null && reply.author.id === leadId"
+        :lead-id
         size="sm"
       />
       <div

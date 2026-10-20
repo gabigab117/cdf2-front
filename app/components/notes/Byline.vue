@@ -3,12 +3,12 @@ import type { components } from '~/types/api'
 
 type BoardMemberOut = components['schemas']['BoardMemberOut']
 
-const { author, writtenAt, lead = false, size = 'md' } = defineProps<{
+const { author, writtenAt, leadId, size = 'md' } = defineProps<{
   /** None once the author's account is deleted. */
   author: BoardMemberOut | null
   writtenAt: string
-  /** The author leads the event: their avatar stands out, as in the mockup. */
-  lead?: boolean
+  /** The event's lead: their avatar stands out, as in the mockup. */
+  leadId: number | null
   /** A note, or a smaller reply. */
   size?: 'sm' | 'md'
 }>()
@@ -17,6 +17,7 @@ const { writtenDay } = useDateFormat()
 const now = useNow()
 
 const name = computed(() => memberSignature(author))
+const lead = computed(() => author !== null && author.id === leadId)
 const day = computed(() => writtenDay(writtenAt, now.value))
 </script>
 

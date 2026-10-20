@@ -5,6 +5,7 @@ import TasksTab from '~/components/tasks/Tab.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
 import { boardEvent, julie, page } from '../../helpers/events'
 import { boardTask } from '../../helpers/tasks'
+import { button } from '../../helpers/form'
 
 const { refreshNuxtDataMock } = vi.hoisted(() => ({ refreshNuxtDataMock: vi.fn() }))
 // The count of the tab is the page's: the tab only asks for it again.
@@ -15,12 +16,6 @@ const TASK = '/api/board/tasks/{task_id}'
 
 function mountTab(currentPage = 1) {
   return mountSuspended(TasksTab, { props: { event: boardEvent(), page: currentPage }, attachTo: document.body })
-}
-
-type Mounted = Awaited<ReturnType<typeof mountTab>>
-
-function button(wrapper: Mounted, name: string) {
-  return wrapper.findAll('button').find(element => element.text() === name || element.attributes('aria-label') === name)
 }
 
 describe('the « Tâches » tab', () => {

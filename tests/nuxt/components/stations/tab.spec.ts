@@ -5,6 +5,7 @@ import StationsTab from '~/components/stations/Tab.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
 import { boardEvent } from '../../helpers/events'
 import { boardStation, stationBoard } from '../../helpers/stations'
+import { button } from '../../helpers/form'
 
 const { refreshNuxtDataMock } = vi.hoisted(() => ({ refreshNuxtDataMock: vi.fn() }))
 // The count of the tab is the page's: the tab only asks for it again.
@@ -15,12 +16,6 @@ const STATION = '/api/board/stations/{station_id}'
 
 function mountTab() {
   return mountSuspended(StationsTab, { props: { event: boardEvent() }, attachTo: document.body })
-}
-
-type Mounted = Awaited<ReturnType<typeof mountTab>>
-
-function button(wrapper: Mounted, name: string) {
-  return wrapper.findAll('button').find(element => element.text() === name || element.attributes('aria-label') === name)
 }
 
 function serve(board = stationBoard()) {

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { CircleAlert } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
 import type { Option } from '~/utils/options'
@@ -50,10 +49,6 @@ const form = useTemplateRef<HTMLFormElement>('form')
 
 const shown = computed(() => new Set(['title', 'assignee', 'due_date', ...(events ? ['event'] : [])]))
 
-function fieldErrors(path: string): readonly string[] | undefined {
-  return errors.value?.fields[path]
-}
-
 // No event chosen is a general task; the empty invitation never goes, the
 // browser asking for a choice first.
 function chosenEvent(choice: number | '' | typeof NO_EVENT): number | null {
@@ -68,8 +63,7 @@ async function submit(): Promise<void> {
   pending.value = false
   if (result) {
     errors.value = placeErrors(result, shown.value, taskFieldLabel)
-    await nextTick()
-    form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+    await focusErrors(form)
     return
   }
   errors.value = null
@@ -86,12 +80,9 @@ async function submit(): Promise<void> {
     class="flex flex-col gap-4"
     @submit.prevent="submit"
   >
-    <UiCallout
+    <UiAlert
       v-if="errors?.form.length"
-      tone="ambre"
-      role="alert"
       tabindex="-1"
-      :icon="CircleAlert"
     >
       <p
         v-for="message in errors.form"
@@ -99,66 +90,58 @@ async function submit(): Promise<void> {
       >
         {{ message }}
       </p>
-    </UiCallout>
+    </UiAlert>
     <UiField
       v-if="events"
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Événement"
-      :errors="fieldErrors('event')"
+      :errors="errors?.fields.event"
     >
       <UiSelect
-        :id
+        v-bind="control"
         v-model="event"
         :options="eventOptions"
         placeholder="Choisir un événement"
         required
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <div class="flex flex-wrap items-start gap-4">
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Titre"
         class="min-w-60 flex-1"
-        :errors="fieldErrors('title')"
+        :errors="errors?.fields.title"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.title"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Assignée à"
         optional
         class="w-full sm:w-52"
-        :errors="fieldErrors('assignee')"
+        :errors="errors?.fields.assignee"
       >
         <UiSelect
-          :id
+          v-bind="control"
           v-model="fields.assignee"
           :options="assignees"
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Échéance"
         optional
         class="w-full sm:w-44"
-        :errors="fieldErrors('due_date')"
+        :errors="errors?.fields.due_date"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.dueDate"
           type="date"
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
     </div>

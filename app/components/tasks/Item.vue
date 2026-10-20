@@ -22,7 +22,7 @@ async function toggle(event: Event): Promise<void> {
   pending.value = true
   const errors = await rewriteTask(task.id, { ...receivedTaskIn(task), done: box.checked })
   pending.value = false
-  failure.value = errors ? [...errors.form, ...Object.values(errors.fields).flat()].join(' ') : null
+  failure.value = errors ? refusalText(errors) : null
   // The box shows the task as the API keeps it: a refused change unticks it back.
   if (errors) box.checked = done.value
   else emit('changed')

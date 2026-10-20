@@ -8,19 +8,15 @@ const BREADCRUMB = [{ label: 'Tableau de bord', to: BOARD_HOME_PATH }, { label: 
 // The tasks without an event (D10): those of minutes of no event, those
 // created so from « Nouveau → Tâche », by page.
 const route = useRoute()
-const page = computed(() => {
-  const value = Number(route.query.page)
-  return Number.isInteger(value) && value > 1 ? value : 1
-})
+const page = computed(() => queryPage(route.query.page))
 
-const { data, status, error, refresh } = useGeneralTasks(() => page.value)
+const { data, pending: loading, error, refresh } = useGeneralTasks(() => page.value)
 
 const tasks = computed(() => data.value?.items ?? [])
 const count = computed(() => data.value?.count ?? 0)
-const loading = computed(() => status.value === 'pending')
 
 function pageLocation(target: number) {
-  return { query: { page: target > 1 ? String(target) : undefined } }
+  return { query: { page: pageParam(target) } }
 }
 </script>
 

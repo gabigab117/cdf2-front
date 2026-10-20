@@ -1,5 +1,5 @@
 /** The key of an event's stations. */
-export function stationBoardKey(eventId: number): string {
+function stationBoardKey(eventId: number): string {
   return `board:event:${eventId}:stations`
 }
 

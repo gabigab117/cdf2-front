@@ -8,16 +8,12 @@ const BREADCRUMB = [{ label: 'Tableau de bord', to: BOARD_HOME_PATH }, { label: 
 // The notes without an event (A11): those of the shopping list sent to the
 // board, those written here, by page.
 const route = useRoute()
-const page = computed(() => {
-  const value = Number(route.query.page)
-  return Number.isInteger(value) && value > 1 ? value : 1
-})
+const page = computed(() => queryPage(route.query.page))
 
-const { data, status, error, refresh } = useGeneralNotes(() => page.value)
+const { data, pending: loading, error, refresh } = useGeneralNotes(() => page.value)
 
 const notes = computed(() => data.value?.items ?? [])
 const count = computed(() => data.value?.count ?? 0)
-const loading = computed(() => status.value === 'pending')
 
 // A note just published shows on the first page.
 async function published(): Promise<void> {
@@ -26,7 +22,7 @@ async function published(): Promise<void> {
 }
 
 function pageLocation(target: number) {
-  return { query: { page: target > 1 ? String(target) : undefined } }
+  return { query: { page: pageParam(target) } }
 }
 </script>
 

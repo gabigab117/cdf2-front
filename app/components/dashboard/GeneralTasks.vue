@@ -8,19 +8,13 @@ type GeneralTasksOut = components['schemas']['GeneralTasksOut']
 const { summary } = defineProps<{ summary: GeneralTasksOut }>()
 
 const emit = defineEmits<{ changed: [] }>()
-
-const tasks = computed(() => [...summary.next_tasks, ...summary.recently_done_tasks])
-const allLabel = computed(() => (summary.tasks_total > 0 ? `Voir les ${summary.tasks_total} tâches` : 'Ajouter une tâche'))
 </script>
 
 <template>
-  <TasksSummary
+  <TasksBlock
     title="Tâches générales"
-    :done="summary.tasks_done"
-    :total="summary.tasks_total"
-    :tasks
+    :figures="summary"
     :all="GENERAL_TASKS_PATH"
-    :all-label="allLabel"
     @changed="emit('changed')"
   />
 </template>

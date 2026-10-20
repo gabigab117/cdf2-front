@@ -82,18 +82,8 @@ export function useDocumentWrites() {
 
   /** @returns null once downloaded, or the message to show. */
   function downloadDocument(document: DocumentFile): Promise<string | null> {
-    return fileResult(downloadFile(() => fetchFile(document), document.original_name))
+    return downloadFile(() => fetchFile(document), document.original_name)
   }
 
   return { uploadDocument, attestPurchase, correctDocument, validateDocument, deleteDocument, readDocumentFile, downloadDocument }
-}
-
-async function fileResult(request: Promise<{ error?: unknown, response: Response }>): Promise<string | null> {
-  try {
-    const { error, response } = await request
-    return response.ok ? null : errorMessage(error, response)
-  }
-  catch (failure) {
-    return errorMessage(failure)
-  }
 }

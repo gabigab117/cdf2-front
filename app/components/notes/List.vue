@@ -32,26 +32,26 @@ const { uploadDocument } = useDocumentWrites()
 
 const pageCount = computed(() => Math.ceil(count / NOTES_PAGE_SIZE))
 
-// The file joined to a note is deposited first, as a document of the board, a
+// The file attached to a note is uploaded first, as a document of the board, a
 // misc one of the note's event, to review; the note then names it. Kept until
 // the note is published: a new try sends it again rather than the same file,
-// which the deposit would refuse.
-let deposited: { file: File, id: number } | null = null
+// which the upload would refuse.
+let uploaded: { file: File, id: number } | null = null
 
 async function publish({ text, tag, file }: NoteDraft): Promise<FormErrors | null> {
-  if (file && deposited?.file !== file) {
+  if (file && uploaded?.file !== file) {
     const upload = await uploadDocument(file, { category: 'misc', title: fileTitle(file.name), event })
     if (upload.errors) return attachmentErrors(upload.errors)
-    deposited = { file, id: upload.data.id }
+    uploaded = { file, id: upload.data.id }
     void refreshBoardOverview()
   }
-  const document = file ? (deposited?.id ?? null) : null
+  const document = file ? (uploaded?.id ?? null) : null
   const errors = await publishNote({ event, text, tag, pinned: false, document })
-  if (errors === null) deposited = null
+  if (errors === null) uploaded = null
   return errors
 }
 
-// The input zone shows no field of a document: every error of the deposit is
+// The input zone shows no field of a document: every error of the upload is
 // its attachment's.
 function attachmentErrors(errors: FormErrors): FormErrors {
   return { form: errors.form, fields: { file: Object.values(errors.fields).flat() } }

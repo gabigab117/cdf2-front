@@ -1,15 +1,19 @@
 import type { components } from '~/types/api'
+import type { Option } from '~/utils/options'
 
 type NoteTag = components['schemas']['NoteTag']
 
 /** The general notes, those without an event (A11). */
 export const GENERAL_NOTES_PATH = '/bureau/notes'
 
-/** What a member writes: a text, and a tag and a file to join for a note. */
+/** How many notes a page of notes holds, an event's or the general ones. */
+export const NOTES_PAGE_SIZE = 25
+
+/** What a member writes: a text, and a tag and a file to attach for a note. */
 export interface NoteDraft {
   text: string
   tag: NoteTag | null
-  /** The file joined to a new note, deposited as a document of the board. */
+  /** The file attached to a new note, uploaded as a document of the board. */
   file?: File | null
 }
 
@@ -21,9 +25,9 @@ export const NOTE_TAGS: Readonly<Record<NoteTag, { label: string, tone: 'azur' |
 }
 
 /** The choices of a note's tag, none first: a note may go without. */
-export const NOTE_TAG_OPTIONS: ReadonlyArray<{ value: NoteTag | null, label: string }> = [
+export const NOTE_TAG_OPTIONS: readonly Option<NoteTag | null>[] = [
   { value: null, label: 'Sans étiquette' },
-  ...Object.entries(NOTE_TAGS).map(([value, { label }]) => ({ value: value as NoteTag, label })),
+  ...keysOf(NOTE_TAGS).map(value => ({ value, label: NOTE_TAGS[value].label })),
 ]
 
 const NOTE_FIELD_LABELS: Readonly<Record<string, string>> = {

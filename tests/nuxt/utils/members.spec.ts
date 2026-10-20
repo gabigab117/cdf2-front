@@ -58,3 +58,11 @@ describe('the board members to choose from', () => {
     expect(memberOptions([alain, julie], julie, 'Personne').map(option => option.value)).toEqual([null, 8, 7])
   })
 })
+
+describe('the first name of a member', () => {
+  it('names a member by their first name, or by their name without one', () => {
+    expect(memberFirstName({ first_name: 'Julie', last_name: 'Roux', email: 'julie.roux@example.test' })).toBe('Julie')
+    expect(memberFirstName({ first_name: '', last_name: 'Roux', email: 'julie.roux@example.test' })).toBe('Roux')
+    expect(memberFirstName({ first_name: '', last_name: '', email: 'julie.roux@example.test' })).toBe('julie.roux@example.test')
+  })
+})

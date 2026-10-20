@@ -6,6 +6,8 @@ import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpe
 import { boardEvent, julie, page } from '../../helpers/events'
 import { boardDocument } from '../../helpers/documents'
 import { boardNote } from '../../helpers/notes'
+import { chooseFile } from '../../helpers/files'
+import { readable } from '../../helpers/text'
 
 const { navigateToMock, refreshNuxtDataMock } = vi.hoisted(() => ({ navigateToMock: vi.fn(), refreshNuxtDataMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
@@ -13,10 +15,6 @@ mockNuxtImport('navigateTo', () => navigateToMock)
 mockNuxtImport('refreshNuxtData', () => refreshNuxtDataMock)
 
 const NOTES = '/api/board/notes'
-
-function readable(text: string): string {
-  return text.replaceAll(' ', ' ')
-}
 
 function mountTab(currentPage = 1) {
   return mountSuspended(NotesTab, { props: { event: boardEvent(), page: currentPage }, attachTo: document.body })
@@ -147,10 +145,8 @@ describe('the « Notes du bureau » tab', () => {
   describe('with a file joined', () => {
     const minutes = new File(['%PDF-1.4'], 'compte-rendu.pdf', { type: 'application/pdf' })
 
-    async function join(tab: Awaited<ReturnType<typeof mountTab>>, file = minutes) {
-      const picker = tab.get<HTMLInputElement>('input[type="file"]')
-      Object.defineProperty(picker.element, 'files', { value: [file], configurable: true })
-      await picker.trigger('change')
+    function attach(tab: Awaited<ReturnType<typeof mountTab>>, file = minutes) {
+      return chooseFile(tab.get('input[type="file"]'), file)
     }
 
     it('deposits the file as a document of the event, then publishes the note that names it', async () => {
@@ -167,7 +163,7 @@ describe('the « Notes du bureau » tab', () => {
       const sent = recordRequests()
       const tab = await mountTab()
 
-      await join(tab)
+      await attach(tab)
       expect(tab.text()).toContain('compte-rendu.pdf')
       await tab.get('textarea').setValue('Parcours validé.')
       await tab.get('form').trigger('submit')
@@ -190,7 +186,7 @@ describe('the « Notes du bureau » tab', () => {
       const sent = recordRequests()
       const tab = await mountTab()
 
-      await join(tab)
+      await attach(tab)
       await tab.get('textarea').setValue('Parcours validé.')
       await tab.get('form').trigger('submit')
 
@@ -214,7 +210,7 @@ describe('the « Notes du bureau » tab', () => {
       const sent = recordRequests()
       const tab = await mountTab()
 
-      await join(tab)
+      await attach(tab)
       await tab.get('textarea').setValue('Parcours validé.')
       await tab.get('form').trigger('submit')
       await vi.waitFor(() => expect(tab.text()).toContain('Trop long.'))
@@ -230,7 +226,7 @@ describe('the « Notes du bureau » tab', () => {
       mockApi(NOTES, { handler: () => apiResponse(200, page([])) })
       const tab = await mountTab()
 
-      await join(tab)
+      await attach(tab)
       await tab.get('button[aria-label="Retirer la pièce jointe"]').trigger('click')
 
       expect(tab.text()).not.toContain('compte-rendu.pdf')

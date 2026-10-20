@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleAlert, X } from '@lucide/vue'
+import { X } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
 
@@ -76,7 +76,7 @@ async function remove(): Promise<void> {
       @input="capacitySaved = false"
     >
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Capacité"
         optional
         help="Laisser vide si le nombre de places n’est pas limité."
@@ -85,13 +85,11 @@ async function remove(): Promise<void> {
         <div class="flex flex-wrap gap-2">
           <div class="w-40">
             <UiInput
-              :id
+              v-bind="control"
               v-model="capacity"
               type="number"
               min="1"
               inputmode="numeric"
-              :aria-describedby="describedby"
-              :invalid
             />
           </div>
           <UiButton
@@ -165,11 +163,8 @@ async function remove(): Promise<void> {
       >
         Ajouter un type
       </UiButton>
-      <UiCallout
+      <UiAlert
         v-if="typeMessages.length"
-        tone="ambre"
-        role="alert"
-        :icon="CircleAlert"
         class="w-full"
       >
         <p
@@ -178,7 +173,7 @@ async function remove(): Promise<void> {
         >
           {{ message }}
         </p>
-      </UiCallout>
+      </UiAlert>
     </form>
   </UiCard>
 </template>

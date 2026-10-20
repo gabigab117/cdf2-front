@@ -10,11 +10,10 @@ const { event, page } = defineProps<{
   page: number
 }>()
 
-const { data, status, error, refresh } = useEventNotes(event.id, () => page)
+const { data, pending: loading, error, refresh } = useEventNotes(event.id, () => page)
 
 const notes = computed(() => data.value?.items ?? [])
 const count = computed(() => data.value?.count ?? 0)
-const loading = computed(() => status.value === 'pending')
 
 // A write changes the notes, and the count of their tab.
 async function changed(): Promise<void> {

@@ -1,6 +1,3 @@
-/** How many notes a page of an event's notes holds. */
-export const NOTES_PAGE_SIZE = 25
-
 /**
  * A page of an event's notes, the pinned ones first, then the latest, each
  * with its replies. Lazy: the page shows its tab while they come.
