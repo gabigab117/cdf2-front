@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ItemPage from '~/pages/board/stock/items/[id].vue'
 import NewItemPage from '~/pages/board/stock/items/new.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
-import { field } from '../../../helpers/form'
+import { button, field } from '../../../helpers/form'
 import { stockItem, stockOverview } from '../../../helpers/stock'
 
 const { navigateToMock, showErrorMock } = vi.hoisted(() => ({ navigateToMock: vi.fn(), showErrorMock: vi.fn() }))
@@ -110,9 +110,9 @@ describe('the pages of an item of the stock', () => {
 
     const page = await mountSuspended(ItemPage, { route: '/bureau/stock/articles/3' })
     await vi.waitFor(() => expect(page.find('h1').exists()).toBe(true))
-    await page.findAll('button').find(button => button.text() === 'Supprimer')!.trigger('click')
+    await button(page, 'Supprimer')!.trigger('click')
     expect(page.text()).toContain('Supprimer « Jus de fruits 1 L » du stock ?')
-    await page.findAll('button').find(button => button.text() === 'Supprimer définitivement')!.trigger('click')
+    await button(page, 'Supprimer définitivement')!.trigger('click')
 
     await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith('/bureau/stock'))
     expect(showErrorMock).not.toHaveBeenCalled()
@@ -126,8 +126,8 @@ describe('the pages of an item of the stock', () => {
 
     const page = await mountSuspended(ItemPage, { route: '/bureau/stock/articles/3' })
     await vi.waitFor(() => expect(page.find('h1').exists()).toBe(true))
-    await page.findAll('button').find(button => button.text() === 'Supprimer')!.trigger('click')
-    await page.findAll('button').find(button => button.text() === 'Supprimer définitivement')!.trigger('click')
+    await button(page, 'Supprimer')!.trigger('click')
+    await button(page, 'Supprimer définitivement')!.trigger('click')
 
     await vi.waitFor(() => expect(page.text()).toContain('ses mouvements le gardent dans l’historique'))
     expect(navigateToMock).not.toHaveBeenCalled()

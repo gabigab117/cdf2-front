@@ -104,7 +104,6 @@ async function send(): Promise<void> {
           {{ copyLabel }}
         </UiButton>
         <UiButton
-          variant="primary"
           size="sm"
           class="flex-1"
           :loading="sending"

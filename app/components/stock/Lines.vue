@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Plus, X } from '@lucide/vue'
+import type { Option } from '~/utils/options'
 import type { LineFields } from '~/utils/stock'
 
 // The lines of an entry, an exit or an order: each an item and how much of it.
@@ -9,7 +10,7 @@ const lines = defineModel<LineFields[]>({ required: true })
 
 const { items, errors, hint } = defineProps<{
   /** The items to choose from, by name. */
-  items: ReadonlyArray<{ value: number, label: string }>
+  items: readonly Option<number>[]
   /** What the API found wrong, by the path of a line's field: "lines.0.quantity". */
   errors: Readonly<Record<string, readonly string[]>>
   /** What a line tells under its item, such as what is in stock. */
@@ -49,7 +50,7 @@ function lineHint(line: LineFields): string | undefined {
       class="flex flex-wrap items-start gap-2"
     >
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         :label="`Article de la ligne ${index + 1}`"
         hidden-label
         :help="lineHint(line)"
@@ -57,31 +58,27 @@ function lineHint(line: LineFields): string | undefined {
         :errors="lineErrors(index, 'item')"
       >
         <UiSelect
-          :id
+          v-bind="control"
           v-model="line.item"
           :options="items"
           placeholder="Choisir un article"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <div class="flex items-start gap-2">
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           :label="`Quantité de la ligne ${index + 1}`"
           hidden-label
           class="w-28"
           :errors="lineErrors(index, 'quantity')"
         >
           <UiInput
-            :id
+            v-bind="control"
             v-model="line.quantity"
             inputmode="decimal"
             placeholder="Quantité"
             required
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiIconButton

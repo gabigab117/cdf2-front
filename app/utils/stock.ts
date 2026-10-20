@@ -37,7 +37,7 @@ export const STOCK_CATEGORIES: Readonly<Record<StockItemCategory, { label: strin
 }
 
 /** The categories, in the order of the chips. */
-export const STOCK_CATEGORY_VALUES = Object.keys(STOCK_CATEGORIES) as StockItemCategory[]
+export const STOCK_CATEGORY_VALUES = keysOf(STOCK_CATEGORIES)
 
 /** Why the stock moved, as an operation is named when it has no label. */
 export const STOCK_REASONS: Readonly<Record<StockOperationReason, string>> = {
@@ -48,8 +48,8 @@ export const STOCK_REASONS: Readonly<Record<StockOperationReason, string>> = {
   adjustment: 'Ajustement',
 }
 
-/** The reasons of « Entrée ou sortie » each way goes with, the first chosen by default. */
-export const ENTRY_REASONS: Readonly<Record<StockDirection, readonly StockOperationIn['reason'][]>> = {
+/** The reasons of « Entrée ou sortie » each direction goes with, the first chosen by default. */
+export const DIRECTION_REASONS: Readonly<Record<StockDirection, readonly StockOperationIn['reason'][]>> = {
   in: ['purchase', 'adjustment'],
   out: ['consumption', 'adjustment'],
 }
@@ -185,24 +185,9 @@ export function bestBeforeMonths(now: number, current: string | null = null): st
   return current && !months.includes(current) ? [...months, current].sort() : months
 }
 
-/** The fields of the item form, by their name in the API. */
-export const ITEM_FIELD_LABELS: Readonly<Record<string, string>> = {
-  name: 'Nom',
-  category: 'Catégorie',
-  unit: 'Unité',
-  threshold: 'Seuil',
-  step: 'Pas',
-  best_before: 'DLUO',
-}
-
-/** The name of a field of the item form, before an error the form does not show under it. */
-export function itemFieldLabel(path: string): string {
-  return ITEM_FIELD_LABELS[path] ?? path
-}
-
 /**
  * The name of a field of an entry or an exit, before an error the form does
- * not show under it: its way is a choice of two buttons, which has no place for one.
+ * not show under it: its direction is a choice of two buttons, which has no place for one.
  */
 export function operationFieldLabel(path: string): string {
   return path === 'direction' ? 'Sens' : path

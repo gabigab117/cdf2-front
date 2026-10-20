@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import StockPage from '~/pages/board/stock/index.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
 import { stockedItem, stockOperation, stockOrder, stockOverview } from '../../../helpers/stock'
+import { readable } from '../../../helpers/text'
 
 const { navigateToMock } = vi.hoisted(() => ({ navigateToMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
@@ -16,10 +17,6 @@ function mockStock(overview = stockOverview()) {
 // The page's own action, « Entrée ou sortie », shows in place, without the top bar.
 function mountPage(route: string) {
   return mountSuspended(StockPage, { route, global: { stubs: { teleport: true } } })
-}
-
-function readable(text: string): string {
-  return text.replace(/[\u202F\u00A0]/g, ' ')
 }
 
 // The rows of the stock's table, the blocks beside it left aside.

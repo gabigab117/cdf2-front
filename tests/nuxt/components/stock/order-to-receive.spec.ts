@@ -4,10 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import StockOrderToReceive from '~/components/stock/OrderToReceive.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
 import { stockOrder } from '../../helpers/stock'
-
-function readable(text: string): string {
-  return text.replace(/[\u202F\u00A0]/g, ' ')
-}
+import { readable } from '../../helpers/text'
+import { button } from '../../helpers/form'
 
 describe('« Commande à réceptionner »', () => {
   beforeEach(() => {
@@ -48,7 +46,7 @@ describe('« Commande à réceptionner »', () => {
     const sent = recordRequests()
 
     const block = await mountSuspended(StockOrderToReceive, { props: { order: stockOrder() } })
-    await block.findAll('button').find(button => button.text() === 'Réceptionner la livraison')!.trigger('click')
+    await button(block, 'Réceptionner la livraison')!.trigger('click')
 
     await vi.waitFor(() => expect(sent.map(request => `${request.method} ${request.url}`)).toContain('POST /api/board/stock/orders/21/delivery'))
   })
@@ -62,7 +60,7 @@ describe('« Commande à réceptionner »', () => {
 
     const block = await mountSuspended(StockOrderToReceive, { props: { order: received } })
     expect(block.text()).toContain('Ajouté au stock')
-    await block.findAll('button').find(button => button.text() === 'Annuler')!.trigger('click')
+    await button(block, 'Annuler')!.trigger('click')
 
     await vi.waitFor(() => expect(block.get('[role="alert"]').text()).toBe('Une partie de la livraison est déjà sortie du stock : « Bonbons assortis ».'))
     expect(sent.map(request => `${request.method} ${request.url}`)).toContain('DELETE /api/board/stock/orders/21/delivery')

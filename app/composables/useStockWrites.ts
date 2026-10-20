@@ -32,6 +32,13 @@ export function useStockWrites() {
     return failure
   }
 
+  // A write made on the Stock page reads the stock again once it is done.
+  async function onStockPage(write: Promise<string | null>): Promise<string | null> {
+    const failure = await done(write)
+    if (failure === null) void refreshStock()
+    return failure
+  }
+
   function path(id: number) {
     return { params: { path: { item_id: id } } }
   }
@@ -42,7 +49,7 @@ export function useStockWrites() {
   }
 
   /** Rewrites an item whole: its movements stay as they are. */
-  function changeItem(id: number, payload: StockItemIn): Promise<Written<StockItemOut>> {
+  function updateItem(id: number, payload: StockItemIn): Promise<Written<StockItemOut>> {
     return written(formWrite(api.PUT('/api/board/stock/items/{item_id}', { ...path(id), body: payload })))
   }
 
@@ -55,10 +62,8 @@ export function useStockWrites() {
    * A click on − or +: the item's step, in or out, recorded with the member.
    * Null once done, or the message to show.
    */
-  async function adjustItem(id: number, direction: StockDirection): Promise<string | null> {
-    const failure = await done(plainWrite(api.POST('/api/board/stock/items/{item_id}/adjustments', { ...path(id), body: { direction } })))
-    if (failure === null) void refreshStock()
-    return failure
+  function adjustItem(id: number, direction: StockDirection): Promise<string | null> {
+    return onStockPage(plainWrite(api.POST('/api/board/stock/items/{item_id}/adjustments', { ...path(id), body: { direction } })))
   }
 
   /** « Entrée ou sortie »: several items in or out at once, for one reason. */
@@ -80,19 +85,15 @@ export function useStockWrites() {
     return written(formWrite(api.PUT('/api/board/stock/orders/{document_id}/lines', { ...orderPath(id), body: { lines: linesPayload(lines) } })))
   }
 
-  /**
-   * « Réceptionner la livraison », or « Annuler » the day it was received:
-   * null once done, or the message to show. Both are made on the Stock page,
-   * which reads the stock again.
-   */
-  async function deliverOrder(id: number, cancel: boolean): Promise<string | null> {
-    const request = cancel
-      ? api.DELETE('/api/board/stock/orders/{document_id}/delivery', orderPath(id))
-      : api.POST('/api/board/stock/orders/{document_id}/delivery', orderPath(id))
-    const failure = await done(plainWrite(request))
-    if (failure === null) void refreshStock()
-    return failure
+  /** « Réceptionner la livraison »: null once done, or the message to show. */
+  function receiveDelivery(id: number): Promise<string | null> {
+    return onStockPage(plainWrite(api.POST('/api/board/stock/orders/{document_id}/delivery', orderPath(id))))
   }
 
-  return { addItem, changeItem, deleteItem, adjustItem, recordOperation, recordStocktake, writeOrderLines, deliverOrder }
+  /** « Annuler » a delivery the day it was received: null once done, or the message to show. */
+  function cancelDelivery(id: number): Promise<string | null> {
+    return onStockPage(plainWrite(api.DELETE('/api/board/stock/orders/{document_id}/delivery', orderPath(id))))
+  }
+
+  return { addItem, updateItem, deleteItem, adjustItem, recordOperation, recordStocktake, writeOrderLines, receiveDelivery, cancelDelivery }
 }

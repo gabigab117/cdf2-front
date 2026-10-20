@@ -71,11 +71,6 @@ describe('the item form', () => {
     expect(itemPayload({ ...newItemFields(), step: '' })).toMatchObject({ threshold: '', step: '', best_before: null })
   })
 
-  it('names its fields before an error it does not show under one', () => {
-    expect(itemFieldLabel('best_before')).toBe('DLUO')
-    expect(itemFieldLabel('lines.0.quantity')).toBe('lines.0.quantity')
-  })
-
   it('offers the best-before months from a year ago to four years ahead', () => {
     /**
      * Given the first of October 2026, in Paris

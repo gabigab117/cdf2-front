@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleAlert, Trash2 } from '@lucide/vue'
+import { Trash2 } from '@lucide/vue'
 import type { ComponentPublicInstance } from 'vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
@@ -27,7 +27,7 @@ const fields = ref<ItemFields>(item ? itemFields(item) : newItemFields())
 const errors = ref<FormErrors | null>(null)
 const pending = ref(false)
 
-const SHOWN: ReadonlySet<string> = new Set(Object.keys(ITEM_FIELD_LABELS))
+const SHOWN: ReadonlySet<string> = new Set(['name', 'category', 'unit', 'threshold', 'step', 'best_before'])
 
 const categories = STOCK_CATEGORY_VALUES.map(category => ({
   value: category,
@@ -44,18 +44,13 @@ const { confirming, pending: deleting, failure, ask, dismiss, confirm } = useCon
 
 const question = computed(() => `Supprimer « ${item?.name} » du stock ?`)
 
-function fieldErrors(path: string): readonly string[] | undefined {
-  return errors.value?.fields[path]
-}
-
 async function submit(): Promise<void> {
   pending.value = true
   const result = await save(fields.value)
   pending.value = false
   if (!result) return
-  errors.value = placeErrors(result, SHOWN, itemFieldLabel)
-  await nextTick()
-  form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+  errors.value = placeErrors(result, SHOWN)
+  await focusErrors(form)
 }
 
 async function deleteItem(): Promise<void> {
@@ -69,12 +64,9 @@ async function deleteItem(): Promise<void> {
     class="flex flex-col gap-4"
     @submit.prevent="submit"
   >
-    <UiCallout
+    <UiAlert
       v-if="errors?.form.length"
-      tone="ambre"
-      role="alert"
       tabindex="-1"
-      :icon="CircleAlert"
     >
       <p
         v-for="message in errors.form"
@@ -82,94 +74,82 @@ async function deleteItem(): Promise<void> {
       >
         {{ message }}
       </p>
-    </UiCallout>
+    </UiAlert>
     <UiField
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Nom"
-      :errors="fieldErrors('name')"
+      :errors="errors?.fields.name"
     >
       <UiInput
-        :id
+        v-bind="control"
         v-model="fields.name"
         required
         placeholder="Ex. Jus de fruits 1 L"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <div class="grid gap-3 md:grid-cols-2">
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Catégorie"
-        :errors="fieldErrors('category')"
+        :errors="errors?.fields.category"
       >
         <UiSelect
-          :id
+          v-bind="control"
           v-model="fields.category"
           :options="categories"
           placeholder="Choisir une catégorie"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Unité"
         optional
         help="Écrite après la quantité : kg, fûts…"
-        :errors="fieldErrors('unit')"
+        :errors="errors?.fields.unit"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.unit"
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Seuil"
         help="En dessous, l’article est signalé bas."
-        :errors="fieldErrors('threshold')"
+        :errors="errors?.fields.threshold"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.threshold"
           inputmode="decimal"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Pas"
         help="Ce que retirent ou ajoutent les boutons − et +."
-        :errors="fieldErrors('step')"
+        :errors="errors?.fields.step"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.step"
           inputmode="decimal"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
     </div>
     <UiField
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="DLUO"
       optional
-      :errors="fieldErrors('best_before')"
+      :errors="errors?.fields.best_before"
     >
       <UiSelect
-        :id
+        v-bind="control"
         v-model="fields.bestBefore"
         :options="months"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <div class="flex flex-wrap items-center gap-2">

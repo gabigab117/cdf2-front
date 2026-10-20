@@ -4,9 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import OperationPage from '~/pages/board/stock/operation.vue'
 import StocktakePage from '~/pages/board/stock/stocktake.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
-import { field } from '../../../helpers/form'
+import { button, field } from '../../../helpers/form'
 import { eventItem, page } from '../../../helpers/events'
 import { stockOperation, stockOverview } from '../../../helpers/stock'
+import { readable } from '../../../helpers/text'
 
 const { navigateToMock } = vi.hoisted(() => ({ navigateToMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
@@ -15,10 +16,6 @@ function mockStock() {
   mockApi('/api/board/stock', { handler: () => apiResponse(200, stockOverview()) })
   mockApi('/api/board/events', { handler: () => apiResponse(200, page([eventItem()])) })
   mockApi('/api/board/overview', { handler: () => apiResponse(200, {}) })
-}
-
-function readable(text: string): string {
-  return text.replace(/[\u202F\u00A0]/g, ' ')
 }
 
 describe('the pages that move the stock', () => {
@@ -58,7 +55,7 @@ describe('the pages that move the stock', () => {
       await field(view, 'Libellé').setValue('Courses buvette')
       await field(view, 'Article de la ligne 1').setValue('1')
       await field(view, 'Quantité de la ligne 1').setValue('288')
-      await view.findAll('button').find(button => button.text() === 'Ajouter un article')!.trigger('click')
+      await button(view, 'Ajouter un article')!.trigger('click')
       await field(view, 'Article de la ligne 2').setValue('3')
       await field(view, 'Quantité de la ligne 2').setValue('6,5')
       await view.get('form').trigger('submit')
@@ -147,7 +144,7 @@ describe('the pages that move the stock', () => {
     ] }) })
 
     const view = await mountSuspended(OperationPage, { route: '/bureau/stock/entree-sortie' })
-    await view.findAll('button').find(button => button.text() === 'Ajouter un article')!.trigger('click')
+    await button(view, 'Ajouter un article')!.trigger('click')
     await view.get('form').trigger('submit')
     await vi.waitFor(() => expect(field(view, 'Quantité de la ligne 1').attributes('aria-invalid')).toBe('true'))
     await view.get('button[aria-label="Retirer la ligne 1"]').trigger('click')
@@ -215,6 +212,21 @@ describe('the pages that move the stock', () => {
       await vi.waitFor(() => expect(field(view, 'Compté : Bonbons assortis').attributes('aria-invalid')).toBe('true'))
       expect(view.text()).toContain('Choisissez un article existant.')
       expect(view.find('[role="alert"]').exists()).toBe(false)
+    })
+
+    it('shows a refusal of the whole stocktake above it, and takes the focus to it', async () => {
+      mockStock()
+      mockApi('/api/board/stock/stocktakes', { handler: () => apiResponse(422, { detail: [
+        { type: 'validation_error', loc: ['body'], msg: 'Comptez au moins un article.' },
+      ] }) })
+
+      const view = await mountSuspended(StocktakePage, { route: '/bureau/stock/inventaire', attachTo: document.body })
+      await vi.waitFor(() => expect(view.findAll('h2')).toHaveLength(2))
+      await view.get('form').trigger('submit')
+
+      await vi.waitFor(() => expect(view.find('form [role="alert"]').exists()).toBe(true))
+      expect(view.get('form [role="alert"]').text()).toBe('Comptez au moins un article.')
+      expect(document.activeElement).toBe(view.get('form [role="alert"]').element)
     })
 
     it('shows a refused count under its item', async () => {

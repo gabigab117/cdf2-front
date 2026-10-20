@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRightLeft, CircleAlert, ClipboardCheck } from '@lucide/vue'
+import { ArrowRightLeft, ClipboardCheck } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { StockFilter, StockQuery } from '~/utils/stock'
 
@@ -17,11 +17,10 @@ const route = useRoute()
 const now = useNow()
 const query = computed(() => parseStockQuery(route.query))
 
-const { data: stock, status, error, refresh } = useStock()
+const { data: stock, pending: loading, error, refresh } = useStock()
 const { adjustItem } = useStockWrites()
 const { writtenDay } = useDateFormat()
 
-const loading = computed(() => status.value === 'pending')
 const items = computed(() => shownItems(stock.value?.items ?? [], query.value))
 const recent = computed(() => stock.value?.recent_operations ?? [])
 const shopping = computed(() => stock.value?.shopping_list ?? [])
@@ -110,10 +109,7 @@ async function adjust(id: number, direction: StockDirection): Promise<void> {
         variant="secondary"
         :to="STOCKTAKE_PATH"
       >
-        <ClipboardCheck
-          :size="18"
-          aria-hidden="true"
-        />
+        <ClipboardCheck :size="18" />
         Faire l’inventaire
       </UiButton>
     </div>
@@ -141,14 +137,9 @@ async function adjust(id: number, direction: StockDirection): Promise<void> {
         />
       </div>
     </div>
-    <UiCallout
-      v-if="failure"
-      tone="ambre"
-      role="alert"
-      :icon="CircleAlert"
-    >
+    <UiAlert v-if="failure">
       {{ failure }}
-    </UiCallout>
+    </UiAlert>
     <BoardLoadError
       v-if="error"
       :message="error.message"

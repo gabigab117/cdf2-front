@@ -3,10 +3,7 @@ import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import StockRecentOperations from '~/components/stock/RecentOperations.vue'
 import { stockOperation } from '../../helpers/stock'
-
-function readable(text: string): string {
-  return text.replace(/[\u202F\u00A0]/g, ' ')
-}
+import { readable } from '../../helpers/text'
 
 describe('« Mouvements récents »', () => {
   beforeEach(() => {

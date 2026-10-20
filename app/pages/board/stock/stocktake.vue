@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { CircleAlert } from '@lucide/vue'
 import type { FormErrors } from '~/utils/api-errors'
 
 definePageMeta({ path: '/bureau/stock/inventaire' })
@@ -11,7 +10,7 @@ const breadcrumb = [{ label: 'Stock', to: STOCK_PATH }, { label: 'Faire l’inve
 const { data: stock, error, refresh } = useStock()
 const { recordStocktake } = useStockWrites()
 const { quantity } = useQuantityFormat()
-const events = useEventChoices()
+const eventOptions = useEventChoices('Aucun')
 
 const label = ref('')
 const event = ref<number | null>(null)
@@ -19,8 +18,6 @@ const event = ref<number | null>(null)
 const counted = ref<Record<number, string>>({})
 const errors = ref<FormErrors | null>(null)
 const pending = ref(false)
-
-const eventOptions = computed(() => [{ value: null, label: 'Aucun' }, ...events.value])
 
 // The items by category, as the chips go, each with what the stock holds.
 const groups = computed(() =>
@@ -45,10 +42,6 @@ function countErrors(id: number): readonly string[] | undefined {
   return found.length > 0 ? found : undefined
 }
 
-function fieldErrors(path: string): readonly string[] | undefined {
-  return errors.value?.fields[path]
-}
-
 const form = useTemplateRef<HTMLFormElement>('form')
 
 async function submit(): Promise<void> {
@@ -69,9 +62,8 @@ async function submit(): Promise<void> {
     'event',
     ...counts.flatMap((_count, position) => [`counts.${position}.item`, `counts.${position}.counted`]),
   ])
-  errors.value = placeErrors(result.errors, shown, path => path)
-  await nextTick()
-  form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+  errors.value = placeErrors(result.errors, shown)
+  await focusErrors(form)
 }
 </script>
 
@@ -98,12 +90,9 @@ async function submit(): Promise<void> {
       class="flex flex-col gap-5"
       @submit.prevent="submit"
     >
-      <UiCallout
+      <UiAlert
         v-if="errors?.form.length"
-        tone="ambre"
-        role="alert"
         tabindex="-1"
-        :icon="CircleAlert"
       >
         <p
           v-for="message in errors.form"
@@ -111,35 +100,31 @@ async function submit(): Promise<void> {
         >
           {{ message }}
         </p>
-      </UiCallout>
+      </UiAlert>
       <UiCard>
         <div class="grid gap-3 md:grid-cols-2">
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Libellé"
             optional
-            :errors="fieldErrors('label')"
+            :errors="errors?.fields.label"
           >
             <UiInput
-              :id
+              v-bind="control"
               v-model="label"
               placeholder="Ex. Après la brocante"
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Événement"
             optional
-            :errors="fieldErrors('event')"
+            :errors="errors?.fields.event"
           >
             <UiSelect
-              :id
+              v-bind="control"
               v-model="event"
               :options="eventOptions"
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
         </div>
@@ -161,19 +146,17 @@ async function submit(): Promise<void> {
               <span class="text-caption text-argent-600">{{ item.held }}</span>
             </span>
             <UiField
-              v-slot="{ id, describedby, invalid }"
+              v-slot="{ control }"
               :label="`Compté : ${item.name}`"
               hidden-label
               class="w-32"
               :errors="countErrors(item.id)"
             >
               <UiInput
-                :id
+                v-bind="control"
                 v-model="counted[item.id]"
                 inputmode="decimal"
                 placeholder="Compté"
-                :aria-describedby="describedby"
-                :invalid
               />
             </UiField>
           </li>

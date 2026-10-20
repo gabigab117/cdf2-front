@@ -10,12 +10,12 @@ type StockOrderOut = components['schemas']['StockOrderOut']
 const { order } = defineProps<{ order: StockOrderOut }>()
 
 const { calendarInWords } = useDateFormat()
-const { deliverOrder } = useStockWrites()
+const { receiveDelivery, cancelDelivery } = useStockWrites()
 const now = useNow()
 const titleId = useId()
 
 // « Commande Confiserie du Nord. Livraison prévue le 27 octobre. »
-const summary = computed(() => {
+const orderText = computed(() => {
   const name = order.issuer ? `Commande ${order.issuer}.` : `${order.title}.`
   return order.delivery_date ? `${name} Livraison prévue le ${calendarInWords(order.delivery_date, now.value)}.` : name
 })
@@ -23,9 +23,9 @@ const summary = computed(() => {
 const pending = ref(false)
 const failure = ref<string | null>(null)
 
-async function deliver(cancel: boolean): Promise<void> {
+async function step(write: (id: number) => Promise<string | null>): Promise<void> {
   pending.value = true
-  failure.value = await deliverOrder(order.id, cancel)
+  failure.value = await write(order.id)
   pending.value = false
 }
 </script>
@@ -42,7 +42,6 @@ async function deliver(cancel: boolean): Promise<void> {
       >
         <PackageCheck
           :size="17"
-          aria-hidden="true"
           class="text-azur-600"
         />
         Commande à réceptionner
@@ -55,7 +54,7 @@ async function deliver(cancel: boolean): Promise<void> {
       </UiStatusPill>
     </div>
     <p class="text-sm text-sable-800">
-      {{ summary }}
+      {{ orderText }}
     </p>
     <StockOrderLineList
       :lines="order.lines"
@@ -66,12 +65,9 @@ async function deliver(cancel: boolean): Promise<void> {
       variant="accent"
       block
       :loading="pending"
-      @click="deliver(false)"
+      @click="step(receiveDelivery)"
     >
-      <Check
-        :size="17"
-        aria-hidden="true"
-      />
+      <Check :size="17" />
       Réceptionner la livraison
     </UiButton>
     <div
@@ -81,7 +77,6 @@ async function deliver(cancel: boolean): Promise<void> {
       <span class="inline-flex items-center gap-2">
         <Check
           :size="17"
-          aria-hidden="true"
           class="text-azur-600"
         />
         Ajouté au stock
@@ -90,7 +85,7 @@ async function deliver(cancel: boolean): Promise<void> {
         v-if="order.undoable"
         variant="link"
         :loading="pending"
-        @click="deliver(true)"
+        @click="step(cancelDelivery)"
       >
         Annuler
       </UiButton>

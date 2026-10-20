@@ -15,12 +15,12 @@ watch(stock, (read) => {
 
 useHead({ title: () => item.value?.name ?? 'Article' })
 
-const { changeItem, deleteItem } = useStockWrites()
+const { updateItem, deleteItem } = useStockWrites()
 
 const breadcrumb = computed(() => [{ label: 'Stock', to: STOCK_PATH }, { label: item.value?.name ?? '' }])
 
 async function save(fields: ItemFields) {
-  const result = await changeItem(id, itemPayload(fields))
+  const result = await updateItem(id, itemPayload(fields))
   if (result.errors) return result.errors
   await navigateTo(STOCK_PATH)
   return null

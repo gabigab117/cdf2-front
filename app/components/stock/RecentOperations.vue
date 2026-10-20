@@ -78,7 +78,6 @@ const rows = computed(() =>
           <component
             :is="row.icon"
             :size="15"
-            aria-hidden="true"
           />
         </span>
         <span class="flex min-w-0 flex-col gap-0.5">

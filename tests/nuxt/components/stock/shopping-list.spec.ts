@@ -1,20 +1,13 @@
 import { mountSuspended } from '@nuxt/test-utils/runtime'
-import type { VueWrapper } from '@vue/test-utils'
 import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import StockShoppingList from '~/components/stock/ShoppingList.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
 import { stockOverview } from '../../helpers/stock'
+import { readable } from '../../helpers/text'
+import { button } from '../../helpers/form'
 
 const LINES = stockOverview().shopping_list
-
-function readable(text: string): string {
-  return text.replace(/[\u202F\u00A0]/g, ' ')
-}
-
-function button(list: VueWrapper, text: string) {
-  return list.findAll('button').find(candidate => candidate.text() === text)!
-}
 
 describe('« Liste de courses »', () => {
   const stubbed: string[] = []
@@ -54,9 +47,9 @@ describe('« Liste de courses »', () => {
     stubClipboard(writeText)
 
     const list = await mountSuspended(StockShoppingList, { props: { lines: LINES } })
-    await button(list, 'Copier').trigger('click')
+    await button(list, 'Copier')!.trigger('click')
 
-    await vi.waitFor(() => expect(button(list, 'Liste copiée').exists()).toBe(true))
+    await vi.waitFor(() => expect(button(list, 'Liste copiée')).toBeDefined())
     expect(readable(writeText.mock.calls[0]![0] as string)).toBe('Liste de courses\n- Jus de fruits 1 L : 6\n- Bonbons assortis : 1,5 kg')
     expect(list.get('[aria-live="polite"]').text()).toBe('La liste est copiée.')
   })
@@ -65,7 +58,7 @@ describe('« Liste de courses »', () => {
     stubClipboard(vi.fn().mockRejectedValue(new DOMException('Refusé', 'NotAllowedError')))
 
     const list = await mountSuspended(StockShoppingList, { props: { lines: LINES } })
-    await button(list, 'Copier').trigger('click')
+    await button(list, 'Copier')!.trigger('click')
 
     await vi.waitFor(() => expect(list.get('[role="alert"]').text()).toBe('Le navigateur n’a pas permis de copier la liste.'))
   })
@@ -81,9 +74,9 @@ describe('« Liste de courses »', () => {
     const sent = recordRequests()
 
     const list = await mountSuspended(StockShoppingList, { props: { lines: LINES } })
-    await button(list, 'Envoyer au bureau').trigger('click')
+    await button(list, 'Envoyer au bureau')!.trigger('click')
 
-    await vi.waitFor(() => expect(button(list, 'Envoyée au bureau').attributes('disabled')).toBeDefined())
+    await vi.waitFor(() => expect(button(list, 'Envoyée au bureau')!.attributes('disabled')).toBeDefined())
     const body = sent.find(request => request.method === 'POST')?.body as Record<string, unknown>
     expect({ ...body, text: readable(body.text as string) }).toEqual({
       event: null,
@@ -98,10 +91,10 @@ describe('« Liste de courses »', () => {
     mockApi('/api/board/notes', { handler: () => apiResponse(422, { detail: [{ type: 'validation_error', loc: ['body', 'text'], msg: 'Ce champ est obligatoire.' }] }) })
 
     const list = await mountSuspended(StockShoppingList, { props: { lines: LINES } })
-    await button(list, 'Envoyer au bureau').trigger('click')
+    await button(list, 'Envoyer au bureau')!.trigger('click')
 
     await vi.waitFor(() => expect(list.get('[role="alert"]').text()).toBe('Ce champ est obligatoire.'))
     await list.setProps({ lines: LINES.slice(0, 1) })
-    expect(button(list, 'Envoyer au bureau').attributes('disabled')).toBeUndefined()
+    expect(button(list, 'Envoyer au bureau')!.attributes('disabled')).toBeUndefined()
   })
 })

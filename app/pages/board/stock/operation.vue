@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { CircleAlert } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
+import type { Option } from '~/utils/options'
 import type { LineFields } from '~/utils/stock'
 
 type StockDirection = components['schemas']['StockDirection']
@@ -17,9 +17,9 @@ const breadcrumb = [{ label: 'Stock', to: STOCK_PATH }, { label: 'Entrée ou sor
 const { data: stock } = useStock()
 const { recordOperation } = useStockWrites()
 const { quantity } = useQuantityFormat()
-const events = useEventChoices()
+const eventOptions = useEventChoices('Aucun')
 
-const DIRECTIONS: ReadonlyArray<{ value: StockDirection, label: string }> = [
+const DIRECTIONS: readonly Option<StockDirection>[] = [
   { value: 'in', label: 'Entrée' },
   { value: 'out', label: 'Sortie' },
 ]
@@ -33,13 +33,12 @@ const errors = ref<FormErrors | null>(null)
 const pending = ref(false)
 
 // A purchase comes in, a consumption goes out, an adjustment either way: the
-// reason follows the way chosen.
-const reasons = computed(() => ENTRY_REASONS[direction.value].map(value => ({ value, label: STOCK_REASONS[value] })))
-watch(direction, (way) => {
-  if (!ENTRY_REASONS[way].includes(reason.value)) reason.value = ENTRY_REASONS[way][0]!
+// reason follows the direction chosen.
+const reasons = computed(() => DIRECTION_REASONS[direction.value].map(value => ({ value, label: STOCK_REASONS[value] })))
+watch(direction, (chosen) => {
+  if (!DIRECTION_REASONS[chosen].includes(reason.value)) reason.value = DIRECTION_REASONS[chosen][0]!
 })
 
-const eventOptions = computed(() => [{ value: null, label: 'Aucun' }, ...events.value])
 const itemOptions = computed(() => (stock.value?.items ?? []).map(({ item }) => ({ value: item.id, label: item.name })))
 
 // Under each item, what the stock holds of it.
@@ -49,10 +48,6 @@ function held(id: number): string | undefined {
 }
 
 const form = useTemplateRef<HTMLFormElement>('form')
-
-function fieldErrors(path: string): readonly string[] | undefined {
-  return errors.value?.fields[path]
-}
 
 // A line removed: its errors, placed by position, no longer fit.
 function forgetErrors(): void {
@@ -80,8 +75,7 @@ async function submit(): Promise<void> {
     ...lines.value.flatMap((_line, index) => [`lines.${index}.item`, `lines.${index}.quantity`]),
   ])
   errors.value = placeErrors(result.errors, shown, operationFieldLabel)
-  await nextTick()
-  form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+  await focusErrors(form)
 }
 </script>
 
@@ -98,12 +92,9 @@ async function submit(): Promise<void> {
         class="flex flex-col gap-4"
         @submit.prevent="submit"
       >
-        <UiCallout
+        <UiAlert
           v-if="errors?.form.length"
-          tone="ambre"
-          role="alert"
           tabindex="-1"
-          :icon="CircleAlert"
         >
           <p
             v-for="message in errors.form"
@@ -111,7 +102,7 @@ async function submit(): Promise<void> {
           >
             {{ message }}
           </p>
-        </UiCallout>
+        </UiAlert>
         <UiSegmentedControl
           v-model="direction"
           :options="DIRECTIONS"
@@ -120,45 +111,39 @@ async function submit(): Promise<void> {
         />
         <div class="grid gap-3 md:grid-cols-2">
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Motif"
-            :errors="fieldErrors('reason')"
+            :errors="errors?.fields.reason"
           >
             <UiSelect
-              :id
+              v-bind="control"
               v-model="reason"
               :options="reasons"
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Événement"
             optional
-            :errors="fieldErrors('event')"
+            :errors="errors?.fields.event"
           >
             <UiSelect
-              :id
+              v-bind="control"
               v-model="event"
               :options="eventOptions"
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
         </div>
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           label="Libellé"
           optional
-          :errors="fieldErrors('label')"
+          :errors="errors?.fields.label"
         >
           <UiInput
-            :id
+            v-bind="control"
             v-model="label"
             placeholder="Ex. Courses buvette"
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <StockLines
