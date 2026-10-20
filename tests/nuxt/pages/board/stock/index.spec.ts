@@ -22,8 +22,13 @@ function readable(text: string): string {
   return text.replace(/[\u202F\u00A0]/g, ' ')
 }
 
+// The rows of the stock's table, the blocks beside it left aside.
+function rows(page: VueWrapper) {
+  return page.findComponent({ name: 'StockTable' }).findAll('li')
+}
+
 function rowOf(page: VueWrapper, name: string) {
-  return page.findAll('li').find(row => row.text().includes(name))!
+  return rows(page).find(row => row.text().includes(name))!
 }
 
 describe('the Stock page', () => {
@@ -56,7 +61,7 @@ describe('the Stock page', () => {
 
     const stock = await mountPage('/bureau/stock')
 
-    await vi.waitFor(() => expect(stock.findAll('li')).toHaveLength(4))
+    await vi.waitFor(() => expect(rows(stock)).toHaveLength(4))
     expect(stock.get('h1').text()).toBe('Stock')
     expect(stock.text()).toContain('Marchandises de la buvette et des animations')
     const juice = rowOf(stock, 'Jus de fruits 1 L')
@@ -103,7 +108,7 @@ describe('the Stock page', () => {
 
     const stock = await mountPage('/bureau/stock?filtre=bas')
 
-    await vi.waitFor(() => expect(stock.findAll('li').map(row => row.get('a').text())).toEqual(['Jus de fruits 1 L', 'Bonbons assortis']))
+    await vi.waitFor(() => expect(rows(stock).map(row => row.get('a').text())).toEqual(['Jus de fruits 1 L', 'Bonbons assortis']))
     expect(stock.get('nav[aria-label="Filtrer le stock"] a[aria-current="page"]').text()).toBe('Sous le seuil2')
   })
 
@@ -118,7 +123,7 @@ describe('the Stock page', () => {
 
     const stock = await mountPage('/bureau/stock?recherche=FUT')
 
-    await vi.waitFor(() => expect(stock.findAll('li').map(row => row.get('a').text())).toEqual(['Fûts de bière 20 L']))
+    await vi.waitFor(() => expect(rows(stock).map(row => row.get('a').text())).toEqual(['Fûts de bière 20 L']))
     await stock.get('input[type="search"]').setValue('jus')
     await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith({ query: { filtre: undefined, recherche: 'jus' } }, { replace: true }))
   })
@@ -155,7 +160,7 @@ describe('the Stock page', () => {
     const sent = recordRequests()
 
     const stock = await mountPage('/bureau/stock')
-    await vi.waitFor(() => expect(stock.findAll('li')).toHaveLength(4))
+    await vi.waitFor(() => expect(rows(stock)).toHaveLength(4))
     const juice = rowOf(stock, 'Jus de fruits 1 L')
     expect(juice.findAll('button').map(button => readable(button.attributes('aria-label') ?? ''))).toEqual([
       'Retirer : 6 Jus de fruits 1 L',
@@ -181,7 +186,7 @@ describe('the Stock page', () => {
     }, { item_id: 3 })
 
     const stock = await mountPage('/bureau/stock')
-    await vi.waitFor(() => expect(stock.findAll('li')).toHaveLength(4))
+    await vi.waitFor(() => expect(rows(stock)).toHaveLength(4))
     await rowOf(stock, 'Jus de fruits 1 L').findAll('button')[0]!.trigger('click')
 
     await vi.waitFor(() => expect(stock.get('[role="alert"]').text()).toBe('Il n’en reste plus en stock.'))
@@ -201,6 +206,7 @@ describe('the Stock page', () => {
     expect(stock.get('a[href="/bureau/stock/entree-sortie"]').text()).toBe('Entrée ou sortie')
     expect(stock.get('a[href="/bureau/stock/inventaire"]').text()).toBe('Faire l’inventaire')
     await vi.waitFor(() => expect(stock.text()).toContain('Courses buvette · Julie R.'))
+    expect(stock.findComponent({ name: 'StockShoppingList' }).text()).toContain('2 articles')
   })
 
   it('offers to try again when the stock cannot be read', async () => {

@@ -3454,6 +3454,16 @@ export interface components {
             missing_quantity: number;
         };
         /**
+         * ShoppingLineOut
+         * @description An item below its threshold, and what brings it back to twice its
+         *     threshold, rounded up to its step (A19).
+         */
+        ShoppingLineOut: {
+            item: components["schemas"]["StockMovementItemOut"];
+            /** Quantity */
+            quantity: string;
+        };
+        /**
          * ShortageOut
          * @description An equipment the loans to come take more of than it offers (A17).
          */
@@ -3631,7 +3641,8 @@ export interface components {
         };
         /**
          * StockMovementItemOut
-         * @description The item a movement changed, as the summary of its operation names it.
+         * @description An item as a line names it: the movement of an operation, a line of the
+         *     shopping list.
          */
         StockMovementItemOut: {
             /** Id */
@@ -3709,6 +3720,8 @@ export interface components {
             last_stocktake: components["schemas"]["LastStocktakeOut"] | null;
             /** Recent Operations */
             recent_operations: components["schemas"]["StockOperationOut"][];
+            /** Shopping List */
+            shopping_list: components["schemas"]["ShoppingLineOut"][];
         };
         /**
          * StockedItemOut

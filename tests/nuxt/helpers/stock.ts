@@ -52,6 +52,10 @@ export function stockOverview(changes: Partial<StockOverviewOut> = {}): StockOve
     counts: { total: 4, low: 2, drinks: 3, food: 1, supplies: 0, lotto_raffle: 0 },
     last_stocktake: null,
     recent_operations: [],
+    shopping_list: [
+      { item: { id: 3, name: 'Jus de fruits 1 L', unit: '' }, quantity: '30.00' },
+      { item: { id: 6, name: 'Bonbons assortis', unit: 'kg' }, quantity: '4.50' },
+    ],
     ...changes,
   }
 }
