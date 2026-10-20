@@ -4,13 +4,18 @@ import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import StockPage from '~/pages/board/stock/index.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
-import { stockedItem, stockOverview } from '../../../helpers/stock'
+import { stockedItem, stockOperation, stockOverview } from '../../../helpers/stock'
 
 const { navigateToMock } = vi.hoisted(() => ({ navigateToMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
 
 function mockStock(overview = stockOverview()) {
   mockApi('/api/board/stock', { handler: () => apiResponse(200, overview) })
+}
+
+// The page's own action, « Entrée ou sortie », shows in place, without the top bar.
+function mountPage(route: string) {
+  return mountSuspended(StockPage, { route, global: { stubs: { teleport: true } } })
 }
 
 function readable(text: string): string {
@@ -49,7 +54,7 @@ describe('the Stock page', () => {
      */
     mockStock()
 
-    const stock = await mountSuspended(StockPage, { route: '/bureau/stock' })
+    const stock = await mountPage('/bureau/stock')
 
     await vi.waitFor(() => expect(stock.findAll('li')).toHaveLength(4))
     expect(stock.get('h1').text()).toBe('Stock')
@@ -75,7 +80,7 @@ describe('the Stock page', () => {
   it('counts its chips, « Sous le seuil » in amber, each leading to its filter', async () => {
     mockStock()
 
-    const stock = await mountSuspended(StockPage, { route: '/bureau/stock' })
+    const stock = await mountPage('/bureau/stock')
 
     const chips = () => stock.findAll('nav[aria-label="Filtrer le stock"] a')
     await vi.waitFor(() => expect(chips().map(chip => chip.text())).toEqual([
@@ -96,7 +101,7 @@ describe('the Stock page', () => {
   it('keeps the items below their threshold, as the bell leads to them', async () => {
     mockStock()
 
-    const stock = await mountSuspended(StockPage, { route: '/bureau/stock?filtre=bas' })
+    const stock = await mountPage('/bureau/stock?filtre=bas')
 
     await vi.waitFor(() => expect(stock.findAll('li').map(row => row.get('a').text())).toEqual(['Jus de fruits 1 L', 'Bonbons assortis']))
     expect(stock.get('nav[aria-label="Filtrer le stock"] a[aria-current="page"]').text()).toBe('Sous le seuil2')
@@ -111,7 +116,7 @@ describe('the Stock page', () => {
      */
     mockStock()
 
-    const stock = await mountSuspended(StockPage, { route: '/bureau/stock?recherche=FUT' })
+    const stock = await mountPage('/bureau/stock?recherche=FUT')
 
     await vi.waitFor(() => expect(stock.findAll('li').map(row => row.get('a').text())).toEqual(['Fûts de bière 20 L']))
     await stock.get('input[type="search"]').setValue('jus')
@@ -120,21 +125,21 @@ describe('the Stock page', () => {
 
   it('says when no item answers the search, or when the stock holds none', async () => {
     mockStock()
-    const searched = await mountSuspended(StockPage, { route: '/bureau/stock?recherche=sapin' })
+    const searched = await mountPage('/bureau/stock?recherche=sapin')
     await vi.waitFor(() => expect(searched.text()).toContain('Aucun article ne correspond à cette recherche.'))
     searched.unmount()
     clearNuxtData()
     clearApiMocks()
 
     mockStock(stockOverview({ items: [], counts: { total: 0, low: 0, drinks: 0, food: 0, supplies: 0, lotto_raffle: 0 } }))
-    const empty = await mountSuspended(StockPage, { route: '/bureau/stock' })
+    const empty = await mountPage('/bureau/stock')
     await vi.waitFor(() => expect(empty.text()).toContain('Aucun article pour l’instant.'))
   })
 
   it('dates the stock by its latest stocktake, and its event', async () => {
     mockStock(stockOverview({ last_stocktake: { created_at: '2026-09-14T16:00:00Z', event: { id: 3, title: 'Brocante' } } }))
 
-    const stock = await mountSuspended(StockPage, { route: '/bureau/stock' })
+    const stock = await mountPage('/bureau/stock')
 
     await vi.waitFor(() => expect(stock.text()).toContain('Marchandises de la buvette et des animations · dernier inventaire le 14 sept. (Brocante)'))
   })
@@ -149,7 +154,7 @@ describe('the Stock page', () => {
     mockApi('/api/board/stock/items/{item_id}/adjustments', { handler: () => apiResponse(200, stockedItem()) }, { item_id: 3 })
     const sent = recordRequests()
 
-    const stock = await mountSuspended(StockPage, { route: '/bureau/stock' })
+    const stock = await mountPage('/bureau/stock')
     await vi.waitFor(() => expect(stock.findAll('li')).toHaveLength(4))
     const juice = rowOf(stock, 'Jus de fruits 1 L')
     expect(juice.findAll('button').map(button => readable(button.attributes('aria-label') ?? ''))).toEqual([
@@ -175,17 +180,33 @@ describe('the Stock page', () => {
       handler: () => apiResponse(422, { detail: [{ type: 'validation_error', loc: ['body'], msg: 'Il n’en reste plus en stock.' }] }),
     }, { item_id: 3 })
 
-    const stock = await mountSuspended(StockPage, { route: '/bureau/stock' })
+    const stock = await mountPage('/bureau/stock')
     await vi.waitFor(() => expect(stock.findAll('li')).toHaveLength(4))
     await rowOf(stock, 'Jus de fruits 1 L').findAll('button')[0]!.trigger('click')
 
     await vi.waitFor(() => expect(stock.get('[role="alert"]').text()).toBe('Il n’en reste plus en stock.'))
   })
 
+  it('leads to an entry or an exit, to a stocktake, and tells the latest operations', async () => {
+    /**
+     * Given the stock and the shopping of the bar
+     * When the page shows
+     * Then « Entrée ou sortie » and « Faire l’inventaire » lead to their pages,
+     * and « Mouvements récents » tells the shopping
+     */
+    mockStock(stockOverview({ recent_operations: [stockOperation()] }))
+
+    const stock = await mountPage('/bureau/stock')
+
+    expect(stock.get('a[href="/bureau/stock/entree-sortie"]').text()).toBe('Entrée ou sortie')
+    expect(stock.get('a[href="/bureau/stock/inventaire"]').text()).toBe('Faire l’inventaire')
+    await vi.waitFor(() => expect(stock.text()).toContain('Courses buvette · Julie R.'))
+  })
+
   it('offers to try again when the stock cannot be read', async () => {
     mockApi('/api/board/stock', { handler: () => apiResponse(503, {}) })
 
-    const stock = await mountSuspended(StockPage, { route: '/bureau/stock' })
+    const stock = await mountPage('/bureau/stock')
 
     await vi.waitFor(() => expect(stock.text()).toContain('Réessayer'))
   })

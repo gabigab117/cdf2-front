@@ -1019,7 +1019,8 @@ export interface paths {
         /**
          * Read the stock
          * @description Every item, by category then by name, with its quantity, whether it is
-         *     low and how full its bar is; the figures of the chips; the latest stocktake.
+         *     low and how full its bar is; the figures of the chips; the latest stocktake;
+         *     the latest operations.
          */
         get: operations["stock_api_read_stock"];
         put?: never;
@@ -1086,6 +1087,48 @@ export interface paths {
          *     Out, what is left when less than a step is.
          */
         post: operations["stock_api_adjust_item"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/stock/operations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record an entry or an exit of the stock
+         * @description « Entrée ou sortie »: several items in or out at once, for one reason,
+         *     recorded with the member. An exit never takes more than is in stock.
+         */
+        post: operations["stock_api_record_entry_or_exit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/stock/stocktakes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record a stocktake
+         * @description « Faire l'inventaire »: each difference between what was counted and
+         *     what the stock held becomes a movement of a single stocktake.
+         */
+        post: operations["stock_api_take_stock"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3489,6 +3532,16 @@ export interface components {
             direction: components["schemas"]["StockDirection"];
         };
         /**
+         * StockCountIn
+         * @description What a stocktake counted of an item.
+         */
+        StockCountIn: {
+            /** Counted */
+            counted: number | string;
+            /** Item */
+            item: number;
+        };
+        /**
          * StockCountsOut
          * @description How many items the stock holds, in all, low, and by category: the chips.
          */
@@ -3567,6 +3620,85 @@ export interface components {
             unit: string;
         };
         /**
+         * StockLineIn
+         * @description A line of an entry or an exit: an item, and how much of it.
+         */
+        StockLineIn: {
+            /** Item */
+            item: number;
+            /** Quantity */
+            quantity: number | string;
+        };
+        /**
+         * StockMovementItemOut
+         * @description The item a movement changed, as the summary of its operation names it.
+         */
+        StockMovementItemOut: {
+            /** Id */
+            id: number;
+            /** Name */
+            name: string;
+            /** Unit */
+            unit: string;
+        };
+        /**
+         * StockMovementOut
+         * @description What an operation changed of one item.
+         */
+        StockMovementOut: {
+            /** Delta */
+            delta: string;
+            item: components["schemas"]["StockMovementItemOut"];
+        };
+        /**
+         * StockOperationIn
+         * @description « Entrée ou sortie »: several items in or out at once, for one reason,
+         *     every key required. A purchase comes in, a consumption goes out, an
+         *     adjustment either way.
+         */
+        StockOperationIn: {
+            direction: components["schemas"]["StockDirection"];
+            /** Event */
+            event: number | null;
+            /** Label */
+            label: string;
+            /** Lines */
+            lines: components["schemas"]["StockLineIn"][];
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "purchase" | "consumption" | "adjustment";
+        };
+        /**
+         * StockOperationOut
+         * @description An operation of the stock, as « Mouvements récents » tells it.
+         */
+        StockOperationOut: {
+            author: components["schemas"]["BoardMemberOut"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            event: components["schemas"]["StockEventOut"] | null;
+            /** Id */
+            id: number;
+            /** Label */
+            label: string;
+            /** Movements */
+            movements: components["schemas"]["StockMovementOut"][];
+            reason: components["schemas"]["StockOperationReason"];
+        };
+        /**
+         * StockOperationReason
+         * @description Why the stock moved. A purchase comes in, a consumption goes out, an
+         *     adjustment goes either way; a stocktake and a delivery have their own
+         *     screens.
+         * @enum {string}
+         */
+        StockOperationReason: "purchase" | "consumption" | "stocktake" | "delivery" | "adjustment";
+        /**
          * StockOverviewOut
          * @description The stock, item by item, and its figures: a bounded aggregate (A7).
          */
@@ -3575,6 +3707,8 @@ export interface components {
             /** Items */
             items: components["schemas"]["StockedItemOut"][];
             last_stocktake: components["schemas"]["LastStocktakeOut"] | null;
+            /** Recent Operations */
+            recent_operations: components["schemas"]["StockOperationOut"][];
         };
         /**
          * StockedItemOut
@@ -3588,6 +3722,19 @@ export interface components {
             low: boolean;
             /** Quantity */
             quantity: string;
+        };
+        /**
+         * StocktakeIn
+         * @description « Faire l'inventaire »: the items counted, every key required. An item
+         *     left out is not counted.
+         */
+        StocktakeIn: {
+            /** Counts */
+            counts: components["schemas"]["StockCountIn"][];
+            /** Event */
+            event: number | null;
+            /** Label */
+            label: string;
         };
         /**
          * SwornStatementIn
@@ -7717,6 +7864,126 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    stock_api_record_entry_or_exit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockOperationIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOperationOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    stock_api_take_stock: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StocktakeIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOperationOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

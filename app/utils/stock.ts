@@ -1,9 +1,13 @@
 import type { LocationQuery, LocationQueryRaw, RouteLocationRaw } from 'vue-router'
 import type { components } from '~/types/api'
 
+type StockDirection = components['schemas']['StockDirection']
 type StockItemCategory = components['schemas']['StockItemCategory']
 type StockItemIn = components['schemas']['StockItemIn']
+type StockOperationIn = components['schemas']['StockOperationIn']
+type StockOperationReason = components['schemas']['StockOperationReason']
 type StockItemOut = components['schemas']['StockItemOut']
+type StockLineIn = components['schemas']['StockLineIn']
 type StockedItemOut = components['schemas']['StockedItemOut']
 
 /** The Stock page: the goods of the bar and the games, item by item. */
@@ -11,6 +15,12 @@ export const STOCK_PATH = '/bureau/stock'
 
 /** The page of a new item. */
 export const NEW_ITEM_PATH = `${STOCK_PATH}/articles/nouveau`
+
+/** « Entrée ou sortie »: several items in or out at once. */
+export const OPERATION_PATH = `${STOCK_PATH}/entree-sortie`
+
+/** « Faire l’inventaire »: what each item counts. */
+export const STOCKTAKE_PATH = `${STOCK_PATH}/inventaire`
 
 /** The page of an item, to correct or delete it. */
 export function itemPath(id: number): string {
@@ -27,6 +37,21 @@ export const STOCK_CATEGORIES: Readonly<Record<StockItemCategory, { label: strin
 
 /** The categories, in the order of the chips. */
 export const STOCK_CATEGORY_VALUES = Object.keys(STOCK_CATEGORIES) as StockItemCategory[]
+
+/** Why the stock moved, as an operation is named when it has no label. */
+export const STOCK_REASONS: Readonly<Record<StockOperationReason, string>> = {
+  purchase: 'Achat',
+  consumption: 'Consommation',
+  stocktake: 'Inventaire',
+  delivery: 'Réception de commande',
+  adjustment: 'Ajustement',
+}
+
+/** The reasons of « Entrée ou sortie » each way goes with, the first chosen by default. */
+export const ENTRY_REASONS: Readonly<Record<StockDirection, readonly StockOperationIn['reason'][]>> = {
+  in: ['purchase', 'adjustment'],
+  out: ['consumption', 'adjustment'],
+}
 
 // The word of the address that keeps the items below their threshold.
 const LOW = 'bas'
@@ -59,6 +84,22 @@ export function stockQuery({ filter, search }: StockQuery): LocationQueryRaw {
 
 /** The items below their threshold, where the bell leads. */
 export const LOW_STOCK_LOCATION: RouteLocationRaw = { path: STOCK_PATH, query: { filtre: LOW } }
+
+/** A line of an entry, an exit or an order: an item, empty until chosen, and its quantity as typed. */
+export interface LineFields {
+  item: number | ''
+  quantity: string
+}
+
+/** A line to fill. */
+export function newLine(): LineFields {
+  return { item: '', quantity: '' }
+}
+
+/** The lines to send: the item a select requires, the quantity as the API reads it. */
+export function linesPayload(lines: readonly LineFields[]): StockLineIn[] {
+  return lines.map(line => ({ item: Number(line.item), quantity: amountInput(line.quantity) ?? '' }))
+}
 
 // A name as a search compares it: without case or accents, « cafe » finds « Café ».
 function searchable(text: string): string {
@@ -151,4 +192,12 @@ export const ITEM_FIELD_LABELS: Readonly<Record<string, string>> = {
 /** The name of a field of the item form, before an error the form does not show under it. */
 export function itemFieldLabel(path: string): string {
   return ITEM_FIELD_LABELS[path] ?? path
+}
+
+/**
+ * The name of a field of an entry or an exit, before an error the form does
+ * not show under it: its way is a choice of two buttons, which has no place for one.
+ */
+export function operationFieldLabel(path: string): string {
+  return path === 'direction' ? 'Sens' : path
 }

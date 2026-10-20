@@ -4,12 +4,15 @@ import type { Written } from '~/utils/api-errors'
 type StockDirection = components['schemas']['StockDirection']
 type StockItemIn = components['schemas']['StockItemIn']
 type StockItemOut = components['schemas']['StockItemOut']
+type StockOperationIn = components['schemas']['StockOperationIn']
+type StockOperationOut = components['schemas']['StockOperationOut']
+type StocktakeIn = components['schemas']['StocktakeIn']
 
 /**
  * Writes the stock. Each write gives what it wrote, or the errors to show, and
- * reads the bell again, which lists the items below their threshold. An item
- * written leads back to the Stock page, which reads the stock as it mounts; a
- * click on − or +, made on that page, reads it again.
+ * reads the bell again, which lists the items below their threshold. A write
+ * made on another page leads back to the Stock page, which reads the stock as
+ * it mounts; a click on − or +, made on that page, reads it again.
  */
 export function useStockWrites() {
   const api = useApi()
@@ -55,5 +58,15 @@ export function useStockWrites() {
     return failure
   }
 
-  return { addItem, changeItem, deleteItem, adjustItem }
+  /** « Entrée ou sortie »: several items in or out at once, for one reason. */
+  function recordOperation(payload: StockOperationIn): Promise<Written<StockOperationOut>> {
+    return written(formWrite(api.POST('/api/board/stock/operations', { body: payload })))
+  }
+
+  /** « Faire l’inventaire »: what each item counted, an item left out not counted. */
+  function recordStocktake(payload: StocktakeIn): Promise<Written<StockOperationOut>> {
+    return written(formWrite(api.POST('/api/board/stock/stocktakes', { body: payload })))
+  }
+
+  return { addItem, changeItem, deleteItem, adjustItem, recordOperation, recordStocktake }
 }

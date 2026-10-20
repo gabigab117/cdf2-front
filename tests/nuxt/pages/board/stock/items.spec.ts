@@ -1,20 +1,15 @@
 import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
-import type { VueWrapper } from '@vue/test-utils'
 import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import ItemPage from '~/pages/board/stock/items/[id].vue'
 import NewItemPage from '~/pages/board/stock/items/new.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
+import { field } from '../../../helpers/form'
 import { stockItem, stockOverview } from '../../../helpers/stock'
 
 const { navigateToMock, showErrorMock } = vi.hoisted(() => ({ navigateToMock: vi.fn(), showErrorMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
 mockNuxtImport('showError', () => showErrorMock)
-
-function field(page: VueWrapper, label: string) {
-  const id = page.findAll('label').find(candidate => candidate.text().startsWith(label))!.attributes('for')
-  return page.get(`#${id}`)
-}
 
 describe('the pages of an item of the stock', () => {
   beforeEach(() => {

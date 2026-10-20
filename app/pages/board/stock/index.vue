@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { CircleAlert } from '@lucide/vue'
+import { ArrowRightLeft, CircleAlert, ClipboardCheck } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { StockFilter, StockQuery } from '~/utils/stock'
 
 type StockDirection = components['schemas']['StockDirection']
 
-definePageMeta({ path: '/bureau/stock' })
+// « Entrée ou sortie » stands in the top bar, in place of « Nouveau », as in the mockup.
+definePageMeta({ path: '/bureau/stock', topBarAction: true })
 
 useHead({ title: 'Stock' })
 
@@ -22,6 +23,7 @@ const { writtenDay } = useDateFormat()
 
 const loading = computed(() => status.value === 'pending')
 const items = computed(() => shownItems(stock.value?.items ?? [], query.value))
+const recent = computed(() => stock.value?.recent_operations ?? [])
 const emptyText = computed(() =>
   query.value.filter !== null || query.value.search !== ''
     ? 'Aucun article ne correspond à cette recherche.'
@@ -85,11 +87,33 @@ async function adjust(id: number, direction: StockDirection): Promise<void> {
 
 <template>
   <div class="flex flex-col gap-5.5">
-    <div class="flex flex-col gap-1.5">
-      <BoardPageTitle>Stock</BoardPageTitle>
-      <p class="text-lead text-argent-600">
-        {{ subtitle }}
-      </p>
+    <Teleport
+      defer
+      to="#board-top-bar-action"
+    >
+      <BoardTopBarButton
+        :icon="ArrowRightLeft"
+        label="Entrée ou sortie"
+        :to="OPERATION_PATH"
+      />
+    </Teleport>
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div class="flex flex-col gap-1.5">
+        <BoardPageTitle>Stock</BoardPageTitle>
+        <p class="text-lead text-argent-600">
+          {{ subtitle }}
+        </p>
+      </div>
+      <UiButton
+        variant="secondary"
+        :to="STOCKTAKE_PATH"
+      >
+        <ClipboardCheck
+          :size="18"
+          aria-hidden="true"
+        />
+        Faire l’inventaire
+      </UiButton>
     </div>
     <div class="flex flex-wrap items-center justify-between gap-3">
       <nav
@@ -127,29 +151,37 @@ async function adjust(id: number, direction: StockDirection): Promise<void> {
       :message="error.message"
       @retry="refresh()"
     />
-    <UiCard
+    <div
       v-else
-      flush
-      :aria-busy="loading || undefined"
+      class="flex flex-wrap items-start gap-5"
     >
-      <StockTable
-        v-if="items.length > 0"
-        :items
-        :sending
-        @adjust="adjust"
-      />
-      <UiEmptyState v-else-if="!loading">
-        {{ emptyText }}
-      </UiEmptyState>
-      <div class="flex flex-wrap items-center justify-between gap-3 border-t border-argent-100 px-5 py-3.5 text-note text-argent-600">
-        <span>Les boutons − et + enregistrent un mouvement daté avec votre nom.</span>
-        <NuxtLink
-          :to="NEW_ITEM_PATH"
-          class="font-medium text-azur-600 hover:text-azur-700"
-        >
-          Ajouter un article
-        </NuxtLink>
+      <UiCard
+        flush
+        class="min-w-0 flex-1 basis-160"
+        :aria-busy="loading || undefined"
+      >
+        <StockTable
+          v-if="items.length > 0"
+          :items
+          :sending
+          @adjust="adjust"
+        />
+        <UiEmptyState v-else-if="!loading">
+          {{ emptyText }}
+        </UiEmptyState>
+        <div class="flex flex-wrap items-center justify-between gap-3 border-t border-argent-100 px-5 py-3.5 text-note text-argent-600">
+          <span>Les boutons − et + enregistrent un mouvement daté avec votre nom.</span>
+          <NuxtLink
+            :to="NEW_ITEM_PATH"
+            class="font-medium text-azur-600 hover:text-azur-700"
+          >
+            Ajouter un article
+          </NuxtLink>
+        </div>
+      </UiCard>
+      <div class="flex min-w-0 flex-1 basis-85 flex-col gap-5 md:max-w-100">
+        <StockRecentOperations :operations="recent" />
       </div>
-    </UiCard>
+    </div>
   </div>
 </template>

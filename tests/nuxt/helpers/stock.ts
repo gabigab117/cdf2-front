@@ -3,6 +3,7 @@ import type { components } from '~/types/api'
 type LowStockItemOut = components['schemas']['LowStockItemOut']
 type PendingOut = components['schemas']['PendingOut']
 type StockItemOut = components['schemas']['StockItemOut']
+type StockOperationOut = components['schemas']['StockOperationOut']
 type StockedItemOut = components['schemas']['StockedItemOut']
 type StockOverviewOut = components['schemas']['StockOverviewOut']
 
@@ -50,6 +51,24 @@ export function stockOverview(changes: Partial<StockOverviewOut> = {}): StockOve
     ],
     counts: { total: 4, low: 2, drinks: 3, food: 1, supplies: 0, lotto_raffle: 0 },
     last_stocktake: null,
+    recent_operations: [],
+    ...changes,
+  }
+}
+
+/** The shopping of the bar for the brocante, by Julie, as « Mouvements récents » lists it. */
+export function stockOperation(changes: Partial<StockOperationOut> = {}): StockOperationOut {
+  return {
+    id: 12,
+    reason: 'purchase',
+    label: 'Courses buvette',
+    event: { id: 3, title: 'Brocante' },
+    author: { id: 2, email: 'julie.roux@example.test', first_name: 'Julie', last_name: 'Roux' },
+    created_at: '2026-09-12T16:00:00Z',
+    movements: [
+      { item: { id: 1, name: 'Canettes de soda 33 cl', unit: '' }, delta: '288.00' },
+      { item: { id: 2, name: 'Bouteilles d’eau 50 cl', unit: '' }, delta: '120.00' },
+    ],
     ...changes,
   }
 }
