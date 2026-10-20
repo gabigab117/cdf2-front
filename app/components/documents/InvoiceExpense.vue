@@ -26,7 +26,6 @@ const MODES: ReadonlyArray<{ value: Mode, label: string }> = [
 const SHOWN: ReadonlySet<string> = new Set(['paid_on', 'label', 'category', 'payment_method', 'advanced_by', 'entry'])
 const FIELD_LABELS: Readonly<Record<string, string>> = { paid_on: 'Payée le', entry: 'Ligne' }
 
-const now = useNow()
 const session = useSessionStore()
 const { amount } = useMoneyFormat()
 const { calendarNumeric } = useDateFormat()
@@ -34,7 +33,7 @@ const { data: members } = useBoardMembers()
 const { data: missing } = useMissingReceipts()
 const { createInvoiceExpense, attachInvoice } = useTreasuryWrites()
 
-const today = computed(() => parisDate(now.value))
+const today = useToday()
 const categories = categoryOptions('expense')
 const paymentMethods = paymentMethodOptions('expense')
 
@@ -68,10 +67,6 @@ watch(missing, (found) => {
   entry.value ??= found?.items.find(line => line.amount === document.amount)?.id ?? null
 }, { immediate: true })
 
-function fieldErrors(path: string): readonly string[] | undefined {
-  return errors.value?.fields[path]
-}
-
 function fieldLabel(path: string): string {
   return FIELD_LABELS[path] ?? entryFieldLabel(path)
 }
@@ -91,8 +86,7 @@ async function submit(): Promise<void> {
   pending.value = false
   if (result.errors) {
     errors.value = placeErrors(result.errors, SHOWN, fieldLabel)
-    await nextTick()
-    form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+    await focusErrors(form)
     return
   }
   errors.value = null
@@ -114,105 +108,91 @@ async function submit(): Promise<void> {
       :options="MODES"
       label="Ligne de la dépense"
     />
-    <p
+    <UiAlertText
       v-if="errors?.form.length"
-      role="alert"
       tabindex="-1"
-      class="text-sm font-semibold text-ambre-800"
     >
       {{ errors.form.join(' ') }}
-    </p>
+    </UiAlertText>
     <template v-if="mode === 'new'">
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Payée le"
-        :errors="fieldErrors('paid_on')"
+        :errors="errors?.fields.paid_on"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="paidOn"
           type="date"
           :max="today"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Libellé"
-        :errors="fieldErrors('label')"
+        :errors="errors?.fields.label"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="label"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Catégorie"
-        :errors="fieldErrors('category')"
+        :errors="errors?.fields.category"
       >
         <UiSelect
-          :id
+          v-bind="control"
           v-model="category"
           :options="categories"
           placeholder="Choisir une catégorie"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Moyen de paiement"
-        :errors="fieldErrors('payment_method')"
+        :errors="errors?.fields.payment_method"
       >
         <UiSelect
-          :id
+          v-bind="control"
           v-model="paymentMethod"
           :options="paymentMethods"
           placeholder="Choisir un moyen de paiement"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
         v-if="paymentMethod === 'advance'"
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Avancé par"
-        :errors="fieldErrors('advanced_by')"
+        :errors="errors?.fields.advanced_by"
       >
         <UiSelect
-          :id
+          v-bind="control"
           v-model="advancedBy"
           :options="advancers"
           placeholder="Choisir un membre"
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
     </template>
     <template v-else>
       <UiField
         v-if="expenses.length > 0"
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Dépense sans justificatif"
         help="La facture devient son justificatif, payée à sa date si elle n’en dit pas d’autre."
-        :errors="fieldErrors('entry')"
+        :errors="errors?.fields.entry"
       >
         <UiSelect
-          :id
+          v-bind="control"
           v-model="entry"
           :options="expenses"
           placeholder="Choisir une dépense"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <p

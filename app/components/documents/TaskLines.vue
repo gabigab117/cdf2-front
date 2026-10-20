@@ -39,34 +39,30 @@ function lineErrors(index: number, field: string): readonly string[] | undefined
       class="flex flex-wrap items-start gap-2"
     >
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         :label="`Tâche ${index + 1}`"
         hidden-label
         class="min-w-40 flex-1"
         :errors="lineErrors(index, 'title')"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="task.title"
           placeholder="Valider le devis sono"
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <div class="flex items-start gap-2">
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           :label="`Assignée à (tâche ${index + 1})`"
           hidden-label
           class="w-40"
           :errors="lineErrors(index, 'assignee')"
         >
           <UiSelect
-            :id
+            v-bind="control"
             v-model="task.assignee"
             :options="assignees"
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiIconButton

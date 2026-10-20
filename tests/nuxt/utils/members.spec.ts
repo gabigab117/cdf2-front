@@ -66,3 +66,10 @@ describe('the first name of a member', () => {
     expect(memberFirstName({ first_name: '', last_name: '', email: 'julie.roux@example.test' })).toBe('julie.roux@example.test')
   })
 })
+
+describe('a member within a sentence', () => {
+  it('names a member in passing, or a former one once the account is deleted', () => {
+    expect(memberMention({ first_name: 'Julie', last_name: 'Roux', email: 'julie.roux@example.test' })).toBe('Julie R.')
+    expect(memberMention(null)).toBe('un ancien membre')
+  })
+})

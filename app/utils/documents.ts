@@ -11,10 +11,10 @@ type DocumentItemOut = components['schemas']['DocumentItemOut']
 type DocumentOut = components['schemas']['DocumentOut']
 type SwornStatementIn = components['schemas']['SwornStatementIn']
 
-/** The Documents page, where the board deposits, reviews and finds its documents. */
+/** The Documents page, where the board uploads, reviews and finds its documents. */
 export const DOCUMENTS_PATH = '/bureau/documents'
 
-/** Where a document is deposited from the « Nouveau » menu, or from an event. */
+/** Where a document is uploaded from the « Nouveau » menu, or from an event. */
 export const NEW_DOCUMENT_PATH = `${DOCUMENTS_PATH}/nouveau`
 
 /** Where a member attests a purchase whose receipt was lost (D14). */
@@ -48,8 +48,7 @@ export const DOCUMENT_CATEGORIES: Readonly<Record<DocumentCategory, CategoryLook
   misc: { label: 'Divers', chip: 'Divers', one: 'document divers', many: 'documents divers', slug: 'divers', tone: 'mist', icon: File },
 }
 
-// Object.keys() types its keys as strings: they are those of the record.
-const CATEGORIES = Object.keys(DOCUMENT_CATEGORIES) as DocumentCategory[]
+const CATEGORIES = keysOf(DOCUMENT_CATEGORIES)
 
 /** The categories to choose from, in the order of the chips. */
 export const DOCUMENT_CATEGORY_OPTIONS: readonly Option<DocumentCategory>[] = CATEGORIES.map(
@@ -58,6 +57,9 @@ export const DOCUMENT_CATEGORY_OPTIONS: readonly Option<DocumentCategory>[] = CA
 
 /** What a document without an event belongs to, as the mockup names it. */
 export const NO_EVENT_LABEL = 'Fonctionnement'
+
+/** The choice of no event in a document's forms. */
+export const NO_EVENT_CHOICE = `${NO_EVENT_LABEL} (aucun événement)`
 
 /** What the address of the Documents page holds. */
 export interface DocumentsQuery {
@@ -78,14 +80,12 @@ const TO_REVIEW = 'a-verifier'
  * A value the page does not know is left out.
  */
 export function parseDocumentsQuery(query: LocationQuery): DocumentsQuery {
-  const document = Number(query.document)
-  const page = Number(query.page)
   return {
-    document: Number.isInteger(document) && document > 0 ? document : null,
+    document: queryId(query.document),
     category: CATEGORIES.find(category => DOCUMENT_CATEGORIES[category].slug === query.categorie) ?? null,
     toReview: query.statut === TO_REVIEW,
     search: typeof query.recherche === 'string' ? query.recherche : '',
-    page: Number.isInteger(page) && page > 1 ? page : 1,
+    page: queryPage(query.page),
   }
 }
 
@@ -96,7 +96,7 @@ export function documentsQuery({ document, category, toReview, search, page }: D
     categorie: category === null ? undefined : DOCUMENT_CATEGORIES[category].slug,
     statut: toReview ? TO_REVIEW : undefined,
     recherche: search || undefined,
-    page: page > 1 ? String(page) : undefined,
+    page: pageParam(page),
   }
 }
 
@@ -109,7 +109,7 @@ export function documentLocation(id: number): RouteLocationRaw {
 export const TO_REVIEW_LOCATION: RouteLocationRaw = { path: DOCUMENTS_PATH, query: { statut: TO_REVIEW } }
 
 /** « 1 facture », « 2 comptes rendus ». */
-export function categoryCount(category: DocumentCategory, count: number): string {
+function categoryCount(category: DocumentCategory, count: number): string {
   const { one, many } = DOCUMENT_CATEGORIES[category]
   return `${count} ${count > 1 ? many : one}`
 }
@@ -126,7 +126,7 @@ export function categoryCounts(counts: DocumentCountsOut): string {
 const FEMININE: ReadonlySet<DocumentCategory> = new Set(['invoice', 'order'])
 
 /** The tasks the minutes list, or none for another document. */
-export function listedTasks(document: Pick<DocumentOut, 'category' | 'extracted'>): number {
+function listedTasks(document: Pick<DocumentOut, 'category' | 'extracted'>): number {
   return document.category === 'minutes' ? document.extracted.tasks.length : 0
 }
 
@@ -137,7 +137,7 @@ export function listedTasks(document: Pick<DocumentOut, 'category' | 'extracted'
 export function validationText(document: DocumentOut): string {
   const validated = FEMININE.has(document.category) ? 'Validée' : 'Validé'
   if (document.source === 'v1_import') return `${validated} · repris de l’ancien site`
-  const who = document.validated_by ? memberShortName(document.validated_by) : 'un ancien membre'
+  const who = memberMention(document.validated_by)
   const tasks = listedTasks(document)
   const created = tasks > 1 ? ` · ${tasks} tâches créées` : tasks === 1 ? ' · 1 tâche créée' : ''
   return `${validated} par ${who}${created}`
@@ -172,9 +172,9 @@ export function paymentAction(document: Pick<DocumentOut, 'category' | 'status' 
  * « facture-sono.pdf · déposé par Gabriel T. », « Attestation sur l’honneur ·
  * faite par Gabriel T. », or the file taken over from the v1.
  */
-export function depositLine(document: DocumentOut): string {
+export function uploadLine(document: DocumentOut): string {
   if (document.source === 'v1_import') return `${document.original_name} · repris de l’ancien site`
-  const who = document.uploaded_by ? memberShortName(document.uploaded_by) : 'un ancien membre'
+  const who = memberMention(document.uploaded_by)
   if (document.source === 'sworn_statement') return `Attestation sur l’honneur · faite par ${who}`
   return `${document.original_name} · déposé par ${who}`
 }
@@ -183,11 +183,6 @@ export function depositLine(document: DocumentOut): string {
 export function documentKind(document: Pick<DocumentItemOut, 'category' | 'source'>): string {
   const label = DOCUMENT_CATEGORIES[document.category].label
   return document.source === 'sworn_statement' ? `${label} · attestation` : label
-}
-
-/** The page of a sworn statement, for the event the deposit comes from. */
-export function statementLocation(event: number | null): RouteLocationRaw {
-  return event === null ? { path: STATEMENT_PATH } : { path: STATEMENT_PATH, query: { evenement: String(event) } }
 }
 
 /** What the form of a sworn statement edits: the amount as typed, « 23,40 ». */

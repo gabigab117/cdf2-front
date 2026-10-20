@@ -9,17 +9,13 @@ useHead({ title: 'Nouveau document' })
 
 const BREADCRUMB = [{ label: 'Documents', to: DOCUMENTS_PATH }, { label: 'Nouveau document' }]
 
-// Deposited from an event, the document belongs to it: `?evenement=12`.
+// Uploaded from an event, the document belongs to it: `?evenement=12`.
 const route = useRoute()
-const event = computed(() => {
-  const id = Number(route.query.evenement)
-  return Number.isInteger(id) && id > 0 ? id : null
-})
+const event = computed(() => queryId(route.query.evenement))
 
-// The document deposited, which now awaits the board, opens in the Documents
+// The document uploaded, which now awaits the board, opens in the Documents
 // page, to complete and validate it.
 async function open(document: DocumentOut): Promise<void> {
-  void refreshBoardOverview()
   await navigateTo(documentLocation(document.id))
 }
 </script>

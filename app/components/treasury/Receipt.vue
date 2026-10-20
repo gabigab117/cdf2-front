@@ -18,7 +18,7 @@ const viewing = ref(false)
 const pending = ref(false)
 const failure = ref<string | null>(null)
 
-const statement = computed(() => statementLocation(entry.event?.id ?? null))
+const statement = computed(() => eventLocation(STATEMENT_PATH, entry.event?.id ?? null))
 
 async function picked(event: Event): Promise<void> {
   const input = event.target as HTMLInputElement

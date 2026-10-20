@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { CircleAlert } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
 import type { LineFields } from '~/utils/stock'
@@ -44,8 +43,7 @@ async function save(): Promise<void> {
   }
   const shown = new Set(fields.value.flatMap((_line, index) => [`lines.${index}.item`, `lines.${index}.quantity`]))
   errors.value = placeErrors(result.errors, shown, path => path)
-  await nextTick()
-  form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+  await focusErrors(form)
 }
 </script>
 
@@ -55,12 +53,9 @@ async function save(): Promise<void> {
     class="flex flex-col gap-3"
     @submit.prevent="save"
   >
-    <UiCallout
+    <UiAlert
       v-if="errors?.form.length"
-      tone="ambre"
-      role="alert"
       tabindex="-1"
-      :icon="CircleAlert"
     >
       <p
         v-for="message in errors.form"
@@ -68,7 +63,7 @@ async function save(): Promise<void> {
       >
         {{ message }}
       </p>
-    </UiCallout>
+    </UiAlert>
     <StockLines
       v-model="fields"
       :items="itemOptions"

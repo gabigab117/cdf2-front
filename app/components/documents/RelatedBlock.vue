@@ -14,7 +14,7 @@ const count = computed(() => dashboard.value?.documents_count ?? 0)
 const more = computed(() =>
   count.value > 0
     ? { label: `Voir les ${count.value} documents`, to: { query: eventPageQuery({ tab: 'documents', page: 1 }) } }
-    : { label: 'Déposer un document', to: { path: NEW_DOCUMENT_PATH, query: { evenement: String(eventId) } } },
+    : { label: 'Déposer un document', to: eventLocation(NEW_DOCUMENT_PATH, eventId) },
 )
 </script>
 
@@ -42,7 +42,6 @@ const more = computed(() =>
         >
           <FileText
             :size="17"
-            aria-hidden="true"
             class="shrink-0 text-argent-600"
           />
           <span class="min-w-0 flex-1 truncate">{{ document.title }}</span>

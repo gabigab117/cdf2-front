@@ -20,4 +20,9 @@ describe('what an address names', () => {
     expect(pageParam(2)).toBe('2')
     expect(pageParam(1)).toBeUndefined()
   })
+
+  it('names the event a page is opened for', () => {
+    expect(eventLocation('/bureau/documents/attestation', 12)).toEqual({ path: '/bureau/documents/attestation', query: { evenement: '12' } })
+    expect(eventLocation('/bureau/documents/attestation', null)).toEqual({ path: '/bureau/documents/attestation' })
+  })
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleAlert, Trash2 } from '@lucide/vue'
+import { Trash2 } from '@lucide/vue'
 import type { ComponentPublicInstance } from 'vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
@@ -24,8 +24,7 @@ const fields = ref<DocumentFields>(documentFields(document))
 const errors = ref<FormErrors | null>(null)
 const pending = ref(false)
 
-const events = useEventChoices()
-const eventOptions = computed(() => [{ value: null, label: `${NO_EVENT_LABEL} (aucun événement)` }, ...events.value])
+const eventOptions = useEventChoices(NO_EVENT_CHOICE)
 
 const form = useTemplateRef<HTMLFormElement>('form')
 const trigger = useTemplateRef<ComponentPublicInstance>('trigger')
@@ -63,18 +62,13 @@ const dateLabel = computed(() => (isOrder.value ? 'Commandé le' : isMinutes.val
 const issuerLabel = computed(() => (isInvoice.value || isOrder.value ? 'Fournisseur' : 'Émetteur'))
 const amountLabel = computed(() => (isInvoice.value ? 'Montant TTC' : 'Montant'))
 
-function fieldErrors(path: string): readonly string[] | undefined {
-  return errors.value?.fields[path]
-}
-
 async function submit(): Promise<void> {
   pending.value = true
   const result = await save(fields.value)
   pending.value = false
   if (result) {
     errors.value = placeErrors(result, shown.value, documentFieldLabel)
-    await nextTick()
-    form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+    await focusErrors(form)
     return
   }
   errors.value = null
@@ -92,12 +86,9 @@ async function deleteDocument(): Promise<void> {
     class="flex flex-col gap-4"
     @submit.prevent="submit"
   >
-    <UiCallout
+    <UiAlert
       v-if="errors?.form.length"
-      tone="ambre"
-      role="alert"
       tabindex="-1"
-      :icon="CircleAlert"
     >
       <p
         v-for="message in errors.form"
@@ -105,195 +96,169 @@ async function deleteDocument(): Promise<void> {
       >
         {{ message }}
       </p>
-    </UiCallout>
+    </UiAlert>
     <UiField
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Catégorie"
-      :errors="fieldErrors('category')"
+      :errors="errors?.fields.category"
     >
       <UiSelect
-        :id
+        v-bind="control"
         v-model="fields.category"
         :options="DOCUMENT_CATEGORY_OPTIONS"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <UiField
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Titre"
-      :errors="fieldErrors('title')"
+      :errors="errors?.fields.title"
     >
       <UiInput
-        :id
+        v-bind="control"
         v-model="fields.title"
         required
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <UiField
       v-if="!isMinutes"
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       :label="issuerLabel"
       optional
-      :errors="fieldErrors('issuer')"
+      :errors="errors?.fields.issuer"
     >
       <UiInput
-        :id
+        v-bind="control"
         v-model="fields.issuer"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <UiField
       v-if="isInvoice"
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="N° de facture"
       optional
-      :errors="fieldErrors('reference')"
+      :errors="errors?.fields.reference"
     >
       <UiInput
-        :id
+        v-bind="control"
         v-model="fields.reference"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <div class="grid grid-cols-2 gap-4">
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         :label="dateLabel"
         optional
-        :errors="fieldErrors('document_date')"
+        :errors="errors?.fields.document_date"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.documentDate"
           type="date"
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
         v-if="isInvoice"
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Échéance"
         optional
-        :errors="fieldErrors('due_date')"
+        :errors="errors?.fields.due_date"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.dueDate"
           type="date"
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
         v-if="isInvoice"
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Payée le"
         optional
-        :errors="fieldErrors('paid_on')"
+        :errors="errors?.fields.paid_on"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.paidOn"
           type="date"
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
         v-if="isOrder"
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Livraison prévue"
         optional
-        :errors="fieldErrors('extracted.delivery_date')"
+        :errors="errors?.fields['extracted.delivery_date']"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.deliveryDate"
           type="date"
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
         v-if="!isMinutes"
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         :label="amountLabel"
         optional
-        :errors="fieldErrors('amount')"
+        :errors="errors?.fields.amount"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.amount"
           inputmode="decimal"
           placeholder="0,00"
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
     </div>
     <UiField
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Événement"
-      :errors="fieldErrors('event')"
+      :errors="errors?.fields.event"
     >
       <UiSelect
-        :id
+        v-bind="control"
         v-model="fields.event"
         :options="eventOptions"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <UiField
       v-if="isOrder"
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Articles"
       optional
-      :errors="fieldErrors('extracted.items')"
+      :errors="errors?.fields['extracted.items']"
     >
       <UiTextarea
-        :id
+        v-bind="control"
         v-model="fields.items"
         rows="2"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <UiField
       v-if="isMinutes || isMisc"
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Résumé"
       optional
-      :errors="fieldErrors('extracted.abstract')"
+      :errors="errors?.fields['extracted.abstract']"
     >
       <UiTextarea
-        :id
+        v-bind="control"
         v-model="fields.abstract"
         rows="3"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <UiField
       v-if="isMinutes"
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Décisions"
       optional
       help="Une décision par ligne."
-      :errors="fieldErrors('extracted.decisions')"
+      :errors="errors?.fields['extracted.decisions']"
     >
       <UiTextarea
-        :id
+        v-bind="control"
         v-model="fields.decisions"
         rows="3"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <DocumentsTaskLines
@@ -303,31 +268,27 @@ async function deleteDocument(): Promise<void> {
     />
     <UiField
       v-if="isMisc"
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Date repérée"
       optional
       help="Telle que le document l’écrit : « 31 oct. · 15 h 30 – 17 h 00 »."
-      :errors="fieldErrors('extracted.key_date')"
+      :errors="errors?.fields['extracted.key_date']"
     >
       <UiInput
-        :id
+        v-bind="control"
         v-model="fields.keyDate"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <UiField
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Remarque"
       optional
-      :errors="fieldErrors('note')"
+      :errors="errors?.fields.note"
     >
       <UiTextarea
-        :id
+        v-bind="control"
         v-model="fields.note"
         rows="2"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <div class="flex flex-wrap items-center gap-2">

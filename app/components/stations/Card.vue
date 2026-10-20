@@ -131,13 +131,9 @@ async function removeVolunteer(id: number): Promise<void> {
       >
         Personne pour l’instant.
       </p>
-      <p
-        v-if="removalFailure"
-        role="alert"
-        class="text-sm font-semibold text-ambre-800"
-      >
+      <UiAlertText v-if="removalFailure">
         {{ removalFailure }}
-      </p>
+      </UiAlertText>
       <form
         class="flex flex-wrap items-center gap-2"
         @submit.prevent="addVolunteer"

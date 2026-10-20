@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { CircleAlert } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
 import type { StatementFields } from '~/utils/documents'
@@ -19,8 +18,6 @@ const emit = defineEmits<{ made: [document: DocumentOut] }>()
 const SHOWN: ReadonlySet<string> = new Set(['supplier', 'purchase_date', 'purchase', 'amount', 'event'])
 
 const { attestPurchase } = useDocumentWrites()
-const events = useEventChoices()
-const now = useNow()
 
 const fields = ref<StatementFields>({ supplier: '', purchaseDate: '', purchase: '', amount: '', event })
 const errors = ref<FormErrors | null>(null)
@@ -28,13 +25,9 @@ const pending = ref(false)
 
 const form = useTemplateRef<HTMLFormElement>('form')
 
-const eventOptions = computed(() => [{ value: null, label: `${NO_EVENT_LABEL} (aucun événement)` }, ...events.value])
+const eventOptions = useEventChoices(NO_EVENT_CHOICE)
 // The calendar of the date field stops at today; the API refuses a purchase to come.
-const today = computed(() => parisDate(now.value))
-
-function fieldErrors(path: string): readonly string[] | undefined {
-  return errors.value?.fields[path]
-}
+const today = useToday()
 
 async function submit(): Promise<void> {
   pending.value = true
@@ -42,8 +35,7 @@ async function submit(): Promise<void> {
   pending.value = false
   if (result.errors) {
     errors.value = placeErrors(result.errors, SHOWN, statementFieldLabel)
-    await nextTick()
-    form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+    await focusErrors(form)
     return
   }
   errors.value = null
@@ -57,12 +49,9 @@ async function submit(): Promise<void> {
     class="flex flex-col gap-4"
     @submit.prevent="submit"
   >
-    <UiCallout
+    <UiAlert
       v-if="errors?.form.length"
-      tone="ambre"
-      role="alert"
       tabindex="-1"
-      :icon="CircleAlert"
     >
       <p
         v-for="message in errors.form"
@@ -70,80 +59,70 @@ async function submit(): Promise<void> {
       >
         {{ message }}
       </p>
-    </UiCallout>
+    </UiAlert>
     <UiField
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Fournisseur"
       help="Le magasin ou le vendeur, écrit en tête de l’attestation."
-      :errors="fieldErrors('supplier')"
+      :errors="errors?.fields.supplier"
     >
       <UiInput
-        :id
+        v-bind="control"
         v-model="fields.supplier"
         required
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <div class="flex flex-wrap items-start gap-4">
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Date de l’achat"
         class="w-full sm:w-56"
-        :errors="fieldErrors('purchase_date')"
+        :errors="errors?.fields.purchase_date"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.purchaseDate"
           type="date"
           :max="today"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
       <UiField
-        v-slot="{ id, describedby, invalid }"
+        v-slot="{ control }"
         label="Montant TTC"
         class="w-full sm:w-56"
-        :errors="fieldErrors('amount')"
+        :errors="errors?.fields.amount"
       >
         <UiInput
-          :id
+          v-bind="control"
           v-model="fields.amount"
           inputmode="decimal"
           placeholder="0,00"
           required
-          :aria-describedby="describedby"
-          :invalid
         />
       </UiField>
     </div>
     <UiField
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Ce qui a été acheté"
       help="En quelques mots : c’est aussi le titre du document."
-      :errors="fieldErrors('purchase')"
+      :errors="errors?.fields.purchase"
     >
       <UiInput
-        :id
+        v-bind="control"
         v-model="fields.purchase"
         required
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <UiField
-      v-slot="{ id, describedby, invalid }"
+      v-slot="{ control }"
       label="Événement"
-      :errors="fieldErrors('event')"
+      :errors="errors?.fields.event"
     >
       <UiSelect
-        :id
+        v-bind="control"
         v-model="fields.event"
         :options="eventOptions"
-        :aria-describedby="describedby"
-        :invalid
       />
     </UiField>
     <div class="flex gap-2">

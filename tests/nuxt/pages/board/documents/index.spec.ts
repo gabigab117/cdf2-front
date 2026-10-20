@@ -5,15 +5,12 @@ import DocumentsPage from '~/pages/board/documents/index.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
 import { boardDocument, documentItem } from '../../../helpers/documents'
 import { eventItem, julie, page } from '../../../helpers/events'
+import { readable } from '../../../helpers/text'
 
 const { navigateToMock } = vi.hoisted(() => ({ navigateToMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
 
 const COUNTS = { total: 3, invoice: 2, order: 1, minutes: 0, misc: 0 }
-
-function readable(text: string): string {
-  return text.replaceAll(' ', ' ').replaceAll(' ', ' ')
-}
 
 function mockList(items = [documentItem(), documentItem({ id: 22, title: 'Bon de commande — Bonbons', category: 'order', status: 'validated', event: null, amount: '214.60', date: '2026-09-25' })]) {
   mockApi('/api/board/documents', { method: 'GET', handler: () => apiResponse(200, page(items)) })

@@ -5,19 +5,18 @@ import type { components } from '~/types/api'
 type EventOut = components['schemas']['EventOut']
 
 // The « Documents » tab of an event: its documents, by page, each leading to
-// its panel in the Documents page, and the deposit of a new one for it.
+// its panel in the Documents page, and the upload of a new one for it.
 const { event, page } = defineProps<{
   event: EventOut
   /** The page of the documents the address asks for. */
   page: number
 }>()
 
-const { data, status, error, refresh } = useEventDocuments(event.id, () => page)
+const { data, pending: loading, error, refresh } = useEventDocuments(event.id, () => page)
 
 const documents = computed(() => data.value?.items ?? [])
 const pageCount = computed(() => Math.ceil((data.value?.count ?? 0) / DOCUMENTS_PAGE_SIZE))
-const loading = computed(() => status.value === 'pending')
-const deposit = computed(() => ({ path: NEW_DOCUMENT_PATH, query: { evenement: String(event.id) } }))
+const upload = eventLocation(NEW_DOCUMENT_PATH, event.id)
 
 function pageLocation(target: number) {
   return { query: eventPageQuery({ tab: 'documents', page: target }) }
@@ -28,7 +27,7 @@ function pageLocation(target: number) {
   <div class="flex max-w-4xl flex-col gap-5">
     <UiButton
       class="self-start"
-      :to="deposit"
+      :to="upload"
     >
       <Upload :size="18" />
       Déposer un document

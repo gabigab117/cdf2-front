@@ -5,10 +5,7 @@ import DocumentsOrderLines from '~/components/documents/OrderLines.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
 import { field } from '../../helpers/form'
 import { stockOrder, stockOverview } from '../../helpers/stock'
-
-function readable(text: string): string {
-  return text.replace(/[\u202F\u00A0]/g, ' ')
-}
+import { readable } from '../../helpers/text'
 
 function mockOrder(order = stockOrder()) {
   mockApi('/api/board/stock/orders/{document_id}', { method: 'GET', handler: () => apiResponse(200, order) }, { document_id: 21 })

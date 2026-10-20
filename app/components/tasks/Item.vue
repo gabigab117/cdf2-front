@@ -50,12 +50,8 @@ async function toggle(event: Event): Promise<void> {
         >{{ line }}</span>
       </span>
     </label>
-    <p
-      v-if="failure"
-      role="alert"
-      class="text-sm font-semibold text-ambre-800"
-    >
+    <UiAlertText v-if="failure">
       {{ failure }}
-    </p>
+    </UiAlertText>
   </div>
 </template>

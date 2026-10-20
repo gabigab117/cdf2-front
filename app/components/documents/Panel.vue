@@ -9,7 +9,7 @@ import type { DocumentFields } from '~/utils/documents'
 // expense of the treasury, which its panel creates (A18).
 const { id, startEditing = false } = defineProps<{
   id: number
-  /** Open on its form: the document just deposited, to complete. */
+  /** Open on its form: the document just uploaded, to complete. */
   startEditing?: boolean
 }>()
 
@@ -21,7 +21,7 @@ const emit = defineEmits<{
 }>()
 
 const { data: document, error, refresh } = useDocument(id)
-const { correctDocument, validateDocument, deleteDocument, downloadDocument } = useDocumentWrites()
+const { updateDocument, validateDocument, deleteDocument, downloadDocument } = useDocumentWrites()
 const { writtenDay } = useDateFormat()
 const now = useNow()
 
@@ -45,15 +45,15 @@ const validated = computed(() => {
   return `${validationText(document.value)}${created}`
 })
 
-async function correct(fields: DocumentFields): Promise<FormErrors | null> {
-  const result = await correctDocument(id, documentPayload(fields))
+async function update(fields: DocumentFields): Promise<FormErrors | null> {
+  const result = await updateDocument(id, documentPayload(fields))
   if (result.errors) return result.errors
   // The answer is the document as it now stands: no second reading.
   document.value = result.data
   return null
 }
 
-function corrected(): void {
+function updated(): void {
   editing.value = false
   emit('changed')
 }
@@ -99,7 +99,7 @@ async function download(): Promise<void> {
   <UiSidePanel
     v-if="document && look"
     :title="document.title"
-    :subtitle="depositLine(document)"
+    :subtitle="uploadLine(document)"
     @close="emit('close')"
   >
     <template #pill>
@@ -157,13 +157,9 @@ async function download(): Promise<void> {
         </UiButton>
       </template>
     </UiCallout>
-    <p
-      v-if="failure"
-      role="alert"
-      class="text-sm font-semibold text-ambre-800"
-    >
+    <UiAlertText v-if="failure">
       {{ failure }}
-    </p>
+    </UiAlertText>
     <DocumentsInvoiceExpense
       v-if="paying"
       :document
@@ -174,9 +170,9 @@ async function download(): Promise<void> {
     <DocumentsForm
       v-else-if="editing"
       :document
-      :save="correct"
+      :save="update"
       :remove
-      @saved="corrected"
+      @saved="updated"
       @cancel="editing = false"
       @deleted="emit('deleted')"
     />
@@ -215,7 +211,6 @@ async function download(): Promise<void> {
       </UiButton>
       <UiButton
         variant="secondary"
-        size="md"
         block
         @click="editing = true"
       >

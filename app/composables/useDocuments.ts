@@ -58,34 +58,11 @@ export function useEventDocuments(eventId: number, page: () => number) {
   )
 }
 
-/** The key of a document, as its panel reads it. */
-export function documentKey(id: number): string {
-  return `board:document:${id}`
-}
-
 /** A document, as its panel shows it. Lazy: the panel opens while it comes. */
 export function useDocument(id: number) {
-  return useLazyAsyncData(documentKey(id), (_nuxtApp, { signal }) =>
+  return useLazyAsyncData(`board:document:${id}`, (_nuxtApp, { signal }) =>
     loadData(useApi().GET('/api/board/documents/{document_id}', {
       params: { path: { document_id: id } },
       signal,
     })))
-}
-
-/**
- * The events, the latest first, as the forms that choose one read them. A
- * hundred cover the committee's years: one page serves.
- */
-export function useEventList() {
-  return useLazyAsyncData('board:event-choices', (_nuxtApp, { signal }) =>
-    loadData(useApi().GET('/api/board/events', { params: { query: { page_size: 100 } }, signal })), { dedupe: 'defer' })
-}
-
-/** The events a document or a loan may belong to, for the forms that choose one. */
-export function useEventChoices() {
-  const { day } = useDateFormat()
-  const { data } = useEventList()
-  return computed(() =>
-    (data.value?.items ?? []).map(event => ({ value: event.id, label: `${event.title} · ${day(event.starts_at, { year: true })}` })),
-  )
 }

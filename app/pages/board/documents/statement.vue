@@ -9,16 +9,12 @@ useHead({ title: 'Attestation sur l’honneur' })
 
 const BREADCRUMB = [{ label: 'Documents', to: DOCUMENTS_PATH }, { label: 'Attestation sur l’honneur' }]
 
-// Opened from an event's deposit, the purchase was for it: `?evenement=12`.
+// Opened from an event's upload, the purchase was for it: `?evenement=12`.
 const route = useRoute()
-const event = computed(() => {
-  const id = Number(route.query.evenement)
-  return Number.isInteger(id) && id > 0 ? id : null
-})
+const event = computed(() => queryId(route.query.evenement))
 
 // The statement made, an invoice awaiting review, opens in the Documents page.
 async function open(document: DocumentOut): Promise<void> {
-  void refreshBoardOverview()
   await navigateTo(documentLocation(document.id))
 }
 </script>

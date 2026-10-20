@@ -68,15 +68,15 @@ describe('validationAction', () => {
   })
 })
 
-describe('depositLine', () => {
+describe('uploadLine', () => {
   it('names the file and who deposited it', () => {
-    expect(depositLine(boardDocument())).toBe('facture-sono.pdf · déposé par Julie R.')
-    expect(depositLine(boardDocument({ uploaded_by: null }))).toBe('facture-sono.pdf · déposé par un ancien membre')
-    expect(depositLine(boardDocument({ source: 'v1_import', uploaded_by: null }))).toBe('facture-sono.pdf · repris de l’ancien site')
+    expect(uploadLine(boardDocument())).toBe('facture-sono.pdf · déposé par Julie R.')
+    expect(uploadLine(boardDocument({ uploaded_by: null }))).toBe('facture-sono.pdf · déposé par un ancien membre')
+    expect(uploadLine(boardDocument({ source: 'v1_import', uploaded_by: null }))).toBe('facture-sono.pdf · repris de l’ancien site')
   })
 
   it('tells a sworn statement, and who made it', () => {
-    expect(depositLine(boardDocument({ source: 'sworn_statement' }))).toBe('Attestation sur l’honneur · faite par Julie R.')
+    expect(uploadLine(boardDocument({ source: 'sworn_statement' }))).toBe('Attestation sur l’honneur · faite par Julie R.')
   })
 })
 
@@ -85,13 +85,6 @@ describe('documentKind', () => {
     expect(documentKind(documentItem())).toBe('Facture')
     expect(documentKind(documentItem({ source: 'sworn_statement' }))).toBe('Facture · attestation')
     expect(documentKind(documentItem({ category: 'misc', source: 'v1_import' }))).toBe('Divers')
-  })
-})
-
-describe('statementLocation', () => {
-  it('leads to the statement, for the event the deposit comes from', () => {
-    expect(statementLocation(12)).toEqual({ path: '/bureau/documents/attestation', query: { evenement: '12' } })
-    expect(statementLocation(null)).toEqual({ path: '/bureau/documents/attestation' })
   })
 })
 

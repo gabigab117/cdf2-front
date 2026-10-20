@@ -51,13 +51,9 @@ async function move(index: number, step: -1 | 1): Promise<void> {
           {{ board.complete ? 'Complet' : openPlaces(board.open_places) }}
         </UiStatusPill>
       </div>
-      <p
-        v-if="moveFailure"
-        role="alert"
-        class="text-sm font-semibold text-ambre-800"
-      >
+      <UiAlertText v-if="moveFailure">
         {{ moveFailure }}
-      </p>
+      </UiAlertText>
       <ul
         v-if="stations.length > 0"
         class="grid gap-4 md:grid-cols-2"

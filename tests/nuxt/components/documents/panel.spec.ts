@@ -9,14 +9,11 @@ import { eventItem, julie, page } from '../../helpers/events'
 import { forgetPdfViewer, pdfViewer } from '../../helpers/files'
 import { stockOrder } from '../../helpers/stock'
 import { ledgerEntry } from '../../helpers/treasury'
+import { readable } from '../../helpers/text'
 
 type DocumentOut = components['schemas']['DocumentOut']
 
 const DOCUMENT = '/api/board/documents/{document_id}'
-
-function readable(text: string): string {
-  return text.replaceAll(' ', ' ').replaceAll(' ', ' ')
-}
 
 // The reading of the document answers GET alone: a mock without a method would
 // answer the writes on the same address, being the latest registered.
@@ -222,6 +219,24 @@ describe('the panel of a document', () => {
     expect(panel.emitted('changed')).toHaveLength(1)
   })
 
+  it('tells why the expense of a paid invoice was refused, the focus on the message', async () => {
+    mockApi('/api/board/treasury/entries', { method: 'GET', handler: () => apiResponse(200, page([])) })
+    mockApi('/api/board/treasury/invoices/{document_id}/expense', {
+      method: 'POST',
+      handler: () => apiResponse(422, { detail: [{ type: 'validation_error', loc: ['body'], msg: 'Cette facture a déjà sa dépense.' }] }),
+    }, { document_id: 21 })
+    const panel = await mountPanel(boardDocument({ paid_on: '2026-09-29' }))
+
+    await button(panel, 'Valider et créer l’écriture').trigger('click')
+    await panel.get('select[required]').setValue('equipment_rental')
+    await panel.findAll('select[required]')[1]!.setValue('transfer')
+    await panel.get('form').trigger('submit')
+
+    await vi.waitFor(() => expect(panel.find('form [role="alert"]').exists()).toBe(true))
+    expect(panel.get('form [role="alert"]').text()).toBe('Cette facture a déjà sa dépense.')
+    expect(document.activeElement).toBe(panel.get('form [role="alert"]').element)
+  })
+
   it('offers to mark paid a validated invoice, or to create the entry of one paid already', async () => {
     const validated = { status: 'validated' as const, validated_by: julie, validated_at: '2026-09-29T10:00:00Z' }
     mockApi('/api/board/treasury/entries', { method: 'GET', handler: () => apiResponse(200, page([])) })
@@ -313,6 +328,35 @@ describe('the panel of a document', () => {
     })
     expect(panel.find('form').exists()).toBe(false)
     expect(panel.emitted('changed')).toHaveLength(1)
+  })
+
+  it('tells why a correction was refused, the whole form above, a field under it, the focus on the message', async () => {
+    mockApi(DOCUMENT, {
+      method: 'PUT',
+      handler: () => apiResponse(422, { detail: [
+        { type: 'validation_error', loc: ['body'], msg: 'Ce document a changé entre-temps.' },
+        { type: 'validation_error', loc: ['body', 'payload', 'title'], msg: 'Ce champ ne peut pas être vide.' },
+      ] }),
+    }, { document_id: 21 })
+    const panel = await mountPanel(boardDocument())
+
+    await button(panel, 'Corriger').trigger('click')
+    await panel.get('form').trigger('submit')
+
+    await vi.waitFor(() => expect(panel.find('form [role="alert"]').exists()).toBe(true))
+    expect(panel.get('form [role="alert"]').text()).toBe('Ce document a changé entre-temps.')
+    expect(panel.text()).toContain('Ce champ ne peut pas être vide.')
+    expect(document.activeElement).toBe(panel.get('form [role="alert"]').element)
+  })
+
+  it('lists the tasks of minutes in their correction, each field named', async () => {
+    const minutes = boardDocument({ category: 'minutes', extracted: extracted({ tasks: [{ title: 'Valider le devis sono', assignee: null }] }) })
+    const panel = await mountPanel(minutes, true)
+
+    const title = panel.findAll('input').find(input => (input.element as HTMLInputElement).value === 'Valider le devis sono')!
+    expect(panel.get(`label[for="${title.attributes('id')}"]`).text()).toBe('Tâche 1')
+    const assignee = panel.get(`[id="${panel.findAll('label').find(label => label.text() === 'Assignée à (tâche 1)')!.attributes('for')}"]`)
+    expect(assignee.element.tagName).toBe('SELECT')
   })
 
   it('opens on its form the document just deposited, and shows the fields of its category', async () => {

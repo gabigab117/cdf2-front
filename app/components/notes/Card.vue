@@ -106,13 +106,9 @@ async function remove(): Promise<void> {
       />
       <span class="truncate">{{ note.document.original_name }}</span>
     </NuxtLink>
-    <p
-      v-if="pinFailure"
-      role="alert"
-      class="text-sm font-semibold text-ambre-800"
-    >
+    <UiAlertText v-if="pinFailure">
       {{ pinFailure }}
-    </p>
+    </UiAlertText>
     <UiConfirmation
       v-if="confirming"
       question="Supprimer cette note ?"

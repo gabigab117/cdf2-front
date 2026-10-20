@@ -3,7 +3,6 @@ import { Upload, X } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { DocumentsQuery } from '~/utils/documents'
 
-type DocumentCategory = components['schemas']['DocumentCategory']
 type DocumentOut = components['schemas']['DocumentOut']
 
 definePageMeta({ path: '/bureau/documents', fullWidth: true, topBarAction: true })
@@ -16,19 +15,18 @@ const SEARCH_DELAY_MS = 300
 const route = useRoute()
 const query = computed(() => parseDocumentsQuery(route.query))
 
-const { data: page, status, error, refresh } = useDocuments(() => query.value)
+const { data: page, pending: loading, error, refresh } = useDocuments(() => query.value)
 const { data: counts, refresh: refreshCounts } = useDocumentCounts(() => query.value)
 
 const documents = computed(() => page.value?.items ?? [])
 const pageCount = computed(() => Math.ceil((page.value?.count ?? 0) / DOCUMENTS_PAGE_SIZE))
-const loading = computed(() => status.value === 'pending')
 const emptyText = computed(() =>
   query.value.search !== '' || query.value.category !== null || query.value.toReview
     ? 'Aucun document ne correspond à cette recherche.'
     : 'Aucun document pour l’instant.',
 )
 
-// The document just deposited opens on its form, to complete it.
+// The document just uploaded opens on its form, to complete it.
 const editing = ref<number | null>(null)
 const upload = useTemplateRef<{ choose: () => void }>('upload')
 
@@ -46,7 +44,7 @@ function pageLocation(target: number) {
 
 const chips = computed(() => [
   { label: 'Tous', category: null, count: counts.value?.total },
-  ...(Object.keys(DOCUMENT_CATEGORIES) as DocumentCategory[]).map(category => ({
+  ...keysOf(DOCUMENT_CATEGORIES).map(category => ({
     label: DOCUMENT_CATEGORIES[category].chip,
     category,
     count: counts.value?.[category],
@@ -80,11 +78,11 @@ async function uploaded(document: DocumentOut): Promise<void> {
   changed()
 }
 
-// A write changes the list, its counts, and what awaits the board.
+// A write changes the list and its counts; what awaits the board, its
+// composable fetches again (useDocumentWrites).
 function changed(): void {
   void refresh()
   void refreshCounts()
-  void refreshBoardOverview()
 }
 
 async function close(): Promise<void> {

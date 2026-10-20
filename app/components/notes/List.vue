@@ -43,7 +43,6 @@ async function publish({ text, tag, file }: NoteDraft): Promise<FormErrors | nul
     const upload = await uploadDocument(file, { category: 'misc', title: fileTitle(file.name), event })
     if (upload.errors) return attachmentErrors(upload.errors)
     uploaded = { file, id: upload.data.id }
-    void refreshBoardOverview()
   }
   const document = file ? (uploaded?.id ?? null) : null
   const errors = await publishNote({ event, text, tag, pinned: false, document })

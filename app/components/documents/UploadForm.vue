@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { CircleAlert, FileText, X } from '@lucide/vue'
+import { FileText, X } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
 
 type DocumentOut = components['schemas']['DocumentOut']
 type DocumentCategory = components['schemas']['DocumentCategory']
 
-// The deposit of a document: a file dropped or chosen, then how the member
+// The upload of a document: a file dropped or chosen, then how the member
 // classifies it. Without the assistant (phase 9), the board classifies by hand:
 // its category, a title (the file's name to start with), and its event.
 const { event = null } = defineProps<{
-  /** The event the document is deposited for, when the form comes from one. */
+  /** The event the document is uploaded for, when the form comes from one. */
   event?: number | null
 }>()
 
@@ -23,7 +23,6 @@ const emit = defineEmits<{
 const SHOWN: ReadonlySet<string> = new Set(['file', 'category', 'title', 'event'])
 
 const { uploadDocument } = useDocumentWrites()
-const events = useEventChoices()
 
 const file = ref<File | null>(null)
 // An empty value shows the select's invitation, and the browser asks for a choice.
@@ -36,13 +35,9 @@ const pending = ref(false)
 const zone = useTemplateRef<{ choose: () => void }>('zone')
 const form = useTemplateRef<HTMLFormElement>('form')
 
-const eventOptions = computed(() => [{ value: null, label: `${NO_EVENT_LABEL} (aucun événement)` }, ...events.value])
-// Without a receipt to deposit, a sworn statement stands in for it (D14), for the same event.
-const statement = computed(() => statementLocation(event))
-
-function fieldErrors(path: string): readonly string[] | undefined {
-  return errors.value?.fields[path]
-}
+const eventOptions = useEventChoices(NO_EVENT_CHOICE)
+// Without a receipt to upload, a sworn statement stands in for it (D14), for the same event.
+const statement = eventLocation(STATEMENT_PATH, event)
 
 /** Opens the file picker: the « Importer » button of the top bar. */
 function choose(): void {
@@ -72,8 +67,7 @@ async function submit(): Promise<void> {
   pending.value = false
   if (result.errors) {
     errors.value = placeErrors(result.errors, SHOWN, documentFieldLabel)
-    await nextTick()
-    form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+    await focusErrors(form)
     return
   }
   reset()
@@ -106,12 +100,9 @@ defineExpose({ choose })
         class="flex flex-col gap-4"
         @submit.prevent="submit"
       >
-        <UiCallout
+        <UiAlert
           v-if="errors?.form.length"
-          tone="ambre"
-          role="alert"
           tabindex="-1"
-          :icon="CircleAlert"
         >
           <p
             v-for="message in errors.form"
@@ -119,12 +110,11 @@ defineExpose({ choose })
           >
             {{ message }}
           </p>
-        </UiCallout>
+        </UiAlert>
         <div class="flex flex-col gap-1.5">
           <div class="flex items-center gap-3">
             <FileText
               :size="18"
-              aria-hidden="true"
               class="shrink-0 text-argent-600"
             />
             <p class="min-w-0 flex-1 truncate text-ui">
@@ -139,57 +129,47 @@ defineExpose({ choose })
               <X :size="16" />
             </UiIconButton>
           </div>
-          <p
-            v-if="fieldErrors('file')"
-            role="alert"
-            class="text-sm font-semibold text-ambre-800"
-          >
-            {{ fieldErrors('file')?.join(' ') }}
-          </p>
+          <UiAlertText v-if="errors?.fields.file">
+            {{ errors.fields.file.join(' ') }}
+          </UiAlertText>
         </div>
         <div class="flex flex-wrap items-start gap-4">
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Catégorie"
             class="w-full sm:w-56"
-            :errors="fieldErrors('category')"
+            :errors="errors?.fields.category"
           >
             <UiSelect
-              :id
+              v-bind="control"
               v-model="category"
               :options="DOCUMENT_CATEGORY_OPTIONS"
               placeholder="Choisir une catégorie"
               required
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Titre"
             class="min-w-60 flex-1"
-            :errors="fieldErrors('title')"
+            :errors="errors?.fields.title"
           >
             <UiInput
-              :id
+              v-bind="control"
               v-model="title"
               required
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
           <UiField
-            v-slot="{ id, describedby, invalid }"
+            v-slot="{ control }"
             label="Événement"
             class="w-full sm:w-80"
-            :errors="fieldErrors('event')"
+            :errors="errors?.fields.event"
           >
             <UiSelect
-              :id
+              v-bind="control"
               v-model="chosenEvent"
               :options="eventOptions"
-              :aria-describedby="describedby"
-              :invalid
             />
           </UiField>
         </div>

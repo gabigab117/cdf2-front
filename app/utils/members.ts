@@ -31,6 +31,11 @@ export function memberSignature(member: Named | null): string {
   return member ? memberShortName(member) : 'Ancien membre'
 }
 
+/** « Julie R. », or « un ancien membre » once the account is deleted: a member within a sentence. */
+export function memberMention(member: Named | null): string {
+  return member ? memberShortName(member) : 'un ancien membre'
+}
+
 /**
  * « Bonjour Julie », or « Bonjour » alone for a member without a first name,
  * or while the member is not known yet.
