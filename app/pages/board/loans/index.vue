@@ -11,7 +11,6 @@ const query = computed(() => parseLoansQuery(route.query))
 
 const { data: page, status, error, refresh } = useLoanList(() => query.value)
 const { data: counts, refresh: refreshCounts } = useLoanCounts()
-const { refresh: refreshPlanning } = useLoanPlanning()
 
 const loans = computed(() => page.value?.items ?? [])
 const pageCount = computed(() => Math.ceil((page.value?.count ?? 0) / LOANS_PAGE_SIZE))
@@ -42,7 +41,7 @@ const chips = computed(() => [
 function changed(): void {
   void refresh()
   void refreshCounts()
-  void refreshPlanning()
+  void refreshLoanPlanning()
 }
 
 async function close(): Promise<void> {

@@ -122,6 +122,16 @@ describe('the Prêts page', () => {
     expect(bars[0]!.attributes('style')).toBe('left: 14.29%; width: 4.76%;')
   })
 
+  it('reads the planning once, though the page and its planning both ask for it', async () => {
+    mockList()
+    const sent = recordRequests()
+
+    const view = await mountPage()
+
+    await vi.waitFor(() => expect(view.findAll('#planning a')).toHaveLength(3))
+    expect(sent.filter(request => request.url === '/api/board/loans/planning')).toHaveLength(1)
+  })
+
   it('says when no loan is on the planning', async () => {
     mockList(ITEMS, [])
 
@@ -169,7 +179,7 @@ describe('the Prêts page', () => {
     /**
      * Given a loan to prepare
      * When the member asks to hand it over, then confirms
-     * Then the loan is out, and the list read again
+     * Then the loan is out, and the list and the planning read again
      */
     mockList()
     mockLoan(loanOut({ state: 'to_prepare', start_date: '2026-10-02', end_date: '2026-10-04' }))
@@ -185,6 +195,7 @@ describe('the Prêts page', () => {
     await vi.waitFor(() => expect(view.get('section[aria-label] header').text()).toContain('Retour prévu le dim. 4 oct.'))
     expect(sent.some(request => request.method === 'POST' && request.url === '/api/board/loans/20/checkout')).toBe(true)
     await vi.waitFor(() => expect(sent.filter(request => request.url.startsWith('/api/board/loans/counts'))).toHaveLength(2))
+    await vi.waitFor(() => expect(sent.filter(request => request.url === '/api/board/loans/planning')).toHaveLength(2))
   })
 
   it('tells why a loan cannot be handed over', async () => {

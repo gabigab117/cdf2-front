@@ -12,10 +12,17 @@ export function useLoanList(query: () => LoansQuery) {
   )
 }
 
+const LOAN_PLANNING_KEY = 'board:loans:planning'
+
 /** The loans over the nine weeks of the planning. Lazy. */
 export function useLoanPlanning() {
-  return useLazyAsyncData('board:loans:planning', (_nuxtApp, { signal }) =>
+  return useLazyAsyncData(LOAN_PLANNING_KEY, (_nuxtApp, { signal }) =>
     loadData(useApi().GET('/api/board/loans/planning', { signal })))
+}
+
+/** Fetches the planning again, after a write changed a loan. */
+export function refreshLoanPlanning(): Promise<void> {
+  return refreshNuxtData(LOAN_PLANNING_KEY)
 }
 
 /** How many loans in all, and in each state: the counts of the chips. */
