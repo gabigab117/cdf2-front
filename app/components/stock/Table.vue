@@ -73,20 +73,18 @@ const grid = 'grid-cols-stock-narrow md:grid-cols-stock'
         class="grid items-center gap-3.5 px-5 py-3"
         :class="[grid, row.rowClass]"
       >
-        <span class="flex min-w-0 flex-col gap-0.5">
-          <span class="flex min-w-0 items-center gap-2">
-            <NuxtLink
-              :to="row.to"
-              class="min-w-0 truncate text-ui font-semibold text-sable-950 hover:text-azur-700"
-            >{{ row.name }}</NuxtLink>
-            <UiStatusPill
-              v-if="row.low"
-              tone="ambre"
-              size="sm"
-            >
-              Sous le seuil
-            </UiStatusPill>
-          </span>
+        <span class="flex min-w-0 flex-col items-start gap-1">
+          <NuxtLink
+            :to="row.to"
+            class="max-w-full truncate text-ui font-semibold text-sable-950 hover:text-azur-700"
+          >{{ row.name }}</NuxtLink>
+          <UiStatusPill
+            v-if="row.low"
+            tone="ambre"
+            size="sm"
+          >
+            Sous le seuil
+          </UiStatusPill>
           <span class="text-caption text-argent-600 md:hidden">{{ row.details }}</span>
         </span>
         <UiStepper

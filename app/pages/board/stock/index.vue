@@ -133,12 +133,13 @@ async function adjust(id: number, direction: StockDirection): Promise<void> {
           {{ chip.label }}
         </UiFilterChip>
       </nav>
-      <UiSearchInput
-        v-model="search"
-        class="w-full md:w-70"
-        label="Rechercher un article"
-        placeholder="Rechercher un article"
-      />
+      <div class="w-full md:w-70">
+        <UiSearchInput
+          v-model="search"
+          label="Rechercher un article"
+          placeholder="Rechercher un article"
+        />
+      </div>
     </div>
     <UiCallout
       v-if="failure"

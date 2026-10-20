@@ -35,10 +35,10 @@ async function deliver(cancel: boolean): Promise<void> {
     class="flex flex-col gap-3.5 rounded-card border border-azur-200 bg-azur-50 p-5"
     :aria-labelledby="titleId"
   >
-    <div class="flex items-center justify-between gap-2.5">
+    <div class="flex flex-wrap items-center justify-between gap-2.5">
       <h2
         :id="titleId"
-        class="flex items-center gap-2 text-base font-semibold text-azur-900"
+        class="flex items-center gap-2 text-base font-semibold whitespace-nowrap text-azur-900"
       >
         <PackageCheck
           :size="17"
