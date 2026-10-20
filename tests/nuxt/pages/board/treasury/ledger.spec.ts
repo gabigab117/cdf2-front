@@ -57,6 +57,15 @@ describe('the page of the whole journal', () => {
     expect(ledger.get('nav[aria-label="Fil d’Ariane"] a').attributes('href')).toBe('/bureau/tresorerie')
   })
 
+  it('reads no results of a year for every year’s pending lines, which show none', async () => {
+    const sent = recordRequests()
+
+    const ledger = await mountSuspended(LedgerPage, { route: '/bureau/tresorerie/journal?justificatif=manquant' })
+
+    await vi.waitFor(() => expect(ledger.find('a[href="/bureau/tresorerie/ecritures/4"]').exists()).toBe(true))
+    expect(sent.filter(request => request.url.startsWith('/api/board/treasury/results'))).toEqual([])
+  })
+
   it('lists every year’s advances to pay back, and tells one paid back', async () => {
     mockApi('/api/board/treasury/entries', { method: 'GET', handler: () => apiResponse(200, page([
       ledgerEntry(),

@@ -1,11 +1,17 @@
 import type { LedgerFilter, PendingLines } from '~/utils/treasury'
 
-/** A fiscal year's results: its figures, its events with lines, its years. Lazy. */
-export function useTreasuryResults(year: () => number) {
+/**
+ * A fiscal year's results: its figures, its events with lines, its years.
+ * None without a year, as every year's pending lines need none. Lazy.
+ */
+export function useTreasuryResults(year: () => number | null) {
   return useLazyAsyncData(
-    () => `board:treasury:results:${year()}`,
-    (_nuxtApp, { signal }) =>
-      loadData(useApi().GET('/api/board/treasury/results', { params: { query: { year: year() } }, signal })),
+    () => `board:treasury:results:${year() ?? 'none'}`,
+    (_nuxtApp, { signal }) => {
+      const asked = year()
+      if (asked === null) return Promise.resolve(null)
+      return loadData(useApi().GET('/api/board/treasury/results', { params: { query: { year: asked } }, signal }))
+    },
   )
 }
 

@@ -13,7 +13,7 @@ const title = computed(() => (pending.value ? PENDING_LINES_TEXTS[pending.value]
 
 useHead({ title: () => (pending.value ? title.value : 'Journal de la trésorerie') })
 
-const { data: results } = useTreasuryResults(() => year.value)
+const { data: results } = useTreasuryResults(() => (pending.value ? null : year.value))
 const { data: page, status, error, refresh } = useLedgerEntries(() => ({
   year: year.value,
   filter: query.value.filter,
