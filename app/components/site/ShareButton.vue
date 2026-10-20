@@ -37,10 +37,7 @@ async function share(): Promise<void> {
       class="flex-1"
       @click="share"
     >
-      <Share2
-        :size="18"
-        aria-hidden="true"
-      />
+      <Share2 :size="18" />
       {{ copied ? 'Lien copié' : 'Partager' }}
     </UiButton>
     <span

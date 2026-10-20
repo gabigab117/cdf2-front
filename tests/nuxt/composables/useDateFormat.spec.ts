@@ -1,14 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { useDateFormat } from '~/composables/useDateFormat'
+import { readable } from '../helpers/text'
 
 const formats = useDateFormat()
 const { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarMonth, calendarNumeric, calendarWeekday, calendarInWords, calendarPeriod, longDay, dayParts, clock, period, eventDays, countdown, countdownText, season } = formats
 
 // The texts as they read: the spaces of a time do not break, which a test
 // checks once.
-function readable(text: string): string {
-  return text.replaceAll('\u00A0', ' ')
-}
 
 const time = (iso: string) => readable(formats.time(iso))
 const schedule = (...args: Parameters<typeof formats.schedule>) => readable(formats.schedule(...args))

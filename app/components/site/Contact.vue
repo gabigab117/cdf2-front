@@ -12,7 +12,7 @@ const { contact, hall } = useRuntimeConfig().public
       <div class="flex flex-col gap-4">
         <p class="flex items-center gap-3">
           <UiCoatOfArms class="h-8.5 w-7.5" />
-          <span class="font-display text-title font-bold">Comité des Fêtes d’Ons-en-Bray</span>
+          <span class="font-display text-title font-bold">{{ SITE_NAME }}</span>
         </p>
         <p class="max-w-70 text-ui text-argent-600">
           Association loi 1901 qui organise les animations de la commune.
@@ -22,9 +22,9 @@ const { contact, hall } = useRuntimeConfig().public
         v-if="contact.email || contact.phone"
         class="flex flex-col gap-2.5 text-body"
       >
-        <h2 class="text-caption font-semibold tracking-overline text-argent-600 uppercase">
+        <UiOverline as="h2">
           Contact
-        </h2>
+        </UiOverline>
         <SiteTextLink
           v-if="contact.email"
           :to="`mailto:${contact.email}`"
@@ -42,9 +42,9 @@ const { contact, hall } = useRuntimeConfig().public
         v-if="hall.street || hall.town"
         class="flex flex-col gap-2.5 text-body"
       >
-        <h2 class="text-caption font-semibold tracking-overline text-argent-600 uppercase">
+        <UiOverline as="h2">
           Salle des fêtes
-        </h2>
+        </UiOverline>
         <p class="text-sable-600">
           {{ hall.street }}<br>{{ hall.town }}
         </p>

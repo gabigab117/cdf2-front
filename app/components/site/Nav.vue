@@ -8,13 +8,15 @@ const { stacked = false } = defineProps<{
 // whose link stays lit there. The router would mark each link as the current
 // page on the home page, whatever its anchor: the links decide alone.
 const LINKS = [
-  { label: 'Agenda', to: '/#agenda', section: 'agenda' },
-  { label: 'Le comité', to: '/#comite', section: 'committee' },
-  { label: 'Contact', to: '/#contact', section: 'contact' },
+  { label: 'Agenda', to: AGENDA_PATH },
+  { label: 'Le comité', to: '/#comite' },
+  { label: 'Contact', to: '/#contact' },
 ] as const
 
 const route = useRoute()
-const section = computed(() => (route.path.startsWith('/evenements/') ? 'agenda' : null))
+const links = computed(() =>
+  LINKS.map(link => ({ ...link, current: link.to === AGENDA_PATH && route.path.startsWith('/evenements/') })),
+)
 
 const classes = {
   list: {
@@ -35,14 +37,14 @@ const layout = computed(() => (stacked ? 'stacked' : 'row'))
   <nav aria-label="Navigation principale">
     <ul :class="classes.list[layout]">
       <li
-        v-for="link in LINKS"
+        v-for="link in links"
         :key="link.to"
       >
         <NuxtLink
           :to="link.to"
-          :aria-current="section === link.section ? 'true' : undefined"
+          :aria-current="link.current ? 'true' : undefined"
           class="text-sable-950 transition-colors hover:bg-argent-100"
-          :class="[classes.link[layout], section === link.section && classes.current]"
+          :class="[classes.link[layout], link.current && classes.current]"
         >
           {{ link.label }}
         </NuxtLink>

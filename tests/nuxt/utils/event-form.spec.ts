@@ -108,28 +108,6 @@ describe('the event as the API gave it', () => {
 })
 
 describe('the options of the selects', () => {
-  const alain = { id: 8, first_name: 'Alain', last_name: 'Petit', email: 'alain.petit@example.test' }
-
-  it('offers the board members by name, after the choice of nobody', () => {
-    const nameless = { id: 9, first_name: '', last_name: '', email: 'tresorerie@example.test' }
-
-    expect(memberOptions([alain, nameless], null, 'Aucun')).toEqual([
-      { value: null, label: 'Aucun' },
-      { value: 8, label: 'Alain Petit' },
-      { value: 9, label: 'tresorerie@example.test' },
-    ])
-  })
-
-  it('keeps among them a member chosen before who has left the board, once', () => {
-    /**
-     * Given an event led by a member no longer on the board
-     * Then they stay among the leads to choose from, or saving would take
-     * them off the event
-     */
-    expect(memberOptions([alain], julie, 'Aucun').map(option => option.value)).toEqual([null, 8, 7])
-    expect(memberOptions([alain, julie], julie, 'Personne').map(option => option.value)).toEqual([null, 8, 7])
-  })
-
   it('offers the past events by title and date, after « Aucune », never the event itself', () => {
     const lastYear = eventItem({ id: 3, starts_at: '2025-10-31T14:00:00Z' })
     const itself = eventItem({ id: 12 })

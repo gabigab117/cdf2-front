@@ -17,7 +17,7 @@ const { overview, events, failed = false, query } = defineProps<{
 }>()
 
 const { siteUrl } = useRuntimeConfig().public
-const { longDay } = useDateFormat()
+const { dayInWords } = useDateFormat()
 const now = useNow()
 
 // Every link of the agenda leads back to it on the home page, without JavaScript.
@@ -36,16 +36,10 @@ const empty = computed(() => {
 
 // A visitor's calendar subscribes to the agenda (webcal), rather than
 // importing it once: it keeps it up to date.
-const subscription = computed(() =>
-  siteUrl ? new URL('/api/public/agenda.ics', siteUrl).href.replace(/^https?:/, 'webcal:') : '/api/public/agenda.ics',
-)
+const calendarFeed = siteUrl ? new URL('/api/public/agenda.ics', siteUrl).href.replace(/^https?:/, 'webcal:') : '/api/public/agenda.ics'
 
 // « le 30 septembre », with its year once that year is over.
-const updatedOn = computed(() => {
-  if (!overview?.updated_at) return null
-  const year = parisCalendar(overview.updated_at).year !== parisCalendar(now.value).year
-  return longDay(overview.updated_at, { weekday: 'none', year })
-})
+const updatedOn = computed(() => (overview?.updated_at ? dayInWords(overview.updated_at, now.value) : null))
 </script>
 
 <template>
@@ -130,13 +124,10 @@ const updatedOn = computed(() => {
       </template>
       <div class="flex flex-wrap items-center justify-between gap-3">
         <a
-          :href="subscription"
+          :href="calendarFeed"
           class="inline-flex items-center gap-2 text-body font-semibold text-azur-600 transition-colors hover:text-azur-700"
         >
-          <Calendar
-            :size="18"
-            aria-hidden="true"
-          />
+          <Calendar :size="18" />
           Ajouter l’agenda à mon calendrier
         </a>
         <p

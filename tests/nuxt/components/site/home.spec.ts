@@ -9,12 +9,9 @@ import SiteSpotlightCard from '~/components/site/SpotlightCard.vue'
 import SiteVolunteerCall from '~/components/site/VolunteerCall.vue'
 import type { components } from '~/types/api'
 import { loto, page, publicEventItem } from '../../helpers/events'
+import { readable } from '../../helpers/text'
 
 type AgendaOut = components['schemas']['AgendaOut']
-
-function readable(text: string): string {
-  return text.replaceAll('\u00A0', ' ')
-}
 
 // Friday 9 October 2026, 10:00 in Paris.
 const TODAY = Date.parse('2026-10-09T08:00:00Z')

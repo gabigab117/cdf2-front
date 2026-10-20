@@ -1,5 +1,5 @@
 /** The key of an event's dashboard: the counts of its tabs. */
-export function eventDashboardKey(id: number): string {
+function eventDashboardKey(id: number): string {
   return `board:event:${id}:dashboard`
 }
 

@@ -54,7 +54,6 @@ const cards = computed(() =>
           <ArrowRight
             :size="20"
             class="shrink-0"
-            aria-hidden="true"
           />
         </NuxtLink>
       </li>

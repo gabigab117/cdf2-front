@@ -51,7 +51,7 @@ describe('useEventWrites', () => {
 
     const saved = await useEventWrites().saveEvent(payload, id)
 
-    expect(saved).toEqual({ event: boardEvent(), errors: null })
+    expect(saved).toEqual({ data: boardEvent(), errors: null })
     expect(refreshNuxtDataMock).toHaveBeenCalledWith('board:upcoming-events')
   })
 
@@ -65,7 +65,7 @@ describe('useEventWrites', () => {
 
     const saved = await useEventWrites().saveEvent(payload)
 
-    expect(saved).toEqual({ event: null, errors: { form: [], fields: { title: ['Ce champ est obligatoire.'] } } })
+    expect(saved).toEqual({ data: null, errors: { form: [], fields: { title: ['Ce champ est obligatoire.'] } } })
     expect(refreshNuxtDataMock).not.toHaveBeenCalled()
   })
 
@@ -75,7 +75,7 @@ describe('useEventWrites', () => {
   ])('says why saving failed when %s fails it', async (_case, fail, message) => {
     fail()
 
-    expect(await useEventWrites().saveEvent(payload)).toEqual({ event: null, errors: { form: [message], fields: {} } })
+    expect(await useEventWrites().saveEvent(payload)).toEqual({ data: null, errors: { form: [message], fields: {} } })
   })
 
   it('deletes an event, then has the sidebar fetch its coming events again', async () => {

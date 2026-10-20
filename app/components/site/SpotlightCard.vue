@@ -11,8 +11,9 @@ const countdownPill = computed(() => countdownText(countdown(event, now.value), 
 const day = computed(() => longDay(event.starts_at, { sentence: true }))
 const shortDay = computed(() => longDay(event.starts_at, { weekday: 'short', sentence: true }))
 const price = computed(() => [event.price_label, event.price_detail].filter(Boolean))
-// On a phone, the place and the price share a line: « Salle des fêtes · Gratuit, Goûter… ».
-const placeAndPrice = computed(() => [event.venue_name, price.value.join(', ')].filter(Boolean).join(' · '))
+const priceLine = computed(() => price.value.join(' · '))
+// On a phone, the venue and the price share a line: « Salle des fêtes · Gratuit, Goûter… ».
+const venueAndPrice = computed(() => [event.venue_name, price.value.join(', ')].filter(Boolean).join(' · '))
 </script>
 
 <!-- « Prochain rendez-vous ». Its photo comes with the albums (phase 8). -->
@@ -43,24 +44,18 @@ const placeAndPrice = computed(() => [event.venue_name, price.value.join(', ')].
         {{ event.title }}
       </h2>
       <p class="text-ui text-sable-600 md:hidden">
-        {{ placeAndPrice }}
+        {{ venueAndPrice }}
       </p>
       <p class="hidden flex-wrap gap-x-4.5 gap-y-2 text-ui text-sable-600 md:flex">
         <span class="inline-flex items-center gap-1.5">
-          <MapPin
-            :size="16"
-            aria-hidden="true"
-          />
+          <MapPin :size="16" />
           {{ event.venue_name }}
         </span>
         <span class="inline-flex items-center gap-1.5">
-          <Clock
-            :size="16"
-            aria-hidden="true"
-          />
+          <Clock :size="16" />
           {{ schedule(event) }}
         </span>
-        <span v-if="price.length">{{ price.join(' · ') }}</span>
+        <span v-if="priceLine">{{ priceLine }}</span>
       </p>
       <NuxtLink
         :to="publicEventPath(event.slug)"
@@ -69,10 +64,7 @@ const placeAndPrice = computed(() => [event.venue_name, price.value.join(', ')].
         <span class="md:hidden">Programme et infos</span>
         <span class="hidden md:inline">Programme et infos pratiques</span>
         <span class="inline-flex size-10 items-center justify-center rounded-field bg-azur-600">
-          <ArrowRight
-            :size="18"
-            aria-hidden="true"
-          />
+          <ArrowRight :size="18" />
         </span>
       </NuxtLink>
     </div>

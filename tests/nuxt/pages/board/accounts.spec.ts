@@ -5,6 +5,7 @@ import type { components } from '~/types/api'
 import AccountsPage from '~/pages/board/accounts/index.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
 import { page } from '../../helpers/events'
+import { readable } from '../../helpers/text'
 
 type AccountOut = components['schemas']['AccountOut']
 
@@ -31,10 +32,6 @@ const ACCOUNTS = [
   account({ id: 9, email: 'chloe@example.fr', first_name: 'Chloé', last_name: 'Morel', position: 'Trésorier·e', state: 'inactive' }),
   account({ id: 10, email: 'anne@example.fr', first_name: 'Anne', last_name: 'Durand', link_sent_at: null }),
 ]
-
-function readable(text: string): string {
-  return text.replaceAll(' ', ' ').replaceAll(' ', ' ')
-}
 
 function mockAccounts(items = ACCOUNTS) {
   mockApi('/api/board/accounts', { method: 'GET', handler: () => apiResponse(200, page(items)) })

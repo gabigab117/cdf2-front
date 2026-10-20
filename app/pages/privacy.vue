@@ -27,7 +27,7 @@ const RETENTION_PERIODS: ReadonlyArray<{ data: string, period: string }> = [
 
 useSitePage({
   title: 'Données personnelles',
-  description: 'Ce que le site du Comité des Fêtes d’Ons-en-Bray fait des données personnelles, combien de temps il les garde, et vos droits.',
+  description: `Ce que le site du ${SITE_NAME} fait des données personnelles, combien de temps il les garde, et vos droits.`,
 })
 </script>
 
@@ -79,7 +79,7 @@ useSitePage({
     <SiteLegalSection title="Durées de conservation">
       <table class="w-full text-left">
         <thead>
-          <tr class="text-caption font-semibold tracking-overline text-argent-600 uppercase">
+          <UiOverline as="tr">
             <th
               scope="col"
               class="w-2/5 pr-6 pb-3 font-semibold"
@@ -92,7 +92,7 @@ useSitePage({
             >
               Durée
             </th>
-          </tr>
+          </UiOverline>
         </thead>
         <tbody class="divide-y divide-argent-200 border-t border-argent-200">
           <tr

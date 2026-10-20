@@ -35,13 +35,10 @@ const currentSeason = computed(() => `Saison ${season(now.value)}`)
           <UiButton
             variant="accent"
             size="xl"
-            to="/#agenda"
+            :to="AGENDA_PATH"
           >
             Voir l’agenda
-            <ArrowRight
-              :size="18"
-              aria-hidden="true"
-            />
+            <ArrowRight :size="18" />
           </UiButton>
           <UiButton
             variant="secondary"

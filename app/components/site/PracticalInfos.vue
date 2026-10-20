@@ -23,7 +23,6 @@ const { infos } = defineProps<{ infos: Array<components['schemas']['PublicPracti
           <component
             :is="PRACTICAL_INFO_ICONS[info.icon].icon"
             :size="20"
-            aria-hidden="true"
           />
         </span>
         <span class="text-title font-semibold">{{ info.title }}</span>

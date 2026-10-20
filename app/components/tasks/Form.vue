@@ -2,7 +2,7 @@
 import { CircleAlert } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
-import type { Option } from '~/utils/event-form'
+import type { Option } from '~/utils/options'
 import type { TaskFields } from '~/utils/tasks'
 
 type TaskOut = components['schemas']['TaskOut']

@@ -7,11 +7,16 @@ definePageMeta({ path: '/mentions-legales', public: true })
 // without scripts, and the browser never renders it.
 const { legal, public: { contact, office } } = useRuntimeConfig()
 
-const hasHost = Boolean(legal.host.name || legal.host.address || legal.host.phone || legal.host.location)
+const hostDetails = [
+  { label: 'Hébergeur', value: legal.host.name },
+  { label: 'Adresse', value: legal.host.address },
+  { label: 'Téléphone', value: legal.host.phone },
+  { label: 'Localisation du serveur', value: legal.host.location },
+].filter(detail => detail.value)
 
 useSitePage({
   title: 'Mentions légales',
-  description: 'L’éditeur du site du Comité des Fêtes d’Ons-en-Bray, la direction de sa publication et son hébergeur.',
+  description: `L’éditeur du site du ${SITE_NAME}, la direction de sa publication et son hébergeur.`,
 })
 // The page names the publication director, as the law requires: search
 // engines leave it out of their results.
@@ -62,33 +67,16 @@ useSeoMeta({ robots: 'noindex, nofollow' })
       </p>
     </SiteLegalSection>
     <SiteLegalSection
-      v-if="hasHost"
+      v-if="hostDetails.length"
       title="Hébergement"
     >
       <dl class="flex flex-col gap-4">
         <SiteLegalDetail
-          v-if="legal.host.name"
-          label="Hébergeur"
+          v-for="detail in hostDetails"
+          :key="detail.label"
+          :label="detail.label"
         >
-          {{ legal.host.name }}
-        </SiteLegalDetail>
-        <SiteLegalDetail
-          v-if="legal.host.address"
-          label="Adresse"
-        >
-          {{ legal.host.address }}
-        </SiteLegalDetail>
-        <SiteLegalDetail
-          v-if="legal.host.phone"
-          label="Téléphone"
-        >
-          {{ legal.host.phone }}
-        </SiteLegalDetail>
-        <SiteLegalDetail
-          v-if="legal.host.location"
-          label="Localisation du serveur"
-        >
-          {{ legal.host.location }}
+          {{ detail.value }}
         </SiteLegalDetail>
       </dl>
     </SiteLegalSection>

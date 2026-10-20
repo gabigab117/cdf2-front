@@ -4,6 +4,9 @@ export const SITE_NAME = 'Comité des Fêtes d’Ons-en-Bray'
 /** The legal notice, served without scripts (routeRules of nuxt.config.ts). */
 export const LEGAL_NOTICE_PATH = '/mentions-legales'
 
+/** The agenda, on the home page. */
+export const AGENDA_PATH = '/#agenda'
+
 /** What the site does with personal data, and for how long. */
 export const PRIVACY_PATH = '/donnees-personnelles'
 

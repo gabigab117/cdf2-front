@@ -16,7 +16,7 @@ if (!event.value) {
 
 const { eventWhen } = useDateFormat()
 
-const breadcrumb = computed(() => [{ label: 'Agenda', to: '/#agenda' }, { label: event.value?.title ?? '' }])
+const breadcrumb = computed(() => [{ label: 'Agenda', to: AGENDA_PATH }, { label: event.value?.title ?? '' }])
 
 useSitePage({
   title: () => event.value?.title ?? '',

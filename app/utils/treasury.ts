@@ -1,6 +1,6 @@
 import type { LocationQuery, LocationQueryRaw, RouteLocationRaw } from 'vue-router'
 import type { components, paths } from '~/types/api'
-import type { Option } from '~/utils/event-form'
+import type { Option } from '~/utils/options'
 
 type LedgerCategory = components['schemas']['LedgerCategory']
 type LedgerEntryIn = components['schemas']['LedgerEntryIn']

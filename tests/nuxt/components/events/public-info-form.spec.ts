@@ -148,4 +148,15 @@ describe('EventsPublicInfoForm', () => {
     expect(lines).toHaveLength(3)
     expect((lines[2]!.get('input[type="time"]').element as HTMLInputElement).value).toBe('')
   })
+
+  it('adds a blank card at the end of « Bon à savoir », with the information icon', async () => {
+    const form = await mountForm()
+
+    await form.findAll('button').filter(button => button.text() === 'Ajouter une ligne')[1]!.trigger('click')
+
+    const cards = form.findAll('ol')[1]!.findAll(':scope > li')
+    expect(cards).toHaveLength(2)
+    expect((cards[1]!.get('select').element as HTMLSelectElement).value).toBe('info')
+    expect((cards[1]!.get('input').element as HTMLInputElement).value).toBe('')
+  })
 })

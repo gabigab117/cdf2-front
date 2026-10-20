@@ -2,7 +2,7 @@ import { File, Receipt, ShoppingCart, StickyNote } from '@lucide/vue'
 import type { Component } from 'vue'
 import type { LocationQuery, LocationQueryRaw, RouteLocationRaw } from 'vue-router'
 import type { components } from '~/types/api'
-import type { Option } from '~/utils/event-form'
+import type { Option } from '~/utils/options'
 
 type DocumentCategory = components['schemas']['DocumentCategory']
 type DocumentCountsOut = components['schemas']['DocumentCountsOut']

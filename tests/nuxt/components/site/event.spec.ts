@@ -8,10 +8,7 @@ import SitePracticalInfos from '~/components/site/PracticalInfos.vue'
 import SiteProgramme from '~/components/site/Programme.vue'
 import SiteShareButton from '~/components/site/ShareButton.vue'
 import { loto, publicEvent, publicEventItem } from '../../helpers/events'
-
-function readable(text: string): string {
-  return text.replaceAll(' ', ' ')
-}
+import { readable } from '../../helpers/text'
 
 // Friday 9 October 2026, 10:00 in Paris.
 const TODAY = Date.parse('2026-10-09T08:00:00Z')

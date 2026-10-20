@@ -16,7 +16,7 @@ const links = computed(() => [
 <template>
   <footer class="border-t border-argent-200 bg-argent-50">
     <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-7 text-note text-argent-600 md:px-6">
-      <p>© {{ year }} Comité des Fêtes d’Ons-en-Bray</p>
+      <p>© {{ year }} {{ SITE_NAME }}</p>
       <nav aria-label="Pied de page">
         <ul class="flex flex-wrap gap-x-5 gap-y-2">
           <li

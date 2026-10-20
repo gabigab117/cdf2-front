@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import EventsGeneralForm from '~/components/events/GeneralForm.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../helpers/api'
 import { boardEvent, eventItem, julie, page } from '../../helpers/events'
+import { field } from '../../helpers/form'
 
 const EVENT = '/api/board/events/{event_id}'
 const alain = { id: 8, first_name: 'Alain', last_name: 'Petit', email: 'alain.petit@example.test' }
@@ -13,8 +14,7 @@ function mountForm(event?: ReturnType<typeof boardEvent>) {
 }
 
 function optionsOf(form: Awaited<ReturnType<typeof mountForm>>, label: string): string[] {
-  const id = form.findAll('label').find(element => element.text().startsWith(label))!.attributes('for')
-  return form.get(`select#${id}`).findAll('option').map(option => option.text())
+  return field(form, label).findAll('option').map(option => option.text())
 }
 
 describe('EventsGeneralForm', () => {

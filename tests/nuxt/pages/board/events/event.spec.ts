@@ -5,15 +5,12 @@ import EventPage from '~/pages/board/events/[id]/index.vue'
 import { apiResponse, clearApiMocks, mockApi } from '../../../helpers/api'
 import { loanBrief } from '../../../helpers/equipment'
 import { boardEvent, page } from '../../../helpers/events'
+import { readable } from '../../../helpers/text'
 
 const { showErrorMock } = vi.hoisted(() => ({ showErrorMock: vi.fn() }))
 mockNuxtImport('showError', () => showErrorMock)
 
 const EVENT = '/api/board/events/{event_id}'
-
-function readable(text: string): string {
-  return text.replaceAll(' ', ' ')
-}
 
 function mountEvent(route = '/bureau/evenements/12') {
   return mountSuspended(EventPage, { route })

@@ -16,7 +16,9 @@ function details(page: Awaited<ReturnType<typeof mountNotice>>) {
 describe('legal notice', () => {
   afterEach(() => {
     const { legal } = useRuntimeConfig()
+    legal.host.name = 'Hébergeur Exemple SARL'
     legal.host.phone = '01 98 76 54 32'
+    legal.host.location = 'France'
     legal.publicationDirector = 'Dominique Exemple'
   })
 
@@ -59,6 +61,18 @@ describe('legal notice', () => {
 
     expect(details(page).map(([label]) => label)).toEqual(['Siège', 'E-mail', 'Téléphone', 'Hébergeur', 'Adresse', 'Localisation du serveur'])
     expect(page.findAll('h2').map(title => title.text())).not.toContain('Direction de la publication')
+  })
+
+  it('names the host by the only detail the configuration gives', async () => {
+    const { legal } = useRuntimeConfig()
+    legal.host.name = ''
+    legal.host.phone = ''
+    legal.host.location = ''
+
+    const page = await mountNotice()
+
+    expect(page.findAll('h2').map(title => title.text())).toContain('Hébergement')
+    expect(details(page).map(([label]) => label)).toEqual(['Siège', 'E-mail', 'Téléphone', 'Adresse'])
   })
 
   it('keeps out of the search engines, which would show its director\'s name', async () => {

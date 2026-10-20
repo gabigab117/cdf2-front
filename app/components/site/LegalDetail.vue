@@ -8,9 +8,9 @@ const { label } = defineProps<{
 <!-- A detail of a legal page, within its list: the label, then the value. -->
 <template>
   <div class="flex flex-col gap-0.5">
-    <dt class="text-caption font-semibold tracking-overline text-argent-600 uppercase">
+    <UiOverline as="dt">
       {{ label }}
-    </dt>
+    </UiOverline>
     <dd class="text-sable-950">
       <slot />
     </dd>

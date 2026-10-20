@@ -7,7 +7,7 @@ import { Menu, X } from '@lucide/vue'
     <div class="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-3.5 md:px-6">
       <NuxtLink
         to="/"
-        aria-label="Comité des Fêtes d’Ons-en-Bray, accueil"
+        :aria-label="`${SITE_NAME}, accueil`"
         class="flex items-center gap-2.5 text-sable-950 md:gap-3"
       >
         <UiCoatOfArms class="h-7.5 w-6.5 md:h-8.5 md:w-7.5" />

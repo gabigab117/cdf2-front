@@ -30,10 +30,7 @@ that the mockup draws beside it (D2): no name on the public site. -->
         class="w-fit"
       >
         Nous écrire
-        <ArrowRight
-          :size="18"
-          aria-hidden="true"
-        />
+        <ArrowRight :size="18" />
       </UiButton>
     </div>
   </section>

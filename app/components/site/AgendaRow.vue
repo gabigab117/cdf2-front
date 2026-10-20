@@ -34,17 +34,11 @@ const parts = computed(() => dayParts(event.starts_at))
         <span class="text-sm text-argent-600 md:hidden">{{ event.venue_name }} · {{ time(event.starts_at) }}</span>
         <span class="hidden flex-wrap gap-x-5 gap-y-1.5 text-ui text-sable-600 md:flex">
           <span class="inline-flex items-center gap-1.5">
-            <MapPin
-              :size="16"
-              aria-hidden="true"
-            />
+            <MapPin :size="16" />
             {{ event.venue_name }}
           </span>
           <span class="inline-flex items-center gap-1.5">
-            <Clock
-              :size="16"
-              aria-hidden="true"
-            />
+            <Clock :size="16" />
             {{ schedule(event) }}
           </span>
           <span v-if="event.price_label">{{ event.price_label }}</span>
@@ -53,13 +47,9 @@ const parts = computed(() => dayParts(event.starts_at))
       <ChevronRight
         :size="18"
         class="shrink-0 md:hidden"
-        aria-hidden="true"
       />
       <span class="hidden size-12 shrink-0 items-center justify-center rounded-full border border-argent-250 md:inline-flex">
-        <ArrowRight
-          :size="18"
-          aria-hidden="true"
-        />
+        <ArrowRight :size="18" />
       </span>
     </NuxtLink>
   </li>

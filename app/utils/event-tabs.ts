@@ -26,12 +26,9 @@ export interface EventPageQuery {
  * falls back on them.
  */
 export function parseEventPageQuery(query: LocationQuery): EventPageQuery {
-  const page = Number(query.page)
-  // Object.keys() types its keys as strings: they are those of the record.
-  const tabs = Object.keys(TAB_SLUGS) as Array<keyof typeof TAB_SLUGS>
   return {
-    tab: tabs.find(tab => TAB_SLUGS[tab] === query.onglet) ?? 'notes',
-    page: Number.isInteger(page) && page > 1 ? page : 1,
+    tab: keysOf(TAB_SLUGS).find(tab => TAB_SLUGS[tab] === query.onglet) ?? 'notes',
+    page: queryPage(query.page),
   }
 }
 
@@ -39,6 +36,6 @@ export function parseEventPageQuery(query: LocationQuery): EventPageQuery {
 export function eventPageQuery({ tab, page }: EventPageQuery): LocationQueryRaw {
   return {
     onglet: tab === 'notes' ? undefined : TAB_SLUGS[tab],
-    page: page > 1 ? String(page) : undefined,
+    page: pageParam(page),
   }
 }

@@ -16,7 +16,7 @@ const failed = computed(() => error.value !== undefined)
 
 useSitePage({
   title: 'Accueil',
-  description: 'Les fêtes du village, organisées par ses bénévoles : l’agenda des manifestations du Comité des Fêtes d’Ons-en-Bray et leurs infos pratiques.',
+  description: `Les fêtes du village, organisées par ses bénévoles : l’agenda des manifestations du ${SITE_NAME} et leurs infos pratiques.`,
 })
 </script>
 

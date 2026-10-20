@@ -63,10 +63,9 @@ export interface EventListQuery {
  * falls back on them.
  */
 export function parseEventListQuery(query: LocationQuery): EventListQuery {
-  const page = Number(query.page)
   return {
     period: query.periode === 'passes' ? 'past' : 'upcoming',
-    page: Number.isInteger(page) && page > 1 ? page : 1,
+    page: queryPage(query.page),
   }
 }
 
@@ -74,7 +73,7 @@ export function parseEventListQuery(query: LocationQuery): EventListQuery {
 export function eventListQuery({ period, page }: EventListQuery): LocationQueryRaw {
   return {
     periode: period === 'past' ? 'passes' : undefined,
-    page: page > 1 ? String(page) : undefined,
+    page: pageParam(page),
   }
 }
 
@@ -102,12 +101,9 @@ export interface AgendaQuery {
  * know falls back on them.
  */
 export function parseAgendaQuery(query: LocationQuery): AgendaQuery {
-  const page = Number(query.page)
-  // Object.keys() types its keys as strings: they are those of the record.
-  const categories = Object.keys(CATEGORY_SLUGS) as EventCategory[]
   return {
-    category: categories.find(category => CATEGORY_SLUGS[category] === query.categorie) ?? null,
-    page: Number.isInteger(page) && page > 1 ? page : 1,
+    category: keysOf(CATEGORY_SLUGS).find(category => CATEGORY_SLUGS[category] === query.categorie) ?? null,
+    page: queryPage(query.page),
   }
 }
 
@@ -115,6 +111,6 @@ export function parseAgendaQuery(query: LocationQuery): AgendaQuery {
 export function agendaQuery({ category, page }: AgendaQuery): LocationQueryRaw {
   return {
     categorie: category ? CATEGORY_SLUGS[category] : undefined,
-    page: page > 1 ? String(page) : undefined,
+    page: pageParam(page),
   }
 }

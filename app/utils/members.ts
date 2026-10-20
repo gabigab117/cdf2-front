@@ -1,7 +1,10 @@
 import type { components } from '~/types/api'
+import type { Option } from '~/utils/options'
+
+type BoardMemberOut = components['schemas']['BoardMemberOut']
 
 /** How the board names one of its members. */
-type Named = Pick<components['schemas']['BoardMemberOut'], 'first_name' | 'last_name' | 'email'>
+type Named = Pick<BoardMemberOut, 'first_name' | 'last_name' | 'email'>
 
 /** « Julie Roux », or the address of an account created without a name. */
 export function memberName({ first_name, last_name, email }: Named): string {
@@ -29,4 +32,27 @@ export function memberSignature(member: Named | null): string {
  */
 export function memberGreeting(member: Pick<Named, 'first_name'> | null): string {
   return member?.first_name ? `Bonjour ${member.first_name}` : 'Bonjour'
+}
+
+/**
+ * The board members to choose from, by name, after the choice of nobody
+ * (« Aucun », « Personne »): the lead of an event, the assignee of a task. The
+ * member chosen so far stays among them, even after leaving the board:
+ * otherwise, saving would take them off without anyone choosing so.
+ */
+export function memberOptions(
+  members: readonly BoardMemberOut[],
+  current: BoardMemberOut | null,
+  nobody: string,
+): Option<number | null>[] {
+  return [{ value: null, label: nobody }, ...boardMemberOptions(members, current)]
+}
+
+/**
+ * The board members to choose from, by name, the member chosen so far kept
+ * among them even after leaving the board: who advanced an expense.
+ */
+export function boardMemberOptions(members: readonly BoardMemberOut[], current: BoardMemberOut | null): Option<number>[] {
+  const chosen = current && !members.some(member => member.id === current.id) ? [...members, current] : members
+  return chosen.map(member => ({ value: member.id, label: memberName(member) }))
 }

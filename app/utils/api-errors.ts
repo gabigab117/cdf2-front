@@ -1,3 +1,4 @@
+import type { Ref } from 'vue'
 import type { components } from '~/types/api'
 
 type ValidationErrorOut = components['schemas']['ValidationErrorOut']
@@ -59,6 +60,15 @@ export function placeErrors(
     else placed.form.push(...messages.map(message => `${label(path)} : ${message}`))
   }
   return placed
+}
+
+/**
+ * Takes the focus to what a form had refused, once shown: the message about
+ * the whole form, or else the first field in error.
+ */
+export async function focusErrors(form: Readonly<Ref<HTMLElement | null>>): Promise<void> {
+  await nextTick()
+  form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
 }
 
 function isValidationError(error: unknown): error is ValidationErrorOut {

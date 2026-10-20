@@ -152,13 +152,20 @@ function calendarWeekday(date: string, now: number): string {
 }
 
 /**
+ * A day with its month in full: « 30 septembre », or with its weekday:
+ * « mercredi 30 septembre »; with its year when it is not the year of `now`.
+ */
+function dayInWords(iso: string, now: number, { weekday = false }: { weekday?: boolean } = {}): string {
+  return longDay(iso, { weekday: weekday ? 'long' : 'none', year: otherYear(iso, now) })
+}
+
+/**
  * A day of the calendar with its month in full, such as the due date of an
  * invoice: « 28 octobre », or with its weekday, as the day of a ticket:
  * « mercredi 30 septembre »; with its year when it is not the year of `now`.
  */
-function calendarInWords(date: string, now: number, { weekday = false }: { weekday?: boolean } = {}): string {
-  const iso = atNoon(date)
-  return longDay(iso, { weekday: weekday ? 'long' : 'none', year: otherYear(iso, now) })
+function calendarInWords(date: string, now: number, options: { weekday?: boolean } = {}): string {
+  return dayInWords(atNoon(date), now, options)
 }
 
 /**
@@ -315,5 +322,5 @@ function season(now: number): string {
  * the browser: the formats of the mockup.
  */
 export function useDateFormat() {
-  return { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarMonth, calendarLong, calendarNumeric, calendarWeekday, calendarInWords, calendarPeriod, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
+  return { dayMonth, recordedAt, day, writtenDay, ago, calendarDay, calendarMonth, calendarLong, calendarNumeric, calendarWeekday, calendarInWords, calendarPeriod, dayInWords, longDay, dayParts, time, clock, period, schedule, eventWhen, eventDays, countdown, countdownText, season }
 }

@@ -30,7 +30,7 @@ export type PositionChoice = BoardPosition | typeof NO_POSITION
 /** The options of the position, « Aucune fonction » first. */
 export const POSITION_OPTIONS: ReadonlyArray<{ value: PositionChoice, label: string }> = [
   { value: NO_POSITION, label: 'Aucune fonction' },
-  ...(Object.entries(BOARD_POSITIONS) as Array<[BoardPosition, string]>).map(([value, label]) => ({ value, label })),
+  ...keysOf(BOARD_POSITIONS).map(value => ({ value, label: BOARD_POSITIONS[value] })),
 ]
 
 /** The link of an email, as the page reads it after its « # »: `uid.token`. */

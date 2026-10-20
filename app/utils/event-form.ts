@@ -1,28 +1,20 @@
 import type { components } from '~/types/api'
+import type { Option } from '~/utils/options'
 
 type EventIn = components['schemas']['EventIn']
 type EventOut = components['schemas']['EventOut']
 type EventItemOut = components['schemas']['EventItemOut']
-type BoardMemberOut = components['schemas']['BoardMemberOut']
 type EventCategory = components['schemas']['EventCategory']
 type PracticalInfoIcon = components['schemas']['PracticalInfoIcon']
 
-/** An option of a select. */
-export interface Option<T> {
-  value: T
-  label: string
-}
-
-// Object.entries() types the keys of a record as mere strings.
-
 /** The categories to choose from, in the order of the agenda. */
-export const CATEGORY_OPTIONS: readonly Option<EventCategory>[] = Object.entries(EVENT_CATEGORIES).map(
-  ([value, label]) => ({ value: value as EventCategory, label }),
+export const CATEGORY_OPTIONS: readonly Option<EventCategory>[] = keysOf(EVENT_CATEGORIES).map(
+  value => ({ value, label: EVENT_CATEGORIES[value] }),
 )
 
 /** The icons a « Bon à savoir » card may take. */
-export const ICON_OPTIONS: readonly Option<PracticalInfoIcon>[] = Object.entries(PRACTICAL_INFO_ICONS).map(
-  ([value, { label }]) => ({ value: value as PracticalInfoIcon, label }),
+export const ICON_OPTIONS: readonly Option<PracticalInfoIcon>[] = keysOf(PRACTICAL_INFO_ICONS).map(
+  value => ({ value, label: PRACTICAL_INFO_ICONS[value].label }),
 )
 
 /** The general information of an event: what « Créer » and « Modifier » edit. */
@@ -64,7 +56,7 @@ type Line<T> = T & {
   key: number
 }
 
-export type ProgrammeLine = Line<{ time: string, title: string, description: string }>
+export type ProgrammeItemLine = Line<{ time: string, title: string, description: string }>
 export type PracticalInfoLine = Line<{ icon: PracticalInfoIcon, title: string, text: string }>
 
 /** The fields of the public information, named after the keys of the API. */
@@ -77,7 +69,7 @@ export interface PublicInfoFields {
   longitude: string
   price_label: string
   price_detail: string
-  programme: ProgrammeLine[]
+  programme: ProgrammeItemLine[]
   practical_infos: PracticalInfoLine[]
 }
 
@@ -138,10 +130,19 @@ export function publicInfoPaths({ programme, practical_infos }: PublicInfoFields
 // Only the lines of a page need tell one another apart: a count serves.
 let lastLineKey = 0
 
-/** A key for a line the board adds. */
-export function newLineKey(): number {
+function newLineKey(): number {
   lastLineKey += 1
   return lastLineKey
+}
+
+/** An empty line the board adds to the programme. */
+export function newProgrammeItemLine(): ProgrammeItemLine {
+  return { key: newLineKey(), time: '', title: '', description: '' }
+}
+
+/** An empty « Bon à savoir » card the board adds. */
+export function newPracticalInfoLine(): PracticalInfoLine {
+  return { key: newLineKey(), icon: 'info', title: '', text: '' }
 }
 
 /** The general information of an event, or empty fields for a new one. */
@@ -258,29 +259,6 @@ export function publicInfoPayload(fields: PublicInfoFields): Pick<EventIn, Publi
     programme: fields.programme.map(({ time, title, description }) => ({ time, title, description })),
     practical_infos: fields.practical_infos.map(({ icon, title, text }) => ({ icon, title, text })),
   }
-}
-
-/**
- * The board members to choose from, by name, after the choice of nobody
- * (« Aucun », « Personne »): the lead of an event, the assignee of a task. The
- * member chosen so far stays among them, even after leaving the board:
- * otherwise, saving would take them off without anyone choosing so.
- */
-export function memberOptions(
-  members: readonly BoardMemberOut[],
-  current: BoardMemberOut | null,
-  nobody: string,
-): Option<number | null>[] {
-  return [{ value: null, label: nobody }, ...boardMemberOptions(members, current)]
-}
-
-/**
- * The board members to choose from, by name, the member chosen so far kept
- * among them even after leaving the board: who advanced an expense.
- */
-export function boardMemberOptions(members: readonly BoardMemberOut[], current: BoardMemberOut | null): Option<number>[] {
-  const chosen = current && !members.some(member => member.id === current.id) ? [...members, current] : members
-  return chosen.map(member => ({ value: member.id, label: memberName(member) }))
 }
 
 /**

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { CircleAlert } from '@lucide/vue'
 import type { components } from '~/types/api'
 import type { FormErrors } from '~/utils/api-errors'
 
@@ -49,12 +48,11 @@ async function save(): Promise<void> {
   pending.value = false
   if (result.errors) {
     errors.value = placeErrors(result.errors, GENERAL_INFO_PATHS, eventFieldLabel)
-    await nextTick()
-    form.value?.querySelector<HTMLElement>('[role="alert"], [aria-invalid="true"]')?.focus()
+    await focusErrors(form)
     return
   }
   errors.value = null
-  emit('saved', result.event)
+  emit('saved', result.data)
 }
 </script>
 
@@ -64,12 +62,9 @@ async function save(): Promise<void> {
     class="flex max-w-3xl flex-col gap-5"
     @submit.prevent="save"
   >
-    <UiCallout
+    <UiAlert
       v-if="errors?.form.length"
-      tone="ambre"
-      role="alert"
       tabindex="-1"
-      :icon="CircleAlert"
     >
       <p
         v-for="message in errors.form"
@@ -77,125 +72,109 @@ async function save(): Promise<void> {
       >
         {{ message }}
       </p>
-    </UiCallout>
+    </UiAlert>
     <UiCard title="Informations générales">
       <div class="grid gap-4 md:grid-cols-2">
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           :label="EVENT_FIELD_LABELS.title"
           :errors="errors?.fields.title"
           class="md:col-span-2"
         >
           <UiInput
-            :id
+            v-bind="control"
             v-model="fields.title"
             required
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           :label="EVENT_FIELD_LABELS.category"
           :errors="errors?.fields.category"
         >
           <UiSelect
-            :id
+            v-bind="control"
             v-model="fields.category"
             :options="CATEGORY_OPTIONS"
             placeholder="Choisir une catégorie"
             required
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           :label="EVENT_FIELD_LABELS.venue_name"
           :errors="errors?.fields.venue_name"
         >
           <UiInput
-            :id
+            v-bind="control"
             v-model="fields.venue_name"
             required
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           :label="EVENT_FIELD_LABELS.starts_at"
           :errors="errors?.fields.starts_at"
         >
           <UiInput
-            :id
+            v-bind="control"
             v-model="fields.starts_at"
             type="datetime-local"
             required
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           :label="EVENT_FIELD_LABELS.ends_at"
           optional
           :errors="errors?.fields.ends_at"
         >
           <UiInput
-            :id
+            v-bind="control"
             v-model="fields.ends_at"
             type="datetime-local"
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           :label="EVENT_FIELD_LABELS.start_label"
           optional
           help="Par exemple « Ouverture » : il précède l’heure du début."
           :errors="errors?.fields.start_label"
         >
           <UiInput
-            :id
+            v-bind="control"
             v-model="fields.start_label"
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           :label="EVENT_FIELD_LABELS.lead"
           optional
           :errors="errors?.fields.lead"
           class="md:col-start-1"
         >
           <UiSelect
-            :id
+            v-bind="control"
             v-model="fields.lead"
             :options="leads"
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           :label="EVENT_FIELD_LABELS.previous_edition"
           optional
           help="Le même événement, l’an dernier."
           :errors="errors?.fields.previous_edition"
         >
           <UiSelect
-            :id
+            v-bind="control"
             v-model="fields.previous_edition"
             :options="editions"
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
         <UiField
-          v-slot="{ id, describedby, invalid }"
+          v-slot="{ control }"
           :label="EVENT_FIELD_LABELS.slug"
           optional
           help="L’adresse de sa page sur le site. Laissée vide, elle est tirée du titre et de l’année : halloween-des-enfants-2026."
@@ -203,10 +182,8 @@ async function save(): Promise<void> {
           class="md:col-span-2"
         >
           <UiInput
-            :id
+            v-bind="control"
             v-model="fields.slug"
-            :aria-describedby="describedby"
-            :invalid
           />
         </UiField>
       </div>

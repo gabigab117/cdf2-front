@@ -17,11 +17,6 @@ const embed = computed(() => {
   const box = [longitude - SPAN, latitude - SPAN / 2, longitude + SPAN, latitude + SPAN / 2].join(',')
   return `https://www.openstreetmap.org/export/embed.html?bbox=${box}&layer=mapnik&marker=${latitude},${longitude}`
 })
-
-function load(event: MouseEvent): void {
-  event.preventDefault()
-  loaded.value = true
-}
 </script>
 
 <template>
@@ -38,7 +33,7 @@ function load(event: MouseEvent): void {
     rel="noopener noreferrer"
     :aria-label="`Afficher le plan d’accès : ${venue} (OpenStreetMap)`"
     class="relative flex h-37.5 items-center justify-center overflow-hidden rounded-banner bg-argent-100 map-grid"
-    @click="load"
+    @click.prevent="loaded = true"
   >
     <span
       class="inline-flex size-11 -rotate-45 items-center justify-center rounded-full rounded-bl-none bg-azur-600 shadow-pin"

@@ -8,13 +8,13 @@
 const DAY_MS = 86_400_000
 
 /** A window of days, both ends counted. */
-export interface TimelineWindow {
+interface TimelineWindow {
   start: string
   end: string
 }
 
 /** Where a bar lies on its track, as shares of the track's width. */
-export interface BarPlacement {
+interface BarPlacement {
   left: string
   width: string
 }

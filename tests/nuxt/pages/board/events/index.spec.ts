@@ -4,13 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import EventsPage from '~/pages/board/events/index.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
 import { eventItem, page } from '../../../helpers/events'
+import { readable } from '../../../helpers/text'
 
 const { navigateToMock } = vi.hoisted(() => ({ navigateToMock: vi.fn() }))
 mockNuxtImport('navigateTo', () => navigateToMock)
-
-function readable(text: string): string {
-  return text.replaceAll(' ', ' ')
-}
 
 function mountList(route = '/bureau/evenements') {
   return mountSuspended(EventsPage, { route })
