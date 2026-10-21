@@ -63,6 +63,17 @@ describe('the report for the general meeting', () => {
       'Hors événement | 1 620,00 € | 366,00 € | +1 254,00 €',
       'Total | 11 490,00 € | 6 921,25 € | +4 568,75 €',
     ])
+    expect(table(sheet, 'Stock et résultat corrigé')).toEqual([
+      'Au 1er janvier | Au 16/10/2026 | Variation | Résultat corrigé',
+      '0,00 € | 22,67 € | +22,67 € | +32,67 €',
+    ])
+    expect(readable(sheet.text())).toContain('Dont pertes d’inventaire : 1,13 €, comptées dans les marchandises consommées hors événement.')
+    expect(table(sheet, 'Résultat de gestion par événement')).toEqual([
+      'Événement | Recettes | Dépenses | Mis en stock | Consommé | Résultat de gestion',
+      'Brocante | 60,00 € | 50,00 € | 26,40 € | 17,00 € | +19,40 €',
+      'Hors événement | 0,00 € | 0,00 € | 0,00 € | 1,13 € | −1,13 €',
+      'Total |  |  |  |  | +18,27 €',
+    ])
     expect(table(sheet, 'Recettes par catégorie')).toEqual([
       'Catégorie | Lignes | Montant',
       'Buvette | 5 | 5 240,00 €',
@@ -92,6 +103,7 @@ describe('the report for the general meeting', () => {
     await vi.waitFor(() => expect(page.find('article').exists()).toBe(true))
     const sheet = page.get('article')
     expect(sheet.text()).toContain('Du 1er janvier au 31 décembre 2025')
+    expect(table(sheet, 'Stock et résultat corrigé')[0]).toBe('Au 1er janvier | Au 31 décembre | Variation | Résultat corrigé')
     expect(sheet.text()).toContain('Aucune ligne pour cet exercice.')
     expect(sheet.text()).toContain('Aucune recette pour cet exercice.')
     expect(sheet.text()).toContain('Aucune dépense pour cet exercice.')

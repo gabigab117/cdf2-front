@@ -2427,6 +2427,7 @@ export interface components {
             general: components["schemas"]["LedgerTotalsOut"];
             /** Income Categories */
             income_categories: components["schemas"]["LedgerCategoryTotalOut"][];
+            management: components["schemas"]["ManagementOut"];
             /** Missing Receipts */
             missing_receipts: components["schemas"]["LedgerEntryOut"][];
             totals: components["schemas"]["LedgerTotalsOut"];

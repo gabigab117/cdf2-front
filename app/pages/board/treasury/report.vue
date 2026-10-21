@@ -4,6 +4,7 @@ import type { components } from '~/types/api'
 
 type LedgerCategoryTotalOut = components['schemas']['LedgerCategoryTotalOut']
 type LedgerTotalsOut = components['schemas']['LedgerTotalsOut']
+type ManagementRowOut = components['schemas']['ManagementRowOut']
 
 definePageMeta({ path: '/bureau/tresorerie/bilan', topBarAction: true })
 
@@ -12,12 +13,21 @@ definePageMeta({ path: '/bureau/tresorerie/bilan', topBarAction: true })
 useHead({ title: 'Bilan pour l’AG', style: [{ textContent: '@page { size: A4; margin: 0; }' }] })
 
 // The report of a fiscal year for the general meeting (6.6): its totals, the
-// result of each event, what each category brought in or cost, and the
-// receipts it misses. Every figure is the API's.
+// result of each event, its stock and the management result of each event
+// (D16), what each category brought in or cost, and the receipts it misses.
+// Every figure is the API's.
 const RESULT_COLUMNS = [{ label: 'Recettes', amount: true }, { label: 'Dépenses', amount: true }, { label: 'Résultat', amount: true }]
 const EVENT_COLUMNS = [{ label: 'Événement' }, ...RESULT_COLUMNS]
 const CATEGORY_COLUMNS = [{ label: 'Catégorie' }, { label: 'Lignes', amount: true }, { label: 'Montant', amount: true }]
 const MISSING_COLUMNS = [{ label: 'Date' }, { label: 'Libellé' }, { label: 'Événement' }, { label: 'Montant', amount: true }]
+const MANAGEMENT_COLUMNS = [
+  { label: 'Événement' },
+  { label: 'Recettes', amount: true },
+  { label: 'Dépenses', amount: true },
+  { label: 'Mis en stock', amount: true },
+  { label: 'Consommé', amount: true },
+  { label: 'Résultat de gestion', amount: true },
+]
 
 const route = useRoute()
 const now = useNow()
@@ -39,9 +49,36 @@ const sheet = computed(() => {
   const shown = report.value
   if (!shown) return null
   const totals = results(shown.totals)
+  const management = shown.management
+  const current = shown.year === parisCalendar(now.value).year
   return {
     year: shown.year,
     span: yearSpan(shown.year, now.value, `Arrêté au ${today.value}`),
+    // The value at the end of the year: on the day the sheet is stopped at,
+    // for the year under way.
+    stockColumns: [
+      { label: 'Au 1er janvier', amount: true },
+      { label: current ? `Au ${today.value}` : 'Au 31 décembre', amount: true },
+      { label: 'Variation', amount: true },
+      { label: 'Résultat corrigé', amount: true },
+    ],
+    stock: [{
+      key: 'stock',
+      cells: [
+        amount(management.totals.opening_value),
+        amount(management.totals.closing_value),
+        signed(management.totals.stock_change),
+        signed(management.totals.adjusted_result),
+      ],
+    }],
+    losses: `Dont pertes d’inventaire : ${amount(management.stock.losses.total)}, comptées dans les marchandises consommées hors événement.`,
+    management: {
+      rows: [
+        ...management.events.map(row => ({ key: row.event?.id ?? 0, cells: managementCells(row, row.event?.title ?? '') })),
+        { key: 'general', cells: managementCells(management.general, GENERAL_LABEL) },
+      ],
+      total: ['Total', '', '', '', '', signed(management.totals.management_result)],
+    },
     totals: [{ key: 'totals', cells: totals }],
     events: {
       rows: [
@@ -61,6 +98,17 @@ const sheet = computed(() => {
 
 function results({ income, expense, result }: LedgerTotalsOut): string[] {
   return [amount(income), amount(expense), signed(result)]
+}
+
+function managementCells(row: ManagementRowOut, name: string): string[] {
+  return [
+    name,
+    amount(row.income),
+    amount(row.expense),
+    amount(row.stocked_purchases),
+    amount(row.consumption_cost),
+    signed(row.management_result),
+  ]
 }
 
 function categories(totals: readonly LedgerCategoryTotalOut[], sum: string) {
@@ -124,6 +172,22 @@ function print(): void {
             :rows="sheet.events.rows"
             :total="sheet.events.total"
             empty="Aucune ligne pour cet exercice."
+          />
+        </TreasuryReportSection>
+        <TreasuryReportSection title="Stock et résultat corrigé">
+          <TreasuryReportTable
+            :columns="sheet.stockColumns"
+            :rows="sheet.stock"
+          />
+          <p class="text-caption">
+            {{ sheet.losses }}
+          </p>
+        </TreasuryReportSection>
+        <TreasuryReportSection title="Résultat de gestion par événement">
+          <TreasuryReportTable
+            :columns="MANAGEMENT_COLUMNS"
+            :rows="sheet.management.rows"
+            :total="sheet.management.total"
           />
         </TreasuryReportSection>
         <TreasuryReportSection title="Recettes par catégorie">

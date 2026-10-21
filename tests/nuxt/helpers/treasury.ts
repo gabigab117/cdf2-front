@@ -108,6 +108,7 @@ export function generalMeetingReport(changes: Partial<GeneralMeetingReportOut> =
       { category: 'insurance', total: '1200.00', count: 1 },
     ],
     missing_receipts: [ledgerEntry()],
+    management: managementReport(),
     ...changes,
   }
 }
