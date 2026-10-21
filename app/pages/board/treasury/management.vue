@@ -24,14 +24,11 @@ const closingLabel = computed(() => (current.value ? 'Valeur aujourd’hui' : 'V
 const kpis = computed(() => {
   const totals = management.value?.totals
   if (!totals) return null
-  const closing = amount(totals.closing_value)
   return {
     result: signed(totals.result),
     change: signed(totals.stock_change),
-    changeSpan: `De ${amount(totals.opening_value)} à ${closing}`,
+    changeSpan: `De ${amount(totals.opening_value)} à ${amount(totals.closing_value)}`,
     adjusted: signed(totals.adjusted_result),
-    value: closing,
-    valueDay: current.value ? 'Aujourd’hui' : `Au 31 décembre ${year.value}`,
   }
 })
 </script>
@@ -78,13 +75,6 @@ const kpis = computed(() => {
           tone="dark"
         >
           Résultat plus variation du stock
-        </UiKpiCard>
-        <UiKpiCard
-          label="Valeur du stock"
-          :value="kpis.value"
-          figure="amount"
-        >
-          {{ kpis.valueDay }}
         </UiKpiCard>
       </div>
       <UiCard

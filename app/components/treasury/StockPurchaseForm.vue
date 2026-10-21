@@ -77,15 +77,12 @@ async function submit(): Promise<void> {
     <div class="flex flex-wrap gap-2">
       <UiButton
         type="submit"
-        variant="accent"
-        size="sm"
         :loading="pending"
       >
         Mettre en stock
       </UiButton>
       <UiButton
         variant="secondary"
-        size="sm"
         @click="emit('cancel')"
       >
         Annuler

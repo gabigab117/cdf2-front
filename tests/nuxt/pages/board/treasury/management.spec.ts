@@ -63,7 +63,8 @@ describe('« Contrôle de gestion »', () => {
     expect(kpis).toContain('Variation du stock+22,67 €De 0,00 € à 22,67 €')
     expect(kpis).toContain('Résultat corrigé+32,67 €')
     expect(kpis).toContain('Résultat plus variation du stock')
-    expect(kpis).toContain('Valeur du stock22,67 €Aujourd’hui')
+    // The value of the stock is told by the « Stock » card and the change's caption.
+    expect(kpis).not.toContain('Valeur du stock')
     const table = view.findAll('ul').find(list => list.text().includes('Brocante'))!
     expect(table.findAll('li').map(row => readable(row.text()))).toEqual([
       'BrocanteRecettes 60,00 € · dépenses 50,00 € · mis en stock 26,40 € · consommé 17,00 € · marge buvette 43,00 € (71,7 %)'
@@ -128,7 +129,6 @@ describe('« Contrôle de gestion »', () => {
     await vi.waitFor(() => expect(view.findAll('h2').length).toBeGreaterThan(0))
     expect(sent.map(request => request.url)).toContain('/api/board/treasury/management?year=2025')
     expect(view.get('nav a').attributes('href')).toBe('/bureau/tresorerie?exercice=2025')
-    expect(readable(view.text())).toContain('Valeur du stock22,67 €Au 31 décembre 2025')
     expect(card(view, 'Stock').text()).toContain('Valeur au 31 décembre')
     const controls = card(view, 'Contrôles')
     expect(controls.text()).toContain('2 achats attendent leur prix : ils comptent au prix moyen d’ici là.')
