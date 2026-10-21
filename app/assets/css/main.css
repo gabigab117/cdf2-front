@@ -179,6 +179,11 @@
   --grid-template-columns-operation-lines: minmax(0, 1.6fr) 80px 104px 96px 104px;
   --grid-template-columns-operation-lines-narrow: minmax(0, 1fr) auto;
 
+  /* An item's stock card (D16): day, operation, movement, unit cost, value,
+     stock after, average cost after; operation and movement below 820 px. */
+  --grid-template-columns-item-history: 64px minmax(0, 1.4fr) 80px 92px 96px 80px 92px;
+  --grid-template-columns-item-history-narrow: minmax(0, 1fr) auto;
+
   /* Radii */
   --radius-swatch: 3px;     /* colour swatches of a legend */
   --radius-segment: 9px;     /* the icon of a recent operation of the stock */

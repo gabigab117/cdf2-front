@@ -35,6 +35,18 @@ export function useStockOperation(id: number) {
     loadData(useApi().GET('/api/board/stock/operations/{operation_id}', { params: { path: { operation_id: id } }, signal })))
 }
 
+/** A page of an item's stock card (« fiche de stock »), the latest movement first. Lazy. */
+export function useItemHistory(id: number, page: () => number) {
+  return useLazyAsyncData(
+    () => `board:stock:item:${id}:history:${page()}`,
+    (_nuxtApp, { signal }) =>
+      loadData(useApi().GET('/api/board/stock/items/{item_id}/history', {
+        params: { path: { item_id: id }, query: { page: page(), page_size: OPERATIONS_PAGE_SIZE } },
+        signal,
+      })),
+  )
+}
+
 /** What an order brings to the stock, and its delivery, for its panel. Lazy. */
 export function useStockOrder(id: number) {
   return useLazyAsyncData(`board:stock:order:${id}`, (_nuxtApp, { signal }) =>

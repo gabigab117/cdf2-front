@@ -1115,6 +1115,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/stock/items/{item_id}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the stock card of an item
+         * @description « Fiche de stock »: the movements of an item, the latest first, each
+         *     valued, with the stock, its value and its average cost after it.
+         */
+        get: operations["stock_api_read_item_history"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/stock/operations": {
         parameters: {
             query?: never;
@@ -2410,6 +2431,47 @@ export interface components {
             payment_method: components["schemas"]["LedgerPaymentMethod"];
         };
         /**
+         * ItemHistoryLineOut
+         * @description A line of an item's stock card (« fiche de stock », D16): a movement,
+         *     valued at the cost of its time, and where the stock stood after it.
+         */
+        ItemHistoryLineOut: {
+            /** Average Cost After */
+            average_cost_after: string | null;
+            /** Cost */
+            cost: string | null;
+            /** Delta */
+            delta: string;
+            operation: components["schemas"]["ItemHistoryOperationOut"];
+            /** Quantity After */
+            quantity_after: string;
+            /** Unit Cost */
+            unit_cost: string | null;
+            /** Unpriced */
+            unpriced: boolean;
+            /** Value */
+            value: string | null;
+            /** Value After */
+            value_after: string | null;
+        };
+        /**
+         * ItemHistoryOperationOut
+         * @description The operation of a line of an item's stock card.
+         */
+        ItemHistoryOperationOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            event: components["schemas"]["StockEventOut"] | null;
+            /** Id */
+            id: number;
+            /** Label */
+            label: string;
+            reason: components["schemas"]["StockOperationReason"];
+        };
+        /**
          * LastStocktakeOut
          * @description The latest stocktake, which dates the stock's title.
          */
@@ -3208,6 +3270,13 @@ export interface components {
             count: number;
             /** Items */
             items: components["schemas"]["EventItemOut"][];
+        };
+        /** PagedItemHistoryLineOut */
+        PagedItemHistoryLineOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["ItemHistoryLineOut"][];
         };
         /** PagedLedgerEntryOut */
         PagedLedgerEntryOut: {
@@ -8264,6 +8333,67 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    stock_api_read_item_history: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number | null;
+            };
+            header?: never;
+            path: {
+                item_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedItemHistoryLineOut"];
                 };
             };
             /** @description Unauthorized */

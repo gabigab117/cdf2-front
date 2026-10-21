@@ -5,6 +5,7 @@ import ItemPage from '~/pages/board/stock/items/[id].vue'
 import NewItemPage from '~/pages/board/stock/items/new.vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
 import { button, field } from '../../../helpers/form'
+import { readable } from '../../../helpers/text'
 import { stockItem, stockOverview } from '../../../helpers/stock'
 
 const { navigateToMock, showErrorMock } = vi.hoisted(() => ({ navigateToMock: vi.fn(), showErrorMock: vi.fn() }))
@@ -103,6 +104,44 @@ describe('the pages of an item of the stock', () => {
 
     await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith('/bureau/stock'))
     expect(sent.find(request => request.method === 'PUT')?.body).toMatchObject({ name: 'Jus de fruits 1 L', threshold: '30', step: '6' })
+  })
+
+  it('tells the prices of an item and its stock card, by page', async () => {
+    /**
+     * Given the juice of the stock, at 1,20 € a litre, which moved thirty times
+     * When a member opens its page
+     * Then it tells its average cost, its value and its latest purchase paid,
+     * then its stock card, the latest movement first, each leading to its
+     * operation, and a link to the next page
+     */
+    mockApi('/api/board/stock', { handler: () => apiResponse(200, stockOverview()) })
+    const line = {
+      operation: { id: 12, reason: 'purchase' as const, label: 'Courses buvette', created_at: '2026-09-12T16:00:00Z', event: { id: 3, title: 'Brocante' } },
+      delta: '18.00',
+      cost: '21.60',
+      unit_cost: '1.2000',
+      value: '21.60',
+      unpriced: false,
+      quantity_after: '18.00',
+      value_after: '21.60',
+      average_cost_after: '1.2000',
+    }
+    mockApi('/api/board/stock/items/{item_id}/history', { method: 'GET', handler: () => apiResponse(200, { items: [line], count: 30 }) }, { item_id: 3 })
+
+    const page = await mountSuspended(ItemPage, { route: '/bureau/stock/articles/3' })
+
+    await vi.waitFor(() => expect(page.findAll('ul.divide-y li a')).toHaveLength(1))
+    expect(page.findAll('dl > div').map(row => readable(row.text()))).toEqual([
+      'Prix moyen pondéré1,20 €',
+      'Valeur en stock21,60 €',
+      'Dernier prix d’achat1,20 €',
+    ])
+    const row = page.get('ul.divide-y li a')
+    expect(row.attributes('href')).toBe('/bureau/stock/operations/12')
+    expect(readable(row.text())).toContain('Courses buvette')
+    expect(readable(row.text())).toContain('+18')
+    expect(readable(row.text())).toContain('+21,60 €')
+    expect(page.find('a[href="/bureau/stock/articles/3?page=2"]').exists()).toBe(true)
   })
 
   it('deletes an item, once asked, and goes back to the stock', async () => {

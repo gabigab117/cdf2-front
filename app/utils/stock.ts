@@ -99,7 +99,7 @@ export function stockQuery({ filter, search }: StockQuery): LocationQueryRaw {
 /** The items below their threshold, where the bell leads. */
 export const LOW_STOCK_LOCATION: RouteLocationRaw = { path: STOCK_PATH, query: { filtre: LOW } }
 
-/** How many operations a page of their list holds. */
+/** How many operations a page of their list holds, or lines a page of an item's stock card. */
 export const OPERATIONS_PAGE_SIZE = 25
 
 // The word of the address that keeps the purchases waiting for a cost.
