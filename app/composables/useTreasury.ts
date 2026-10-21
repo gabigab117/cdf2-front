@@ -60,6 +60,16 @@ export function useLedgerEntry(id: number) {
 }
 
 /**
+ * The purchases and deliveries of the stock no expense paid yet, for « Achat
+ * déjà saisi » (D16). A hundred cover what the committee leaves unpaid: one
+ * page serves. Lazy.
+ */
+export function useUnlinkedPurchases() {
+  return useLazyAsyncData('board:treasury:stock-purchases', (_nuxtApp, { signal }) =>
+    loadData(useApi().GET('/api/board/treasury/stock-purchases', { params: { query: { page_size: 100 } }, signal })))
+}
+
+/**
  * Every expense whose receipt is missing, for the invoice that would prove one
  * (« Ligne déjà saisie »). A hundred cover what the committee leaves undone:
  * one page serves.

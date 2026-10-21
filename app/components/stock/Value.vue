@@ -37,12 +37,8 @@ const notes = computed(() => [
         v-for="row in categories"
         :key="row.category"
         :label="row.label"
-        class="last:border-b-0"
-      >
-        <dd class="font-mono font-medium">
-          {{ row.value }}
-        </dd>
-      </UiDetailRow>
+        :value="row.value"
+      />
     </dl>
     <p
       v-for="note in notes"

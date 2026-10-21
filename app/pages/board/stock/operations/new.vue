@@ -14,9 +14,8 @@ useHead({ title: 'Entrée ou sortie' })
 const breadcrumb = [{ label: 'Stock', to: STOCK_PATH }, { label: 'Entrée ou sortie' }]
 
 // The items come from the stock, which tells what each holds.
-const { data: stock } = useStock()
+const { items: itemOptions, held } = useStockItemChoices()
 const { recordOperation } = useStockWrites()
-const { quantity } = useQuantityFormat()
 const eventOptions = useEventChoices('Aucun')
 
 const DIRECTIONS: readonly Option<StockDirection>[] = [
@@ -39,16 +38,8 @@ watch(direction, (chosen) => {
   if (!DIRECTION_REASONS[chosen].includes(reason.value)) reason.value = DIRECTION_REASONS[chosen][0]!
 })
 
-const itemOptions = computed(() => (stock.value?.items ?? []).map(({ item }) => ({ value: item.id, label: item.name })))
-
 // A purchase tells what each of its lines cost (D16).
 const costs = computed(() => reason.value === 'purchase')
-
-// Under each item, what the stock holds of it.
-function held(id: number): string | undefined {
-  const entry = stock.value?.items.find(({ item }) => item.id === id)
-  return entry && `En stock : ${quantity(entry.quantity, entry.item.unit)}`
-}
 
 const form = useTemplateRef<HTMLFormElement>('form')
 
@@ -76,7 +67,7 @@ async function submit(): Promise<void> {
     'reason',
     'label',
     'event',
-    ...lines.value.flatMap((_line, index) => lineFields.map(field => `lines.${index}.${field}`)),
+    ...linePaths(lines.value, lineFields),
   ])
   errors.value = placeErrors(result.errors, shown, operationFieldLabel)
   await focusErrors(form)

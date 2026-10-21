@@ -1472,6 +1472,37 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/treasury/entries/{entry_id}/stock-purchase": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Link a stock purchase to the expense that paid it
+         * @description « Achat déjà saisi » (D16): a purchase or a delivery recorded in the
+         *     stock is paid by the expense, the cost of each line given. Given again, its
+         *     costs are corrected.
+         */
+        put: operations["treasury_api_link_purchase"];
+        /**
+         * Put in stock what an expense paid
+         * @description « Mettre en stock » (D16): the purchase an expense paid, recorded in the
+         *     stock with its label and its event, each line with its cost.
+         */
+        post: operations["treasury_api_create_purchase"];
+        /**
+         * Unlink the stock purchase of an expense
+         * @description « Retirer »: the expense pays the purchase no more; it stays in the stock.
+         */
+        delete: operations["treasury_api_unlink_purchase"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/treasury/invoices/{document_id}/attach": {
         parameters: {
             query?: never;
@@ -1549,6 +1580,27 @@ export interface paths {
          *     entries in it, the first to start first, then for the general running.
          */
         get: operations["treasury_api_read_results"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/treasury/stock-purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the stock purchases no expense paid
+         * @description The purchases and deliveries of the stock no expense paid yet, the
+         *     latest first: what « Achat déjà saisi » chooses from.
+         */
+        get: operations["treasury_api_list_unlinked_purchases"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2285,6 +2337,27 @@ export interface components {
             venue_name: string;
         };
         /**
+         * ExistingPurchaseIn
+         * @description « Achat déjà saisi »: a purchase or a delivery recorded in the stock, paid
+         *     by the expense, the cost of each of its lines given.
+         */
+        ExistingPurchaseIn: {
+            /** Lines */
+            lines: components["schemas"]["ExistingPurchaseLineIn"][];
+            /** Operation */
+            operation: number;
+        };
+        /**
+         * ExistingPurchaseLineIn
+         * @description What a line of a purchase recorded in the stock cost.
+         */
+        ExistingPurchaseLineIn: {
+            /** Cost */
+            cost: number | string;
+            /** Item */
+            item: number;
+        };
+        /**
          * ExtractedTaskIn
          * @description A task the minutes of a meeting list, to create when they are validated.
          */
@@ -2607,8 +2680,13 @@ export interface components {
             /** Reimbursed On */
             reimbursed_on: string | null;
             reimbursement_method: components["schemas"]["ReimbursementMethod"] | null;
+            stock_purchase: components["schemas"]["LedgerStockPurchaseOut"] | null;
+            /** Stocked Cost */
+            stocked_cost: string | null;
             /** Supplier */
             supplier: string;
+            /** Unstocked Cost */
+            unstocked_cost: string | null;
         };
         /**
          * LedgerEventOut
@@ -2666,6 +2744,22 @@ export interface components {
          * @enum {string}
          */
         LedgerReceiptState: "attached" | "missing" | "not_required";
+        /**
+         * LedgerStockPurchaseOut
+         * @description The stock purchase an expense paid (D16).
+         */
+        LedgerStockPurchaseOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: number;
+            /** Label */
+            label: string;
+            reason: components["schemas"]["StockOperationReason"];
+        };
         /**
          * LedgerTotalsOut
          * @description What came in and went out, the result, and over how many entries.
@@ -3181,6 +3275,23 @@ export interface components {
              * Format: date
              */
             start: string;
+        };
+        /**
+         * OperationExpenseOut
+         * @description The expense of the treasury that paid an operation (D16).
+         */
+        OperationExpenseOut: {
+            /** Amount */
+            amount: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Id */
+            id: number;
+            /** Label */
+            label: string;
         };
         /**
          * OrderLineIn
@@ -3984,6 +4095,7 @@ export interface components {
              */
             created_at: string;
             event: components["schemas"]["StockEventOut"] | null;
+            expense: components["schemas"]["OperationExpenseOut"] | null;
             /** Id */
             id: number;
             /** Label */
@@ -4113,6 +4225,28 @@ export interface components {
             shopping_list: components["schemas"]["ShoppingLineOut"][];
             shopping_list_estimated_cost: components["schemas"]["ShoppingListEstimatedCostOut"];
             valuation: components["schemas"]["StockValuationOut"];
+        };
+        /**
+         * StockPurchaseIn
+         * @description « Mettre en stock »: the purchase an expense paid, its lines with their
+         *     costs, every key required.
+         */
+        StockPurchaseIn: {
+            /** Lines */
+            lines: components["schemas"]["StockPurchaseLineIn"][];
+        };
+        /**
+         * StockPurchaseLineIn
+         * @description A line of the purchase an expense puts in stock: an item, how much of it,
+         *     and what it cost, all taxes included (D16).
+         */
+        StockPurchaseLineIn: {
+            /** Cost */
+            cost: number | string;
+            /** Item */
+            item: number;
+            /** Quantity */
+            quantity: number | string;
         };
         /**
          * StockValuationOut
@@ -9853,6 +9987,206 @@ export interface operations {
             };
         };
     };
+    treasury_api_link_purchase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExistingPurchaseIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LedgerEntryOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_create_purchase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockPurchaseIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LedgerEntryOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_unlink_purchase: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                entry_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LedgerEntryOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
     treasury_api_attach_invoice_to_expense: {
         parameters: {
             query?: never;
@@ -10062,6 +10396,56 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["FiscalYearResultsOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_list_unlinked_purchases: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedStockOperationOut"];
                 };
             };
             /** @description Unauthorized */

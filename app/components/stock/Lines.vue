@@ -8,7 +8,7 @@ import type { LineFields } from '~/utils/stock'
 // figures and its cross go under its item.
 const lines = defineModel<LineFields[]>({ required: true })
 
-const { items, errors, hint, costs } = defineProps<{
+const { items, errors, hint, costs, costsRequired } = defineProps<{
   /** The items to choose from, by name. */
   items: readonly Option<number>[]
   /** What the API found wrong, by the path of a line's field: "lines.0.quantity". */
@@ -17,6 +17,8 @@ const { items, errors, hint, costs } = defineProps<{
   hint?: (item: number) => string | undefined
   /** Lines of a purchase: each tells what it cost (D16). */
   costs?: boolean
+  /** Each cost required, as an expense pays them all. */
+  costsRequired?: boolean
 }>()
 
 // The lines changed places: whatever was said of a line by its position no
@@ -39,6 +41,10 @@ function lineErrors(index: number, field: string): readonly string[] | undefined
 function lineHint(line: LineFields): string | undefined {
   return line.item === '' ? undefined : hint?.(line.item)
 }
+
+const COST_HELP = 'Le montant est celui de la ligne, TTC, comme sur le ticket.'
+
+const costsHelp = computed(() => (costsRequired ? COST_HELP : `${COST_HELP} Laissé vide, il reste à compléter.`))
 </script>
 
 <template>
@@ -96,6 +102,7 @@ function lineHint(line: LineFields): string | undefined {
             v-model="line.cost"
             inputmode="decimal"
             placeholder="Montant €"
+            :required="costsRequired"
           />
         </UiField>
         <UiIconButton
@@ -119,7 +126,7 @@ function lineHint(line: LineFields): string | undefined {
       v-if="costs"
       class="text-note text-argent-600"
     >
-      Le montant est celui de la ligne, TTC, comme sur le ticket. Laissé vide, il reste à compléter.
+      {{ costsHelp }}
     </p>
   </fieldset>
 </template>

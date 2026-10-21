@@ -75,6 +75,26 @@ describe('the page of a line', () => {
     expect(view.text()).not.toContain('Remboursement')
   })
 
+  it('tells what an expense put in stock', async () => {
+    mockEntry()
+
+    const view = await mountPage()
+
+    await vi.waitFor(() => expect(view.find('h1').exists()).toBe(true))
+    expect(view.text()).toContain('Aucun achat du stock n’est rattaché à cette dépense.')
+    expect(button(view, 'Mettre en stock')).toBeDefined()
+  })
+
+  it('offers no stock to an income', async () => {
+    mockEntry(ledgerEntry({ kind: 'income', category: 'bar', payment_method: 'cash', advanced_by: null, receipt_state: 'not_required' }))
+
+    const view = await mountPage()
+
+    await vi.waitFor(() => expect(view.find('h1').exists()).toBe(true))
+    expect(button(view, 'Mettre en stock')).toBeUndefined()
+    expect(view.text()).not.toContain('Achat déjà saisi')
+  })
+
   it('corrects the line whole, then shows it corrected', async () => {
     mockEntry()
     mockApi(ENTRY, { method: 'PUT', handler: () => apiResponse(200, ledgerEntry({ label: 'Courses de la buvette' })) }, { entry_id: 4 })

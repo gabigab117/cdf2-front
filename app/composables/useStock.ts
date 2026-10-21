@@ -12,6 +12,25 @@ export function useStock() {
     loadData(useApi().GET('/api/board/stock', { signal })))
 }
 
+/**
+ * The items a line of the stock chooses from, by name, and what the stock
+ * holds of each, told under its line: an entry or an exit, the lines of an
+ * order, the purchase an expense puts in stock.
+ */
+export function useStockItemChoices() {
+  const { data: stock } = useStock()
+  const { quantity } = useQuantityFormat()
+
+  const items = computed(() => (stock.value?.items ?? []).map(({ item }) => ({ value: item.id, label: item.name })))
+
+  function held(id: number): string | undefined {
+    const entry = stock.value?.items.find(({ item }) => item.id === id)
+    return entry && `En stock : ${quantity(entry.quantity, entry.item.unit)}`
+  }
+
+  return { items, held }
+}
+
 /** A page of the operations of the stock, the latest first: all, or those waiting for a cost. Lazy. */
 export function useStockOperations(query: () => OperationsQuery) {
   return useLazyAsyncData(
@@ -29,10 +48,16 @@ export function useStockOperations(query: () => OperationsQuery) {
   )
 }
 
-/** An operation of the stock, its lines valued, for its page. Lazy. */
-export function useStockOperation(id: number) {
-  return useLazyAsyncData(`board:stock:operation:${id}`, (_nuxtApp, { signal }) =>
-    loadData(useApi().GET('/api/board/stock/operations/{operation_id}', { params: { path: { operation_id: id } }, signal })))
+/**
+ * An operation of the stock, its lines valued: for its page, and for the costs
+ * of the purchase an expense pays. Lazy.
+ */
+export function useStockOperation(id: () => number) {
+  return useLazyAsyncData(
+    () => `board:stock:operation:${id()}`,
+    (_nuxtApp, { signal }) =>
+      loadData(useApi().GET('/api/board/stock/operations/{operation_id}', { params: { path: { operation_id: id() } }, signal })),
+  )
 }
 
 /** A page of an item's stock card (« fiche de stock »), the latest movement first. Lazy. */

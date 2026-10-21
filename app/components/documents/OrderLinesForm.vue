@@ -17,14 +17,12 @@ const { id, lines } = defineProps<{
 
 const emit = defineEmits<{ saved: [order: StockOrderOut], cancel: [] }>()
 
-const { data: stock } = useStock()
+const { items: itemOptions } = useStockItemChoices()
 const { writeOrderLines } = useStockWrites()
 
 const fields = ref<LineFields[]>(orderLineFields(lines))
 const errors = ref<FormErrors | null>(null)
 const pending = ref(false)
-
-const itemOptions = computed(() => (stock.value?.items ?? []).map(({ item }) => ({ value: item.id, label: item.name })))
 
 const form = useTemplateRef<HTMLFormElement>('form')
 
@@ -41,7 +39,7 @@ async function save(): Promise<void> {
     emit('saved', result.data)
     return
   }
-  const shown = new Set(fields.value.flatMap((_line, index) => [`lines.${index}.item`, `lines.${index}.quantity`]))
+  const shown = new Set(linePaths(fields.value, ['item', 'quantity']))
   errors.value = placeErrors(result.errors, shown)
   await focusErrors(form)
 }

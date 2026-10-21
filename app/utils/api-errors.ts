@@ -63,6 +63,11 @@ export function placeErrors(
   return placed
 }
 
+/** The paths of the fields of each line of a form, as the API places their errors: "lines.0.quantity". */
+export function linePaths(lines: readonly unknown[], fields: readonly string[]): string[] {
+  return lines.flatMap((_line, index) => fields.map(field => `lines.${index}.${field}`))
+}
+
 /**
  * Takes the focus to what a form had refused, once shown: the message about
  * the whole form, or else the first field in error.

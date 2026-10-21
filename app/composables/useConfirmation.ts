@@ -18,9 +18,7 @@ export function useConfirmation(trigger: Readonly<Ref<ComponentPublicInstance | 
   async function dismiss(): Promise<void> {
     confirming.value = false
     failure.value = null
-    await nextTick()
-    const element: unknown = trigger.value instanceof HTMLElement ? trigger.value : trigger.value?.$el
-    if (element instanceof HTMLElement) element.focus()
+    await focusTrigger(trigger)
   }
 
   /**
@@ -36,4 +34,14 @@ export function useConfirmation(trigger: Readonly<Ref<ComponentPublicInstance | 
   }
 
   return { confirming, pending, failure, ask, dismiss, confirm }
+}
+
+/**
+ * Gives the focus to a button, once the page shows it: the one that opened a
+ * form or asked a question, or the one in its place.
+ */
+export async function focusTrigger(trigger: Readonly<Ref<ComponentPublicInstance | HTMLElement | null>>): Promise<void> {
+  await nextTick()
+  const element: unknown = trigger.value instanceof HTMLElement ? trigger.value : trigger.value?.$el
+  if (element instanceof HTMLElement) element.focus()
 }

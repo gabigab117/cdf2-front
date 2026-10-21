@@ -191,6 +191,12 @@ describe('placeErrors', () => {
   })
 })
 
+describe('linePaths', () => {
+  it('names each field of each line as the API places its errors', () => {
+    expect(linePaths([{}, {}], ['item', 'cost'])).toEqual(['lines.0.item', 'lines.0.cost', 'lines.1.item', 'lines.1.cost'])
+  })
+})
+
 describe('loadData', () => {
   function answer(status: number, body: { data?: unknown, error?: unknown }) {
     return Promise.resolve({ ...body, response: new Response(null, { status }) })

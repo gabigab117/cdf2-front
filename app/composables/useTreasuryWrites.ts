@@ -1,8 +1,10 @@
 import type { components, paths } from '~/types/api'
 import type { Written } from '~/utils/api-errors'
+import type { LineFields } from '~/utils/stock'
 import type { EntryFields } from '~/utils/treasury'
 
 type DocumentOut = components['schemas']['DocumentOut']
+type ExistingPurchaseIn = components['schemas']['ExistingPurchaseIn']
 type InvoiceExpenseIn = components['schemas']['InvoiceExpenseIn']
 type LedgerEntryIn = components['schemas']['LedgerEntryIn']
 type LedgerEntryOut = components['schemas']['LedgerEntryOut']
@@ -82,5 +84,32 @@ export function useTreasuryWrites() {
     return refreshesOverview(formWrite(api.DELETE('/api/board/treasury/entries/{entry_id}/reimbursement', path(id))))
   }
 
-  return { recordEntry, updateEntry, deleteEntry, attachReceipt, createInvoiceExpense, attachInvoice, markReimbursed, cancelReimbursement }
+  /** « Mettre en stock » (D16): the purchase an expense paid, recorded in the stock, each line with its cost. */
+  function createStockPurchase(id: number, lines: LineFields[]): Promise<Written<LedgerEntryOut>> {
+    return refreshesOverview(formWrite(api.POST('/api/board/treasury/entries/{entry_id}/stock-purchase', { ...path(id), body: { lines: purchaseLinesPayload(lines) } })))
+  }
+
+  /** « Achat déjà saisi » (D16): a purchase recorded in the stock, paid by the expense, each line's cost given. */
+  function linkExistingPurchase(id: number, payload: ExistingPurchaseIn): Promise<Written<LedgerEntryOut>> {
+    return refreshesOverview(formWrite(api.PUT('/api/board/treasury/entries/{entry_id}/stock-purchase', { ...path(id), body: payload })))
+  }
+
+  /** « Retirer »: the expense pays its purchase no more; it stays in the stock. */
+  function unlinkStockPurchase(id: number): Promise<Written<LedgerEntryOut>> {
+    return refreshesOverview(formWrite(api.DELETE('/api/board/treasury/entries/{entry_id}/stock-purchase', path(id))))
+  }
+
+  return {
+    recordEntry,
+    updateEntry,
+    deleteEntry,
+    attachReceipt,
+    createInvoiceExpense,
+    attachInvoice,
+    markReimbursed,
+    cancelReimbursement,
+    createStockPurchase,
+    linkExistingPurchase,
+    unlinkStockPurchase,
+  }
 }

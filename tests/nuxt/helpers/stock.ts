@@ -126,6 +126,7 @@ export function stockOperationDetail(changes: Partial<StockOperationDetailOut> =
     unpriced: true,
     priceable: true,
     cost: '158.40',
+    expense: null,
     lines: [
       {
         item: { id: 1, name: 'Canettes de soda 33 cl', unit: '' },

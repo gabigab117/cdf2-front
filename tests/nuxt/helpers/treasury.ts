@@ -30,6 +30,9 @@ export function ledgerEntry(changes: Partial<LedgerEntryOut> = {}): LedgerEntryO
     receipt: null,
     receipt_state: 'missing',
     contact: julie,
+    stock_purchase: null,
+    stocked_cost: null,
+    unstocked_cost: null,
     ...changes,
   }
 }

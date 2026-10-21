@@ -8,6 +8,7 @@ type StockOperationIn = components['schemas']['StockOperationIn']
 type StockOperationReason = components['schemas']['StockOperationReason']
 type StockItemOut = components['schemas']['StockItemOut']
 type StockLineIn = components['schemas']['StockLineIn']
+type StockPurchaseLineIn = components['schemas']['StockPurchaseLineIn']
 type OrderLineOut = components['schemas']['OrderLineOut']
 type StockedItemOut = components['schemas']['StockedItemOut']
 
@@ -156,6 +157,11 @@ export function linesPayload(lines: readonly LineFields[], { costs = false } = {
     quantity: amountInput(line.quantity) ?? '',
     cost: costs ? amountInput(line.cost) : undefined,
   }))
+}
+
+/** The lines of the purchase an expense puts in stock (D16): each with its cost, which the API requires. */
+export function purchaseLinesPayload(lines: readonly LineFields[]): StockPurchaseLineIn[] {
+  return lines.map(line => ({ item: Number(line.item), quantity: amountInput(line.quantity) ?? '', cost: amountInput(line.cost) ?? '' }))
 }
 
 // A name as a search compares it: without case or accents, « cafe » finds « Café ».

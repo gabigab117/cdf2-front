@@ -128,6 +128,25 @@ describe('the operations of the stock', () => {
       await vi.waitFor(() => expect(field(view, 'Montant payé : Bouteilles d’eau 50 cl').attributes('aria-invalid')).toBe('true'))
     })
 
+    it('names the expense that paid it, whose page corrects its costs', async () => {
+      /**
+       * Given the shopping of the bar, paid by its expense of 286,30 €
+       * When a member opens its page
+       * Then the page names the expense and leads to it, and offers no costs:
+       * they are corrected from the expense
+       */
+      mockOperation(stockOperationDetail({ unpriced: false, expense: { id: 4, label: 'Courses buvette', amount: '286.30', date: '2026-09-12' } }))
+
+      const view = await mountSuspended(OperationPage, { route: '/bureau/stock/operations/12' })
+
+      await vi.waitFor(() => expect(view.find('h1').exists()).toBe(true))
+      expect(readable(view.text())).toContain(
+        'Cette opération est payée par la dépense « Courses buvette » du 12 sept., 286,30 € : ses prix se corrigent depuis elle. Voir la dépense',
+      )
+      expect(view.findAll('a').find(link => link.text() === 'Voir la dépense')?.attributes('href')).toBe('/bureau/tresorerie/ecritures/4')
+      expect(button(view, 'Corriger les prix')).toBeUndefined()
+    })
+
     it('offers no costs to a consumption', async () => {
       mockOperation(stockOperationDetail({ reason: 'consumption', label: '', unpriced: false, priceable: false, cost: '0.00' }))
 

@@ -24,12 +24,8 @@ const rows = computed(() => [
         v-for="row in rows"
         :key="row.label"
         :label="row.label"
-        class="last:border-b-0"
-      >
-        <dd class="font-mono font-medium">
-          {{ row.value }}
-        </dd>
-      </UiDetailRow>
+        :value="row.value"
+      />
     </dl>
     <p
       v-if="entry.value === null"
