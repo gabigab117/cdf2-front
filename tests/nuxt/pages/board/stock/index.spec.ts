@@ -194,7 +194,8 @@ describe('the Stock page', () => {
      * Given the stock and the shopping of the bar
      * When the page shows
      * Then « Entrée ou sortie » and « Faire l’inventaire » lead to their pages,
-     * and « Mouvements récents » tells the shopping
+     * « Mouvements récents » tells the shopping, and the value of the stock
+     * shows beside it
      */
     mockStock(stockOverview({ recent_operations: [stockOperation()] }))
 
@@ -204,6 +205,7 @@ describe('the Stock page', () => {
     expect(stock.get('a[href="/bureau/stock/inventaire"]').text()).toBe('Faire l’inventaire')
     await vi.waitFor(() => expect(stock.text()).toContain('Courses buvette · Julie R.'))
     expect(stock.findComponent({ name: 'StockShoppingList' }).text()).toContain('2 articles')
+    expect(readable(stock.findComponent({ name: 'StockValue' }).text())).toContain('114,30 €')
   })
 
   it('shows a block for each order to receive', async () => {

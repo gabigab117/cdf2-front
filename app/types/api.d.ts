@@ -3575,9 +3575,22 @@ export interface components {
          *     to its step (A19).
          */
         ShoppingLineOut: {
+            /** Estimated Cost */
+            estimated_cost: string | null;
             item: components["schemas"]["StockMovementItemOut"];
             /** Quantity */
             quantity: string;
+        };
+        /**
+         * ShoppingListEstimatedCostOut
+         * @description What the shopping list should cost (its budget), of its lines that have a
+         *     cost.
+         */
+        ShoppingListEstimatedCostOut: {
+            /** Total */
+            total: string;
+            /** Unpriced Lines */
+            unpriced_lines: number;
         };
         /**
          * ShortageOut
@@ -3658,6 +3671,15 @@ export interface components {
             direction: components["schemas"]["StockDirection"];
         };
         /**
+         * StockCategoryValueOut
+         * @description The value of a category's items.
+         */
+        StockCategoryValueOut: {
+            category: components["schemas"]["StockItemCategory"];
+            /** Value */
+            value: string;
+        };
+        /**
          * StockCountIn
          * @description What a stocktake counted of an item.
          */
@@ -3729,6 +3751,8 @@ export interface components {
             /** Best Before */
             best_before: string | null;
             category: components["schemas"]["StockItemCategory"];
+            /** Initial Cost */
+            initial_cost: number | string | null;
             /** Name */
             name: string;
             /** Step */
@@ -3748,6 +3772,8 @@ export interface components {
             category: components["schemas"]["StockItemCategory"];
             /** Id */
             id: number;
+            /** Initial Cost */
+            initial_cost: string | null;
             /** Name */
             name: string;
             /** Step */
@@ -3762,6 +3788,8 @@ export interface components {
          * @description A line of an entry or an exit: an item, and how much of it.
          */
         StockLineIn: {
+            /** Cost */
+            cost?: number | string | null;
             /** Item */
             item: number;
             /** Quantity */
@@ -3874,19 +3902,41 @@ export interface components {
             recent_operations: components["schemas"]["StockOperationOut"][];
             /** Shopping List */
             shopping_list: components["schemas"]["ShoppingLineOut"][];
+            shopping_list_estimated_cost: components["schemas"]["ShoppingListEstimatedCostOut"];
+            valuation: components["schemas"]["StockValuationOut"];
+        };
+        /**
+         * StockValuationOut
+         * @description The value of the stock (D16): its items at their weighted average cost.
+         */
+        StockValuationOut: {
+            /** Categories */
+            categories: components["schemas"]["StockCategoryValueOut"][];
+            /** Unpriced Purchases */
+            unpriced_purchases: number;
+            /** Unvalued Items */
+            unvalued_items: number;
+            /** Value */
+            value: string;
         };
         /**
          * StockedItemOut
-         * @description An item and where its stock stands.
+         * @description An item and where its stock and its value stand.
          */
         StockedItemOut: {
+            /** Average Cost */
+            average_cost: string | null;
             item: components["schemas"]["StockItemOut"];
+            /** Last Unit Cost */
+            last_unit_cost: string | null;
             /** Level */
             level: number;
             /** Low */
             low: boolean;
             /** Quantity */
             quantity: string;
+            /** Value */
+            value: string | null;
         };
         /**
          * StocktakeIn

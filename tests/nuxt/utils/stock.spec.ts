@@ -44,7 +44,7 @@ describe('the items the Stock page shows', () => {
 
 describe('the item form', () => {
   it('starts empty, the step at one', () => {
-    expect(newItemFields()).toEqual({ name: '', category: '', unit: '', threshold: '', step: '1', bestBefore: '' })
+    expect(newItemFields()).toEqual({ name: '', category: '', unit: '', threshold: '', step: '1', bestBefore: '', initialCost: '' })
   })
 
   it('reads an item as a member types its numbers', () => {
@@ -55,20 +55,23 @@ describe('the item form', () => {
       threshold: '3',
       step: '0,5',
       bestBefore: '2027-02-01',
+      initialCost: '',
     })
     expect(itemFields(stockItem({ best_before: null })).bestBefore).toBe('')
+    expect(itemFields(stockItem({ initial_cost: '0.0125' })).initialCost).toBe('0,0125')
   })
 
   it('sends an item whole, its numbers as the API reads them', () => {
-    expect(itemPayload({ name: 'Bonbons', category: 'food', unit: 'kg', threshold: '3', step: '0,5', bestBefore: '2027-03-01' })).toEqual({
+    expect(itemPayload({ name: 'Bonbons', category: 'food', unit: 'kg', threshold: '3', step: '0,5', bestBefore: '2027-03-01', initialCost: '9,5' })).toEqual({
       name: 'Bonbons',
       category: 'food',
       unit: 'kg',
       threshold: '3',
       step: '0.5',
       best_before: '2027-03-01',
+      initial_cost: '9.5',
     })
-    expect(itemPayload({ ...newItemFields(), step: '' })).toMatchObject({ threshold: '', step: '', best_before: null })
+    expect(itemPayload({ ...newItemFields(), step: '' })).toMatchObject({ threshold: '', step: '', best_before: null, initial_cost: null })
   })
 
   it('offers the best-before months from a year ago to four years ahead', () => {

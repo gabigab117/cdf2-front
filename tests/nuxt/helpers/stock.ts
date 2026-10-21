@@ -21,16 +21,29 @@ export function stockItem(changes: Partial<StockItemOut> = {}): StockItemOut {
     threshold: '24.00',
     step: '6.00',
     best_before: '2027-02-01',
+    initial_cost: null,
     ...changes,
   }
 }
 
-/** An item and where its stock stands: 18 litres of juice, below its threshold of 24. */
+/**
+ * An item and where its stock stands: 18 litres of juice, below its threshold
+ * of 24, worth 21,60 € at 1,20 € a litre.
+ */
 export function stockedItem(
   changes: Partial<StockItemOut> = {},
   figures: Partial<Omit<StockedItemOut, 'item'>> = {},
 ): StockedItemOut {
-  return { item: stockItem(changes), quantity: '18.00', low: true, level: 75, ...figures }
+  return {
+    item: stockItem(changes),
+    quantity: '18.00',
+    low: true,
+    level: 75,
+    average_cost: '1.2000',
+    value: '21.60',
+    last_unit_cost: '1.2000',
+    ...figures,
+  }
 }
 
 /** The juice of the mockup, as the bell lists it. */
@@ -40,24 +53,45 @@ export function lowStockItem(changes: Partial<LowStockItemOut> = {}): LowStockIt
 
 /**
  * Four items of the mockup: the cans and the kegs at or above their threshold,
- * the juice and the sweets below it.
+ * the juice and the sweets below it; the kegs, of no cost, not valued.
  */
 export function stockOverview(changes: Partial<StockOverviewOut> = {}): StockOverviewOut {
   return {
     items: [
-      stockedItem({ id: 1, name: 'Canettes de soda 33 cl', threshold: '96.00', step: '24.00', best_before: '2027-05-01' }, { quantity: '144.00', low: false, level: 100 }),
-      stockedItem({ id: 4, name: 'Fûts de bière 20 L', unit: 'fûts', threshold: '2.00', step: '1.00', best_before: '2026-12-01' }, { quantity: '2.00', low: false, level: 100 }),
+      stockedItem(
+        { id: 1, name: 'Canettes de soda 33 cl', threshold: '96.00', step: '24.00', best_before: '2027-05-01' },
+        { quantity: '144.00', low: false, level: 100, average_cost: '0.5500', value: '79.20', last_unit_cost: '0.5500' },
+      ),
+      stockedItem(
+        { id: 4, name: 'Fûts de bière 20 L', unit: 'fûts', threshold: '2.00', step: '1.00', best_before: '2026-12-01' },
+        { quantity: '2.00', low: false, level: 100, average_cost: null, value: null, last_unit_cost: null },
+      ),
       stockedItem(),
-      stockedItem({ id: 6, name: 'Bonbons assortis', category: 'food', unit: 'kg', threshold: '3.00', step: '0.50', best_before: null }, { quantity: '1.50', low: true, level: 50 }),
+      stockedItem(
+        { id: 6, name: 'Bonbons assortis', category: 'food', unit: 'kg', threshold: '3.00', step: '0.50', best_before: null },
+        { quantity: '1.50', low: true, level: 50, average_cost: '9.0000', value: '13.50', last_unit_cost: '9.0000' },
+      ),
     ],
     counts: { total: 4, low: 2, drinks: 3, food: 1, supplies: 0, lotto_raffle: 0 },
     last_stocktake: null,
     recent_operations: [],
     shopping_list: [
-      { item: { id: 3, name: 'Jus de fruits 1 L', unit: '' }, quantity: '6.00' },
-      { item: { id: 6, name: 'Bonbons assortis', unit: 'kg' }, quantity: '1.50' },
+      { item: { id: 3, name: 'Jus de fruits 1 L', unit: '' }, quantity: '6.00', estimated_cost: '7.20' },
+      { item: { id: 6, name: 'Bonbons assortis', unit: 'kg' }, quantity: '1.50', estimated_cost: '13.50' },
     ],
+    shopping_list_estimated_cost: { total: '20.70', unpriced_lines: 0 },
     orders: [],
+    valuation: {
+      value: '114.30',
+      categories: [
+        { category: 'drinks', value: '100.80' },
+        { category: 'food', value: '13.50' },
+        { category: 'supplies', value: '0.00' },
+        { category: 'lotto_raffle', value: '0.00' },
+      ],
+      unvalued_items: 1,
+      unpriced_purchases: 0,
+    },
     ...changes,
   }
 }

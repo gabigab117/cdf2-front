@@ -40,9 +40,10 @@ describe('the pages that move the stock', () => {
     it('records a purchase of two items, then goes back to the stock', async () => {
       /**
        * Given the stock of the mockup
-       * When a member records the shopping of the bar: 288 cans and 6 litres
-       * of juice, for the brocante
-       * Then the entry is sent whole, its quantities as the API reads them
+       * When a member records the shopping of the bar: 288 cans for 158,40 €,
+       * and 6 litres of juice whose cost waits, for the brocante
+       * Then the entry is sent whole, its quantities and costs as the API
+       * reads them
        */
       mockStock()
       mockApi('/api/board/stock/operations', { handler: () => apiResponse(201, stockOperation()) })
@@ -55,6 +56,7 @@ describe('the pages that move the stock', () => {
       await field(view, 'Libellé').setValue('Courses buvette')
       await field(view, 'Article de la ligne 1').setValue('1')
       await field(view, 'Quantité de la ligne 1').setValue('288')
+      await field(view, 'Montant payé de la ligne 1').setValue('158,40')
       await button(view, 'Ajouter un article')!.trigger('click')
       await field(view, 'Article de la ligne 2').setValue('3')
       await field(view, 'Quantité de la ligne 2').setValue('6,5')
@@ -66,8 +68,21 @@ describe('the pages that move the stock', () => {
         reason: 'purchase',
         label: 'Courses buvette',
         event: 12,
-        lines: [{ item: 1, quantity: '288' }, { item: 3, quantity: '6.5' }],
+        lines: [{ item: 1, quantity: '288', cost: '158.40' }, { item: 3, quantity: '6.5', cost: null }],
       })
+    })
+
+    it('shows a refused cost under its line', async () => {
+      mockStock()
+      mockApi('/api/board/stock/operations', { handler: () => apiResponse(422, { detail: [
+        { type: 'validation_error', loc: ['body', 'lines', 0, 'cost'], msg: 'Assurez-vous que cette valeur est supérieure ou égale à 0.' },
+      ] }) })
+
+      const view = await mountSuspended(OperationPage, { route: '/bureau/stock/entree-sortie' })
+      await view.get('form').trigger('submit')
+
+      await vi.waitFor(() => expect(field(view, 'Montant payé de la ligne 1').attributes('aria-invalid')).toBe('true'))
+      expect(view.find('[role="alert"]').exists()).toBe(false)
     })
 
     it('offers the reasons of the way chosen, and tells what each item holds', async () => {
@@ -95,6 +110,9 @@ describe('the pages that move the stock', () => {
       // happy-dom keeps the option it selected before the list changed: the
       // request tells the reason the page holds.
       await vi.waitFor(() => expect(sent.find(request => request.method === 'POST')?.body).toMatchObject({ direction: 'out', reason: 'consumption' }))
+      // Only a purchase tells what its lines cost.
+      expect(view.html()).not.toContain('Montant payé')
+      expect((sent.find(request => request.method === 'POST')?.body as { lines: unknown[] }).lines).toEqual([{ item: 3, quantity: '6' }])
     })
 
     it('keeps an adjustment when the way changes', async () => {

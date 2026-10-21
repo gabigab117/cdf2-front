@@ -25,6 +25,8 @@ const items = computed(() => shownItems(stock.value?.items ?? [], query.value))
 const recent = computed(() => stock.value?.recent_operations ?? [])
 const shopping = computed(() => stock.value?.shopping_list ?? [])
 const orders = computed(() => stock.value?.orders ?? [])
+const valuation = computed(() => stock.value?.valuation)
+const shoppingCost = computed(() => stock.value?.shopping_list_estimated_cost ?? { total: '0.00', unpriced_lines: 0 })
 const emptyText = computed(() =>
   query.value.filter !== null || query.value.search !== ''
     ? 'Aucun article ne correspond à cette recherche.'
@@ -177,7 +179,14 @@ async function adjust(id: number, direction: StockDirection): Promise<void> {
           :key="order.id"
           :order
         />
-        <StockShoppingList :lines="shopping" />
+        <StockValue
+          v-if="valuation"
+          :valuation
+        />
+        <StockShoppingList
+          :lines="shopping"
+          :estimated-cost="shoppingCost"
+        />
         <StockRecentOperations :operations="recent" />
       </div>
     </div>

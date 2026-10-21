@@ -86,25 +86,37 @@ export function stockQuery({ filter, search }: StockQuery): LocationQueryRaw {
 /** The items below their threshold, where the bell leads. */
 export const LOW_STOCK_LOCATION: RouteLocationRaw = { path: STOCK_PATH, query: { filtre: LOW } }
 
-/** A line of an entry, an exit or an order: an item, empty until chosen, and its quantity as typed. */
+/**
+ * A line of an entry, an exit or an order: an item, empty until chosen, its
+ * quantity as typed, and what the line of a purchase cost (D16), empty while
+ * unknown.
+ */
 export interface LineFields {
   item: number | ''
   quantity: string
+  cost: string
 }
 
 /** A line to fill. */
 export function newLine(): LineFields {
-  return { item: '', quantity: '' }
+  return { item: '', quantity: '', cost: '' }
 }
 
 /** The lines of an order to correct, as a member types their quantities; one to fill without any. */
 export function orderLineFields(lines: readonly OrderLineOut[]): LineFields[] {
-  return lines.length > 0 ? lines.map(({ item, quantity }) => ({ item: item.id, quantity: typed(quantity) })) : [newLine()]
+  return lines.length > 0 ? lines.map(({ item, quantity }) => ({ item: item.id, quantity: typed(quantity), cost: '' })) : [newLine()]
 }
 
-/** The lines to send: the item a select requires, the quantity as the API reads it. */
-export function linesPayload(lines: readonly LineFields[]): StockLineIn[] {
-  return lines.map(line => ({ item: Number(line.item), quantity: amountInput(line.quantity) ?? '' }))
+/**
+ * The lines to send: the item a select requires, the quantity as the API reads
+ * it, and, for a purchase, what each line cost (null while unknown).
+ */
+export function linesPayload(lines: readonly LineFields[], { costs = false } = {}): StockLineIn[] {
+  return lines.map(line => ({
+    item: Number(line.item),
+    quantity: amountInput(line.quantity) ?? '',
+    cost: costs ? amountInput(line.cost) : undefined,
+  }))
 }
 
 // A name as a search compares it: without case or accents, « cafe » finds « Café ».
@@ -129,11 +141,13 @@ export interface ItemFields {
   step: string
   /** The first of the best-before month (« 2027-05-01 »), or empty without one. */
   bestBefore: string
+  /** The unit cost of the stock of before the costs (D16), or empty without one. */
+  initialCost: string
 }
 
 /** The fields of a new item, moved one by one. */
 export function newItemFields(): ItemFields {
-  return { name: '', category: '', unit: '', threshold: '', step: '1', bestBefore: '' }
+  return { name: '', category: '', unit: '', threshold: '', step: '1', bestBefore: '', initialCost: '' }
 }
 
 // « 24 » rather than « 24.00 », « 0,5 » rather than « 0.50 »: as a member types it.
@@ -150,6 +164,7 @@ export function itemFields(item: StockItemOut): ItemFields {
     threshold: typed(item.threshold),
     step: typed(item.step),
     bestBefore: item.best_before ?? '',
+    initialCost: item.initial_cost === null ? '' : typed(item.initial_cost),
   }
 }
 
@@ -163,6 +178,7 @@ export function itemPayload(fields: ItemFields): StockItemIn {
     threshold: amountInput(fields.threshold) ?? '',
     step: amountInput(fields.step) ?? '',
     best_before: fields.bestBefore || null,
+    initial_cost: amountInput(fields.initialCost),
   }
 }
 

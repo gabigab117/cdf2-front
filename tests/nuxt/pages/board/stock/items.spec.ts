@@ -34,7 +34,7 @@ describe('the pages of an item of the stock', () => {
     /**
      * Given a member on the page of a new item
      * When they add sweets, by the kilogram, low below 3, moved by half a
-     * kilogram, best before March 2027
+     * kilogram, best before March 2027, the kilo of before at 9,50 €
      * Then the item is sent as typed, and the stock shows again
      */
     mockApi('/api/board/stock/items', { handler: () => apiResponse(201, stockItem({ id: 6 })) })
@@ -50,6 +50,7 @@ describe('the pages of an item of the stock', () => {
     await field(page, 'Seuil').setValue('3')
     await field(page, 'Pas').setValue('0,5')
     await field(page, 'DLUO').setValue('2027-03-01')
+    await field(page, 'Prix de départ').setValue('9,50')
     await page.get('form').trigger('submit')
 
     await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith('/bureau/stock'))
@@ -60,6 +61,7 @@ describe('the pages of an item of the stock', () => {
       threshold: '3',
       step: '0.5',
       best_before: '2027-03-01',
+      initial_cost: '9.50',
     })
     expect(field(page, 'DLUO').findAll('option').map(option => option.text()).slice(0, 2)).toEqual(['Aucune', 'oct. 2025'])
   })

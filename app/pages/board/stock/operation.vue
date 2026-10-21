@@ -41,6 +41,9 @@ watch(direction, (chosen) => {
 
 const itemOptions = computed(() => (stock.value?.items ?? []).map(({ item }) => ({ value: item.id, label: item.name })))
 
+// A purchase tells what each of its lines cost (D16).
+const costs = computed(() => reason.value === 'purchase')
+
 // Under each item, what the stock holds of it.
 function held(id: number): string | undefined {
   const entry = stock.value?.items.find(({ item }) => item.id === id)
@@ -61,18 +64,19 @@ async function submit(): Promise<void> {
     reason: reason.value,
     label: label.value,
     event: event.value,
-    lines: linesPayload(lines.value),
+    lines: linesPayload(lines.value, { costs: costs.value }),
   })
   pending.value = false
   if (!result.errors) {
     await navigateTo(STOCK_PATH)
     return
   }
+  const lineFields = costs.value ? ['item', 'quantity', 'cost'] : ['item', 'quantity']
   const shown = new Set([
     'reason',
     'label',
     'event',
-    ...lines.value.flatMap((_line, index) => [`lines.${index}.item`, `lines.${index}.quantity`]),
+    ...lines.value.flatMap((_line, index) => lineFields.map(field => `lines.${index}.${field}`)),
   ])
   errors.value = placeErrors(result.errors, shown, operationFieldLabel)
   await focusErrors(form)
@@ -151,6 +155,7 @@ async function submit(): Promise<void> {
           :items="itemOptions"
           :errors="errors?.fields ?? {}"
           :hint="held"
+          :costs
           @restructured="forgetErrors"
         />
         <div class="flex flex-wrap items-center gap-2">

@@ -3,18 +3,20 @@ import { Plus, X } from '@lucide/vue'
 import type { Option } from '~/utils/options'
 import type { LineFields } from '~/utils/stock'
 
-// The lines of an entry, an exit or an order: each an item and how much of it.
-// A line holds on one row; on a phone, its quantity and its cross go under its
-// item.
+// The lines of an entry, an exit or an order: each an item and how much of it,
+// and, for a purchase, what it cost. A line holds on one row; on a phone, its
+// figures and its cross go under its item.
 const lines = defineModel<LineFields[]>({ required: true })
 
-const { items, errors, hint } = defineProps<{
+const { items, errors, hint, costs } = defineProps<{
   /** The items to choose from, by name. */
   items: readonly Option<number>[]
   /** What the API found wrong, by the path of a line's field: "lines.0.quantity". */
   errors: Readonly<Record<string, readonly string[]>>
   /** What a line tells under its item, such as what is in stock. */
   hint?: (item: number) => string | undefined
+  /** Lines of a purchase: each tells what it cost (D16). */
+  costs?: boolean
 }>()
 
 // The lines changed places: whatever was said of a line by its position no
@@ -81,6 +83,21 @@ function lineHint(line: LineFields): string | undefined {
             required
           />
         </UiField>
+        <UiField
+          v-if="costs"
+          v-slot="{ control }"
+          :label="`Montant payé de la ligne ${index + 1}`"
+          hidden-label
+          class="w-32"
+          :errors="lineErrors(index, 'cost')"
+        >
+          <UiInput
+            v-bind="control"
+            v-model="line.cost"
+            inputmode="decimal"
+            placeholder="Montant €"
+          />
+        </UiField>
         <UiIconButton
           :label="`Retirer la ligne ${index + 1}`"
           @click="remove(index)"
@@ -98,5 +115,11 @@ function lineHint(line: LineFields): string | undefined {
       <Plus :size="16" />
       Ajouter un article
     </UiButton>
+    <p
+      v-if="costs"
+      class="text-note text-argent-600"
+    >
+      Le montant est celui de la ligne, TTC, comme sur le ticket. Laissé vide, il reste à compléter.
+    </p>
   </fieldset>
 </template>

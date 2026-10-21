@@ -27,7 +27,7 @@ const fields = ref<ItemFields>(item ? itemFields(item) : newItemFields())
 const errors = ref<FormErrors | null>(null)
 const pending = ref(false)
 
-const SHOWN: ReadonlySet<string> = new Set(['name', 'category', 'unit', 'threshold', 'step', 'best_before'])
+const SHOWN: ReadonlySet<string> = new Set(['name', 'category', 'unit', 'threshold', 'step', 'best_before', 'initial_cost'])
 
 const categories = STOCK_CATEGORY_VALUES.map(category => ({
   value: category,
@@ -140,18 +140,33 @@ async function deleteItem(): Promise<void> {
         />
       </UiField>
     </div>
-    <UiField
-      v-slot="{ control }"
-      label="DLUO"
-      optional
-      :errors="errors?.fields.best_before"
-    >
-      <UiSelect
-        v-bind="control"
-        v-model="fields.bestBefore"
-        :options="months"
-      />
-    </UiField>
+    <div class="grid gap-3 md:grid-cols-2">
+      <UiField
+        v-slot="{ control }"
+        label="DLUO"
+        optional
+        :errors="errors?.fields.best_before"
+      >
+        <UiSelect
+          v-bind="control"
+          v-model="fields.bestBefore"
+          :options="months"
+        />
+      </UiField>
+      <UiField
+        v-slot="{ control }"
+        label="Prix de départ"
+        optional
+        help="Prix unitaire, en euros, du stock déjà là avant le premier achat avec prix."
+        :errors="errors?.fields.initial_cost"
+      >
+        <UiInput
+          v-bind="control"
+          v-model="fields.initialCost"
+          inputmode="decimal"
+        />
+      </UiField>
+    </div>
     <div class="flex flex-wrap items-center gap-2">
       <UiButton
         type="submit"
