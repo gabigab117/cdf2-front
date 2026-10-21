@@ -8,7 +8,8 @@ type FiscalYearResultsOut = components['schemas']['FiscalYearResultsOut']
 // « Résultat par événement » (6.3): what each event that has lines brought in
 // and cost, the first to start first, the general running last if it has lines
 // too. Each pair of bars is drawn against the largest amount; a row filters the
-// journal, and clicked again shows it whole.
+// journal, and clicked again shows it whole. Its slot ends the card, as the
+// link to the management control does.
 const { results, filter, location } = defineProps<{
   results: FiscalYearResultsOut | null
   /** The filter of the journal the page shows. */
@@ -113,5 +114,6 @@ const rows = computed(() => {
     <UiEmptyState v-else>
       Aucune ligne pour cet exercice.
     </UiEmptyState>
+    <slot />
   </UiCard>
 </template>

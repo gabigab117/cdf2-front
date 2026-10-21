@@ -119,6 +119,7 @@ async function submit(): Promise<void> {
             v-slot="{ control }"
             label="Événement"
             optional
+            help="Fait après un événement ? Rattachez-lui l’inventaire : ses écarts comptent comme sa consommation."
             :errors="errors?.fields.event"
           >
             <UiSelect

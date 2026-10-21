@@ -198,6 +198,8 @@ describe('the pages that move the stock', () => {
       const view = await mountSuspended(StocktakePage, { route: '/bureau/stock/inventaire' })
       await vi.waitFor(() => expect(view.findAll('h2').map(title => title.text())).toEqual(['Boissons', 'Alimentaire']))
       expect(readable(view.text())).toContain('En stock : 1,5 kg')
+      // A stocktake after an event counts as its consumption (D16).
+      expect(view.text()).toContain('Fait après un événement ? Rattachez-lui l’inventaire : ses écarts comptent comme sa consommation.')
       await field(view, 'Libellé').setValue('Après la brocante')
       await field(view, 'Compté : Canettes de soda 33 cl').setValue('144')
       await field(view, 'Compté : Bonbons assortis').setValue('1,5')

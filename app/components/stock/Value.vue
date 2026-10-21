@@ -53,5 +53,10 @@ const notes = computed(() => [
       label="Compléter les prix"
       class="self-start text-note"
     />
+    <BoardTextLink
+      :to="MANAGEMENT_PATH"
+      label="Voir le contrôle de gestion"
+      class="self-start text-note"
+    />
   </UiCard>
 </template>

@@ -24,6 +24,15 @@ export function useTreasuryReport(year: () => number) {
   )
 }
 
+/** « Contrôle de gestion » of a fiscal year (D16): each event's management result, the stock, the reconciliation. Lazy. */
+export function useManagement(year: () => number) {
+  return useLazyAsyncData(
+    () => `board:treasury:management:${year()}`,
+    (_nuxtApp, { signal }) =>
+      loadData(useApi().GET('/api/board/treasury/management', { params: { query: { year: year() } }, signal })),
+  )
+}
+
 /** A page of the journal: a fiscal year, a filter, and how many lines a page holds. */
 export interface LedgerPage {
   year: number

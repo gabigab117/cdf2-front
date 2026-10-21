@@ -184,6 +184,12 @@
   --grid-template-columns-item-history: 64px minmax(0, 1.4fr) 80px 92px 96px 80px 92px;
   --grid-template-columns-item-history-narrow: minmax(0, 1fr) auto;
 
+  /* The management control (D16): event, income, expense, stocked purchases,
+     consumption cost, management result, bar margin; event and result below
+     820 px. */
+  --grid-template-columns-management: minmax(0, 1.5fr) 92px 92px 104px 96px 116px 112px;
+  --grid-template-columns-management-narrow: minmax(0, 1fr) auto;
+
   /* Radii */
   --radius-swatch: 3px;     /* colour swatches of a legend */
   --radius-segment: 9px;     /* the icon of a recent operation of the stock */

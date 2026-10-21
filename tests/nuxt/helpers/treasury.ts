@@ -6,6 +6,8 @@ type FiscalYearResultsOut = components['schemas']['FiscalYearResultsOut']
 type GeneralMeetingReportOut = components['schemas']['GeneralMeetingReportOut']
 type LedgerEntryOut = components['schemas']['LedgerEntryOut']
 type LedgerTotalsOut = components['schemas']['LedgerTotalsOut']
+type ManagementOut = components['schemas']['ManagementOut']
+type ManagementRowOut = components['schemas']['ManagementRowOut']
 type PendingOut = components['schemas']['PendingOut']
 type UnpaidInvoiceOut = components['schemas']['UnpaidInvoiceOut']
 
@@ -106,6 +108,75 @@ export function generalMeetingReport(changes: Partial<GeneralMeetingReportOut> =
       { category: 'insurance', total: '1200.00', count: 1 },
     ],
     missing_receipts: [ledgerEntry()],
+    ...changes,
+  }
+}
+
+/** A row of the management control: the brocante of the reference scenario (D16). */
+function managementRow(changes: Partial<ManagementRowOut> = {}): ManagementRowOut {
+  return {
+    event: { id: 3, title: 'Brocante', starts_at: '2026-09-13T05:00:00Z' },
+    income: '60.00',
+    expense: '50.00',
+    stocked_purchases: '26.40',
+    consumption_cost: '17.00',
+    management_result: '19.40',
+    bar_margin: '43.00',
+    margin_rate: '0.717',
+    unlinked_purchases: '0.00',
+    ...changes,
+  }
+}
+
+/**
+ * The management control of the reference scenario (D16): the brocante's
+ * shopping, 50,00 €, put 48 cans in stock; 24 more came without an expense;
+ * the bar consumed 30 and took 60,00 €; a stocktake found 2 missing.
+ */
+export function managementReport(changes: Partial<ManagementOut> = {}): ManagementOut {
+  return {
+    year: 2026,
+    years: [2026, 2025],
+    events: [managementRow()],
+    general: managementRow({
+      event: null,
+      income: '0.00',
+      expense: '0.00',
+      stocked_purchases: '0.00',
+      consumption_cost: '1.13',
+      management_result: '-1.13',
+      bar_margin: '-1.13',
+      margin_rate: null,
+      unlinked_purchases: '14.40',
+    }),
+    totals: {
+      result: '10.00',
+      opening_value: '0.00',
+      closing_value: '22.67',
+      stock_change: '22.67',
+      adjusted_result: '32.67',
+      management_result: '18.27',
+    },
+    stock: {
+      categories: [
+        { category: 'drinks', value: '22.67' },
+        { category: 'food', value: '0.00' },
+        { category: 'supplies', value: '0.00' },
+        { category: 'lotto_raffle', value: '0.00' },
+      ],
+      losses: {
+        total: '1.13',
+        items: [{ item: { id: 1, name: 'Canettes de soda 33 cl', unit: '' }, quantity: '2.00', value: '1.13' }],
+      },
+    },
+    reconciliation: {
+      management_result: '18.27',
+      unlinked_purchases: '14.40',
+      paid_another_year: '0.00',
+      recorded_another_year: '0.00',
+      adjusted_result: '32.67',
+    },
+    controls: { unpriced_purchases: 0, unlinked_purchases: 1, unvalued_items: 0 },
     ...changes,
   }
 }

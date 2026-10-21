@@ -9,6 +9,9 @@ const SIGNED_EUROS = new Intl.NumberFormat('fr-FR', { style: 'currency', currenc
 // digits tell more: « 0,55 € », « 0,5667 € », « 0,0125 € ».
 const UNIT_EUROS = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 4 })
 
+// A margin rate (D16), to the tenth of a percent: « 71,7 % ».
+const RATE = new Intl.NumberFormat('fr-FR', { style: 'percent', maximumFractionDigits: 1 })
+
 // The minus sign of a negative amount, rather than a hyphen.
 const MINUS = '−'
 
@@ -30,10 +33,16 @@ function unitAmount(value: string | null): string {
   return UNIT_EUROS.format(Number(value))
 }
 
+/** « 71,7 % », « −12,5 % »: what a margin is of the income it comes from, or « — » for none. */
+function rate(value: string | null): string {
+  if (value === null) return '—'
+  return RATE.format(Number(value)).replace('-', MINUS)
+}
+
 /**
  * The format of amounts: the API gives a decimal as a text ("1234.50"), which
  * the page writes the French way.
  */
 export function useMoneyFormat() {
-  return { amount, signed, unitAmount }
+  return { amount, signed, unitAmount, rate }
 }

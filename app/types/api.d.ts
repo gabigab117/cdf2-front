@@ -1546,6 +1546,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/treasury/management": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read the management control of a fiscal year
+         * @description « Contrôle de gestion » (D16): the management result of each event once
+         *     its goods are counted, the value of the stock and its change over the
+         *     year, the reconciliation of the results, and what the figures wait for.
+         */
+        get: operations["treasury_api_read_management"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/treasury/report": {
         parameters: {
             query?: never;
@@ -3129,6 +3151,84 @@ export interface components {
             /** Unit */
             unit: string;
         };
+        /**
+         * ManagementControlsOut
+         * @description What the figures of the year still wait for.
+         */
+        ManagementControlsOut: {
+            /** Unlinked Purchases */
+            unlinked_purchases: number;
+            /** Unpriced Purchases */
+            unpriced_purchases: number;
+            /** Unvalued Items */
+            unvalued_items: number;
+        };
+        /**
+         * ManagementOut
+         * @description « Contrôle de gestion » (D16): a fiscal year's management, by event then
+         *     without one, its stock and its reconciliation, a bounded aggregate (A7).
+         */
+        ManagementOut: {
+            controls: components["schemas"]["ManagementControlsOut"];
+            /** Events */
+            events: components["schemas"]["ManagementRowOut"][];
+            general: components["schemas"]["ManagementRowOut"];
+            reconciliation: components["schemas"]["ReconciliationOut"];
+            stock: components["schemas"]["ManagementStockOut"];
+            totals: components["schemas"]["ManagementTotalsOut"];
+            /** Year */
+            year: number;
+            /** Years */
+            years: number[];
+        };
+        /**
+         * ManagementRowOut
+         * @description The management of an event over a fiscal year, or of the general running
+         *     (D16): its result once its goods are counted.
+         */
+        ManagementRowOut: {
+            /** Bar Margin */
+            bar_margin: string;
+            /** Consumption Cost */
+            consumption_cost: string;
+            event: components["schemas"]["LedgerEventOut"] | null;
+            /** Expense */
+            expense: string;
+            /** Income */
+            income: string;
+            /** Management Result */
+            management_result: string;
+            /** Margin Rate */
+            margin_rate: string | null;
+            /** Stocked Purchases */
+            stocked_purchases: string;
+            /** Unlinked Purchases */
+            unlinked_purchases: string;
+        };
+        /** ManagementStockOut */
+        ManagementStockOut: {
+            /** Categories */
+            categories: components["schemas"]["StockCategoryValueOut"][];
+            losses: components["schemas"]["StockLossesOut"];
+        };
+        /**
+         * ManagementTotalsOut
+         * @description The results of a fiscal year, and what its stock changed of them.
+         */
+        ManagementTotalsOut: {
+            /** Adjusted Result */
+            adjusted_result: string;
+            /** Closing Value */
+            closing_value: string;
+            /** Management Result */
+            management_result: string;
+            /** Opening Value */
+            opening_value: string;
+            /** Result */
+            result: string;
+            /** Stock Change */
+            stock_change: string;
+        };
         /** MeOut */
         MeOut: {
             /** Email */
@@ -3694,6 +3794,23 @@ export interface components {
             title: string;
         };
         /**
+         * ReconciliationOut
+         * @description From the management results to the adjusted result: each line adds to
+         *     the one before.
+         */
+        ReconciliationOut: {
+            /** Adjusted Result */
+            adjusted_result: string;
+            /** Management Result */
+            management_result: string;
+            /** Paid Another Year */
+            paid_another_year: string;
+            /** Recorded Another Year */
+            recorded_another_year: string;
+            /** Unlinked Purchases */
+            unlinked_purchases: string;
+        };
+        /**
          * ReimbursementIn
          * @description How the committee paid an advance back: every key required.
          */
@@ -4058,6 +4175,25 @@ export interface components {
             item: number;
             /** Quantity */
             quantity: number | string;
+        };
+        /**
+         * StockLossOut
+         * @description What the stocktakes of no event found missing of an item over the year:
+         *     above zero for a loss, below for goods found.
+         */
+        StockLossOut: {
+            item: components["schemas"]["StockMovementItemOut"];
+            /** Quantity */
+            quantity: string;
+            /** Value */
+            value: string | null;
+        };
+        /** StockLossesOut */
+        StockLossesOut: {
+            /** Items */
+            items: components["schemas"]["StockLossOut"][];
+            /** Total */
+            total: string;
         };
         /**
          * StockMovementItemOut
@@ -10311,6 +10447,55 @@ export interface operations {
             };
             /** @description Not Found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    treasury_api_read_management: {
+        parameters: {
+            query: {
+                year: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ManagementOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

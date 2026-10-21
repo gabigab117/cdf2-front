@@ -40,4 +40,10 @@ describe('« Valeur du stock »', () => {
     expect(card.text()).not.toContain('hors de cette valeur')
     expect(card.get('a[href="/bureau/stock/operations?filtre=sans-prix"]').text()).toBe('Compléter les prix')
   })
+
+  it('leads to the management control', async () => {
+    const card = await mountSuspended(StockValue, { props: { valuation } })
+
+    expect(card.get('a[href="/bureau/tresorerie/gestion"]').text()).toBe('Voir le contrôle de gestion')
+  })
 })

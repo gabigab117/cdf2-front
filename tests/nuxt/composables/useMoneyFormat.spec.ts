@@ -47,4 +47,13 @@ describe('useMoneyFormat', () => {
     expect(unitAmount('9.0000')).toBe('9,00\u00A0€')
     expect(unitAmount(null)).toBe('—')
   })
+
+  it('writes a margin rate to the tenth of a percent', () => {
+    const { rate } = useMoneyFormat()
+
+    expect(rate('0.717')).toBe('71,7\u00A0%')
+    expect(rate('0.500')).toBe('50\u00A0%')
+    expect(rate('-0.125')).toBe('−12,5\u00A0%')
+    expect(rate(null)).toBe('—')
+  })
 })

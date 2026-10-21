@@ -34,8 +34,10 @@ function location(filter: LedgerFilter) {
 }
 
 const ledgerLink = computed(() => ledgerLocation(LEDGER_PATH, { ...query.value, page: 1 }))
-// The report tells the whole fiscal year shown: the journal's filter is left out.
+// The report and the management control tell the whole fiscal year shown: the
+// journal's filter is left out.
 const reportLink = computed(() => ledgerLocation(REPORT_PATH, { year: query.value.year }))
+const managementLink = computed(() => ledgerLocation(MANAGEMENT_PATH, { year: query.value.year }))
 
 // A line recorded shows first in the journal of its year, the filter left out.
 async function record(fields: EntryFields, receipt: File | null) {
@@ -143,7 +145,14 @@ async function record(fields: EntryFields, receipt: File | null) {
           :results="results ?? null"
           :filter="query.filter"
           :location
-        />
+        >
+          <p class="border-t border-argent-100 px-5.5 py-3.5 text-sm">
+            <BoardTextLink
+              :to="managementLink"
+              label="Voir le contrôle de gestion"
+            />
+          </p>
+        </TreasuryEventResults>
         <TreasuryAssistant />
         <TreasuryAdvances @changed="refreshEntries()" />
       </div>

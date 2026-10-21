@@ -75,6 +75,7 @@ describe('the Trésorerie page', () => {
     const treasury = await mountPage('/bureau/tresorerie?exercice=2025&evenement=3')
 
     expect(treasury.get('a[href="/bureau/tresorerie/bilan?exercice=2025"]').text()).toBe('Bilan pour l’AG')
+    expect(treasury.get('a[href="/bureau/tresorerie/gestion?exercice=2025"]').text()).toBe('Voir le contrôle de gestion')
   })
 
   it('shows the result of each event, whose rows filter the journal of the year shown', async () => {
