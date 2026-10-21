@@ -3,6 +3,7 @@ import type { components } from '~/types/api'
 type LowStockItemOut = components['schemas']['LowStockItemOut']
 type PendingOut = components['schemas']['PendingOut']
 type StockItemOut = components['schemas']['StockItemOut']
+type StockOperationDetailOut = components['schemas']['StockOperationDetailOut']
 type StockOperationOut = components['schemas']['StockOperationOut']
 type StockOrderOut = components['schemas']['StockOrderOut']
 type StockedItemOut = components['schemas']['StockedItemOut']
@@ -108,6 +109,40 @@ export function stockOperation(changes: Partial<StockOperationOut> = {}): StockO
     movements: [
       { item: { id: 1, name: 'Canettes de soda 33 cl', unit: '' }, delta: '288.00' },
       { item: { id: 2, name: 'Bouteilles d’eau 50 cl', unit: '' }, delta: '120.00' },
+    ],
+    unpriced: false,
+    ...changes,
+  }
+}
+
+/**
+ * The shopping of the bar, as its page shows it: 288 cans for 158,40 €, and 120
+ * bottles of water whose cost waits.
+ */
+export function stockOperationDetail(changes: Partial<StockOperationDetailOut> = {}): StockOperationDetailOut {
+  const { movements: _movements, ...operation } = stockOperation()
+  return {
+    ...operation,
+    unpriced: true,
+    priceable: true,
+    cost: '158.40',
+    lines: [
+      {
+        item: { id: 1, name: 'Canettes de soda 33 cl', unit: '' },
+        delta: '288.00',
+        cost: '158.40',
+        unit_cost: '0.5500',
+        value: '158.40',
+        unpriced: false,
+      },
+      {
+        item: { id: 2, name: 'Bouteilles d’eau 50 cl', unit: '' },
+        delta: '120.00',
+        cost: null,
+        unit_cost: null,
+        value: null,
+        unpriced: true,
+      },
     ],
     ...changes,
   }

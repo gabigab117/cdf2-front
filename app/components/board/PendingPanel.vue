@@ -8,12 +8,12 @@ type PendingOut = components['schemas']['PendingOut']
 // leading to where it is dealt with. The documents to review, the loans late or
 // to prepare, then what the treasury leaves to do: the receipts missing, the
 // invoices to pay and the advances to pay back; last, the items of the stock
-// below their threshold.
+// below their threshold, and the purchases waiting for their cost (D16).
 const { pending } = defineProps<{ pending: PendingOut | null }>()
 
 const { amount } = useMoneyFormat()
 const { quantity } = useQuantityFormat()
-const { calendarDay, calendarWeekday } = useDateFormat()
+const { calendarDay, calendarWeekday, writtenDay } = useDateFormat()
 const now = useNow()
 
 const total = computed(() => pending?.total ?? 0)
@@ -102,6 +102,19 @@ const lowItems = computed(() =>
 )
 const allLowItems = computed(() => seeAll(pending?.stock.count ?? 0, lowItems.value.length, 'articles sous le seuil', LOW_STOCK_LOCATION))
 
+// The purchases and deliveries waiting for the cost of a line, the oldest
+// first: each leads to its page, where its costs are completed.
+const unpricedPurchases = computed(() =>
+  (pending?.unpriced_purchases.items ?? []).map(operation => ({
+    key: operation.id,
+    to: operationPath(operation.id),
+    title: operationTitle(operation),
+    line: `${writtenDay(operation.created_at, now.value)} · ${memberSignature(operation.author)}`,
+  })),
+)
+const allUnpricedPurchases = computed(() =>
+  seeAll(pending?.unpriced_purchases.count ?? 0, unpricedPurchases.value.length, 'achats sans prix', UNPRICED_LOCATION))
+
 // « Voir les 12 documents à vérifier »: the link to them all, when the panel lists fewer.
 function seeAll(count: number, listed: number, what: string, to: RouteLocationRaw) {
   return count > listed ? { label: `Voir les ${count} ${what}`, to } : null
@@ -167,6 +180,13 @@ function dueText({ due_date, overdue }: { due_date: string | null, overdue: bool
       title="Stock bas"
       :items="lowItems"
       :more="allLowItems"
+    />
+    <BoardPendingSection
+      v-if="unpricedPurchases.length > 0"
+      id="pending-unpriced"
+      title="Achats sans prix"
+      :items="unpricedPurchases"
+      :more="allUnpricedPurchases"
     />
   </div>
 </template>

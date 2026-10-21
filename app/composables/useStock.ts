@@ -1,3 +1,5 @@
+import type { OperationsQuery } from '~/utils/stock'
+
 const STOCK_KEY = 'board:stock'
 
 /**
@@ -8,6 +10,29 @@ const STOCK_KEY = 'board:stock'
 export function useStock() {
   return useLazyAsyncData(STOCK_KEY, (_nuxtApp, { signal }) =>
     loadData(useApi().GET('/api/board/stock', { signal })))
+}
+
+/** A page of the operations of the stock, the latest first: all, or those waiting for a cost. Lazy. */
+export function useStockOperations(query: () => OperationsQuery) {
+  return useLazyAsyncData(
+    () => {
+      const { unpriced, page } = query()
+      return `board:stock:operations:${unpriced ? 'unpriced' : 'all'}:${page}`
+    },
+    (_nuxtApp, { signal }) => {
+      const { unpriced, page } = query()
+      return loadData(useApi().GET('/api/board/stock/operations', {
+        params: { query: { unpriced, page, page_size: OPERATIONS_PAGE_SIZE } },
+        signal,
+      }))
+    },
+  )
+}
+
+/** An operation of the stock, its lines valued, for its page. Lazy. */
+export function useStockOperation(id: number) {
+  return useLazyAsyncData(`board:stock:operation:${id}`, (_nuxtApp, { signal }) =>
+    loadData(useApi().GET('/api/board/stock/operations/{operation_id}', { params: { path: { operation_id: id } }, signal })))
 }
 
 /** What an order brings to the stock, and its delivery, for its panel. Lazy. */

@@ -60,10 +60,26 @@ describe('« Mouvements récents »', () => {
       'Ajustement · Ancien membre−0,5 kg Bonbons assortis · 12 sept.',
       'Inventaire · Julie R.Aucun écart · inventaire du 30 sept.',
     ])
-    const icons = block.findAll('li > span:first-child').map(icon => icon.classes())
+    const icons = block.findAll('li a > span > span:first-child').map(icon => icon.classes())
     expect(icons[0]).toContain('bg-azur-100')
     expect(icons[1]).toContain('bg-argent-100')
     expect(icons[2]).toContain('bg-argent-100')
+  })
+
+  it('leads from each operation to its page, and to them all', async () => {
+    /**
+     * Given the shopping of the bar, waiting for a cost, and a stocktake
+     * When the block shows
+     * Then each leads to its page, the shopping says it waits for a cost, and a
+     * link leads to every operation
+     */
+    const block = await mountSuspended(StockRecentOperations, {
+      props: { operations: [stockOperation({ unpriced: true }), stockOperation({ id: 13, reason: 'stocktake' })] },
+    })
+
+    expect(block.findAll('li a').map(row => row.attributes('href'))).toEqual(['/bureau/stock/operations/12', '/bureau/stock/operations/13'])
+    expect(block.findAll('li').map(row => row.text().includes('Sans prix'))).toEqual([true, false])
+    expect(block.get('a[href="/bureau/stock/operations"]').text()).toBe('Voir toutes les opérations')
   })
 
   it('counts more than one other movement in the plural', async () => {

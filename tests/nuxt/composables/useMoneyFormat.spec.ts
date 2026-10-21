@@ -32,4 +32,19 @@ describe('useMoneyFormat', () => {
     expect(signed('0.00')).toBe('+0,00\u00A0€')
     expect(signed(null)).toBe('—')
   })
+
+  it('writes a unit cost to the cent, and finer when its digits tell more', () => {
+    /**
+     * Given unit costs as the API gives them, to the ten-thousandth
+     * Then they read to the cent, and to the ten-thousandth when their digits
+     * tell more, as a cup that costs less than a cent
+     */
+    const { unitAmount } = useMoneyFormat()
+
+    expect(unitAmount('0.5500')).toBe('0,55\u00A0€')
+    expect(unitAmount('0.5667')).toBe('0,5667\u00A0€')
+    expect(unitAmount('0.0125')).toBe('0,0125\u00A0€')
+    expect(unitAmount('9.0000')).toBe('9,00\u00A0€')
+    expect(unitAmount(null)).toBe('—')
+  })
 })

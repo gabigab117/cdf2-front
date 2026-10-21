@@ -18,7 +18,20 @@ export const STOCK_PATH = '/bureau/stock'
 export const NEW_ITEM_PATH = `${STOCK_PATH}/articles/nouveau`
 
 /** « Entrée ou sortie »: several items in or out at once. */
-export const OPERATION_PATH = `${STOCK_PATH}/entree-sortie`
+export const NEW_OPERATION_PATH = `${STOCK_PATH}/entree-sortie`
+
+/** The operations of the stock, the latest first. */
+export const OPERATIONS_PATH = `${STOCK_PATH}/operations`
+
+/** The page of an operation: its lines valued, and their costs (D16). */
+export function operationPath(id: number): string {
+  return `${OPERATIONS_PATH}/${id}`
+}
+
+/** An operation as the pages name it: its label, or else its reason (« Achat »). */
+export function operationTitle({ label, reason }: { label: string, reason: StockOperationReason }): string {
+  return label || STOCK_REASONS[reason]
+}
 
 /** « Faire l’inventaire »: what each item counts. */
 export const STOCKTAKE_PATH = `${STOCK_PATH}/inventaire`
@@ -85,6 +98,32 @@ export function stockQuery({ filter, search }: StockQuery): LocationQueryRaw {
 
 /** The items below their threshold, where the bell leads. */
 export const LOW_STOCK_LOCATION: RouteLocationRaw = { path: STOCK_PATH, query: { filtre: LOW } }
+
+/** How many operations a page of their list holds. */
+export const OPERATIONS_PAGE_SIZE = 25
+
+// The word of the address that keeps the purchases waiting for a cost.
+const UNPRICED = 'sans-prix'
+
+/** What the address of the list of operations holds. */
+export interface OperationsQuery {
+  /** Only the purchases and deliveries waiting for the cost of a line. */
+  unpriced: boolean
+  page: number
+}
+
+/** What an address of the list of operations asks for: `?filtre=sans-prix&page=2`. */
+export function parseOperationsQuery(query: LocationQuery): OperationsQuery {
+  return { unpriced: query.filtre === UNPRICED, page: queryPage(query.page) }
+}
+
+/** The address of the list of operations, in the form parseOperationsQuery() reads. */
+export function operationsQuery({ unpriced, page }: OperationsQuery): LocationQueryRaw {
+  return { filtre: unpriced ? UNPRICED : undefined, page: pageParam(page) }
+}
+
+/** The purchases waiting for a cost, where the bell and the value of the stock lead. */
+export const UNPRICED_LOCATION: RouteLocationRaw = { path: OPERATIONS_PATH, query: { filtre: UNPRICED } }
 
 /**
  * A line of an entry, an exit or an order: an item, empty until chosen, its

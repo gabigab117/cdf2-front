@@ -97,7 +97,7 @@ async function adjust(id: number, direction: StockDirection): Promise<void> {
       <BoardTopBarButton
         :icon="ArrowRightLeft"
         label="Entrée ou sortie"
-        :to="OPERATION_PATH"
+        :to="NEW_OPERATION_PATH"
       />
     </Teleport>
     <div class="flex flex-wrap items-end justify-between gap-4">

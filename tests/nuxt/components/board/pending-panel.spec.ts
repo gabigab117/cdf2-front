@@ -3,7 +3,7 @@ import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import BoardPendingPanel from '~/components/board/PendingPanel.vue'
 import type { components } from '~/types/api'
-import { lowStockItem } from '../../helpers/stock'
+import { lowStockItem, stockOperation } from '../../helpers/stock'
 import { ledgerEntry, NOTHING_PENDING, NOTHING_TO_PAY, unpaidInvoice } from '../../helpers/treasury'
 import { readable } from '../../helpers/text'
 
@@ -90,6 +90,33 @@ describe('the panel « À traiter »', () => {
       ['/bureau/stock?filtre=bas', 'Jus de fruits 1 L18 en stock, seuil 24'],
       ['/bureau/stock?filtre=bas', 'Bonbons assortis1,5 kg en stock, seuil 3 kg'],
       ['/bureau/stock?filtre=bas', 'Voir les 12 articles sous le seuil'],
+    ])
+  })
+
+  it('asks for the purchases waiting for their cost, each leading to its page', async () => {
+    /**
+     * Given twelve purchases waiting for their cost, the shopping of the bar by
+     * Julie and a delivery by a deleted account the oldest
+     * When the bell opens
+     * Then each tells its day and its member, and leads to its page, where its
+     * costs are completed; a link leads to them all
+     */
+    const { author, created_at } = stockOperation()
+    const unpriced_purchases = {
+      count: 12,
+      items: [
+        { id: 12, reason: 'purchase' as const, label: 'Courses buvette', created_at, author },
+        { id: 14, reason: 'delivery' as const, label: '', created_at, author: null },
+      ],
+    }
+
+    const panel = await mountSuspended(BoardPendingPanel, { props: { pending: { ...NOTHING_PENDING, total: 12, unpriced_purchases } } })
+
+    expect(panel.findAll('h3').map(title => title.text())).toEqual(['Achats sans prix'])
+    expect(panel.findAll('section a').map(link => [link.attributes('href'), readable(link.text())])).toEqual([
+      ['/bureau/stock/operations/12', 'Courses buvette12 sept. · Julie R.'],
+      ['/bureau/stock/operations/14', 'Réception de commande12 sept. · Ancien membre'],
+      ['/bureau/stock/operations?filtre=sans-prix', 'Voir les 12 achats sans prix'],
     ])
   })
 })

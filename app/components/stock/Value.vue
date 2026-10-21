@@ -51,5 +51,11 @@ const notes = computed(() => [
     >
       {{ note }}
     </p>
+    <BoardTextLink
+      v-if="valuation.unpriced_purchases > 0"
+      :to="UNPRICED_LOCATION"
+      label="Compléter les prix"
+      class="self-start text-note"
+    />
   </UiCard>
 </template>

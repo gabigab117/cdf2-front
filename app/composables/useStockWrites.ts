@@ -2,9 +2,11 @@ import type { components } from '~/types/api'
 import type { Written } from '~/utils/api-errors'
 import type { LineFields } from '~/utils/stock'
 
+type StockCostIn = components['schemas']['StockCostIn']
 type StockDirection = components['schemas']['StockDirection']
 type StockItemIn = components['schemas']['StockItemIn']
 type StockItemOut = components['schemas']['StockItemOut']
+type StockOperationDetailOut = components['schemas']['StockOperationDetailOut']
 type StockOperationIn = components['schemas']['StockOperationIn']
 type StockOperationOut = components['schemas']['StockOperationOut']
 type StockOrderOut = components['schemas']['StockOrderOut']
@@ -64,6 +66,17 @@ export function useStockWrites() {
     return refreshesOverview(formWrite(api.POST('/api/board/stock/stocktakes', { body: payload })))
   }
 
+  /**
+   * « Compléter les prix », « Corriger les prix »: what each line of a purchase
+   * or a delivery cost, every line at once (D16).
+   */
+  function updateCosts(id: number, lines: StockCostIn[]): Promise<Written<StockOperationDetailOut>> {
+    return refreshesOverview(formWrite(api.PUT('/api/board/stock/operations/{operation_id}/costs', {
+      params: { path: { operation_id: id } },
+      body: { lines },
+    })))
+  }
+
   function orderPath(id: number) {
     return { params: { path: { document_id: id } } }
   }
@@ -83,5 +96,16 @@ export function useStockWrites() {
     return onStockPage(plainWrite(api.DELETE('/api/board/stock/orders/{document_id}/delivery', orderPath(id))))
   }
 
-  return { addItem, updateItem, deleteItem, adjustItem, recordOperation, recordStocktake, writeOrderLines, receiveDelivery, cancelDelivery }
+  return {
+    addItem,
+    updateItem,
+    deleteItem,
+    adjustItem,
+    recordOperation,
+    recordStocktake,
+    updateCosts,
+    writeOrderLines,
+    receiveDelivery,
+    cancelDelivery,
+  }
 }

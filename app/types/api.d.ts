@@ -1040,8 +1040,9 @@ export interface paths {
         /**
          * Read the stock
          * @description Every item, by category then by name, with its quantity, whether it is
-         *     low and how full its bar is; the figures of the chips; the latest stocktake;
-         *     the latest operations.
+         *     low, how full its bar is and its value; the figures of the chips; the latest
+         *     stocktake; the latest operations; the shopping list and its budget; the
+         *     orders to receive; the value of the stock.
          */
         get: operations["stock_api_read_stock"];
         put?: never;
@@ -1121,7 +1122,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List the operations of the stock
+         * @description The operations, the latest first: all of them, or the purchases and
+         *     deliveries waiting for the cost of a line.
+         */
+        get: operations["stock_api_list_operations"];
         put?: never;
         /**
          * Record an entry or an exit of the stock
@@ -1129,6 +1135,47 @@ export interface paths {
          *     recorded with the member. An exit never takes more than is in stock.
          */
         post: operations["stock_api_record_entry_or_exit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/stock/operations/{operation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read an operation of the stock
+         * @description An operation and its lines, each valued at the cost of its time.
+         */
+        get: operations["stock_api_read_operation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/stock/operations/{operation_id}/costs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Write the costs of a purchase or a delivery
+         * @description « Compléter les prix », « Corriger les prix »: what each line cost, every
+         *     line at once. The quantities stay as they are.
+         */
+        put: operations["stock_api_write_costs"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1172,8 +1219,8 @@ export interface paths {
         post: operations["stock_api_receive_delivery"];
         /**
          * Cancel the delivery of an order
-         * @description « Annuler »: the delivery is undone the day it was received, unless some
-         *     of it has left the stock, or a stocktake has counted it, since.
+         * @description « Annuler »: the delivery is undone the day it was received, unless one
+         *     of its items has moved, or a stocktake has counted it, since.
          */
         delete: operations["stock_api_cancel_order_delivery"];
         options?: never;
@@ -3197,6 +3244,13 @@ export interface components {
             /** Items */
             items: components["schemas"]["ReservationOut"][];
         };
+        /** PagedStockOperationOut */
+        PagedStockOperationOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["StockOperationOut"][];
+        };
         /** PagedTaskOut */
         PagedTaskOut: {
             /** Count */
@@ -3292,6 +3346,7 @@ export interface components {
             stock: components["schemas"]["PendingStockOut"];
             /** Total */
             total: number;
+            unpriced_purchases: components["schemas"]["PendingUnpricedOut"];
         };
         /**
          * PendingReceiptsOut
@@ -3312,6 +3367,16 @@ export interface components {
             count: number;
             /** Items */
             items: components["schemas"]["LowStockItemOut"][];
+        };
+        /**
+         * PendingUnpricedOut
+         * @description The purchases and deliveries waiting for the cost of a line (D16).
+         */
+        PendingUnpricedOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["UnpricedPurchaseOut"][];
         };
         /**
          * PracticalInfoIcon
@@ -3680,6 +3745,25 @@ export interface components {
             value: string;
         };
         /**
+         * StockCostIn
+         * @description What a line of a purchase or a delivery cost.
+         */
+        StockCostIn: {
+            /** Cost */
+            cost: number | string | null;
+            /** Item */
+            item: number;
+        };
+        /**
+         * StockCostsIn
+         * @description « Compléter les prix », « Corriger les prix »: what each line of a purchase
+         *     or a delivery cost, every line at once (D16).
+         */
+        StockCostsIn: {
+            /** Lines */
+            lines: components["schemas"]["StockCostIn"][];
+        };
+        /**
          * StockCountIn
          * @description What a stocktake counted of an item.
          */
@@ -3818,6 +3902,43 @@ export interface components {
             item: components["schemas"]["StockMovementItemOut"];
         };
         /**
+         * StockOperationDetailOut
+         * @description An operation of the stock, as its page shows it: its lines valued.
+         */
+        StockOperationDetailOut: {
+            author: components["schemas"]["BoardMemberOut"] | null;
+            /** Cost */
+            cost: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            event: components["schemas"]["StockEventOut"] | null;
+            /** Id */
+            id: number;
+            /** Label */
+            label: string;
+            /** Lines */
+            lines: components["schemas"]["StockOperationLineOut"][];
+            /** Priceable */
+            priceable: boolean;
+            reason: components["schemas"]["StockOperationReason"];
+            /** Unpriced */
+            unpriced: boolean;
+        };
+        /**
+         * StockOperationFilters
+         * @description The operations the list keeps.
+         */
+        StockOperationFilters: {
+            /**
+             * Unpriced
+             * @default false
+             */
+            unpriced: boolean;
+        };
+        /**
          * StockOperationIn
          * @description « Entrée ou sortie »: several items in or out at once, for one reason,
          *     every key required. A purchase comes in, a consumption goes out, an
@@ -3838,6 +3959,23 @@ export interface components {
             reason: "purchase" | "consumption" | "adjustment";
         };
         /**
+         * StockOperationLineOut
+         * @description A line of an operation, valued at the cost of its time (D16).
+         */
+        StockOperationLineOut: {
+            /** Cost */
+            cost: string | null;
+            /** Delta */
+            delta: string;
+            item: components["schemas"]["StockMovementItemOut"];
+            /** Unit Cost */
+            unit_cost: string | null;
+            /** Unpriced */
+            unpriced: boolean;
+            /** Value */
+            value: string | null;
+        };
+        /**
          * StockOperationOut
          * @description An operation of the stock, as « Mouvements récents » tells it.
          */
@@ -3856,6 +3994,8 @@ export interface components {
             /** Movements */
             movements: components["schemas"]["StockMovementOut"][];
             reason: components["schemas"]["StockOperationReason"];
+            /** Unpriced */
+            unpriced: boolean;
         };
         /**
          * StockOperationReason
@@ -4050,6 +4190,23 @@ export interface components {
             overdue: boolean;
             /** Title */
             title: string;
+        };
+        /**
+         * UnpricedPurchaseOut
+         * @description A purchase or a delivery waiting for the cost of a line, as the bell names it.
+         */
+        UnpricedPurchaseOut: {
+            author: components["schemas"]["BoardMemberOut"] | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: number;
+            /** Label */
+            label: string;
+            reason: components["schemas"]["StockOperationReason"];
         };
         /** ValidationErrorItem */
         ValidationErrorItem: {
@@ -8147,6 +8304,57 @@ export interface operations {
             };
         };
     };
+    stock_api_list_operations: {
+        parameters: {
+            query?: {
+                unpriced?: boolean;
+                page?: number;
+                page_size?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedStockOperationOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
     stock_api_record_entry_or_exit: {
         parameters: {
             query?: never;
@@ -8189,6 +8397,126 @@ export interface operations {
             };
             /** @description Forbidden */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    stock_api_read_operation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                operation_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOperationDetailOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    stock_api_write_costs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                operation_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StockCostsIn"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StockOperationDetailOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -48,7 +48,8 @@ export const NOTHING_TO_PAY = {
 
 /**
  * Nothing awaits the board: no document to review, no loan late or to prepare,
- * nothing in the treasury, no item of the stock below its threshold.
+ * nothing in the treasury, no item of the stock below its threshold, no purchase
+ * waiting for its cost.
  */
 export const NOTHING_PENDING: PendingOut = {
   total: 0,
@@ -56,6 +57,7 @@ export const NOTHING_PENDING: PendingOut = {
   loans: { overdue: 0, to_prepare: 0, items: [] },
   ...NOTHING_TO_PAY,
   stock: NO_LOW_STOCK,
+  unpriced_purchases: { count: 0, items: [] },
 }
 
 function totals(income: string, expense: string, result: string, count: number): LedgerTotalsOut {

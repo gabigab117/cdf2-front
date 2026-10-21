@@ -1,24 +1,15 @@
-import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
+import { mountSuspended } from '@nuxt/test-utils/runtime'
 import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import OperationPage from '~/pages/board/stock/operation.vue'
-import StocktakePage from '~/pages/board/stock/stocktake.vue'
+import OperationsPage from '~/pages/board/stock/operations/index.vue'
+import OperationPage from '~/pages/board/stock/operations/[id].vue'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
 import { button, field } from '../../../helpers/form'
-import { eventItem, page } from '../../../helpers/events'
-import { stockOperation, stockOverview } from '../../../helpers/stock'
+import { page } from '../../../helpers/events'
+import { stockOperation, stockOperationDetail } from '../../../helpers/stock'
 import { readable } from '../../../helpers/text'
 
-const { navigateToMock } = vi.hoisted(() => ({ navigateToMock: vi.fn() }))
-mockNuxtImport('navigateTo', () => navigateToMock)
-
-function mockStock() {
-  mockApi('/api/board/stock', { handler: () => apiResponse(200, stockOverview()) })
-  mockApi('/api/board/events', { handler: () => apiResponse(200, page([eventItem()])) })
-  mockApi('/api/board/overview', { handler: () => apiResponse(200, {}) })
-}
-
-describe('the pages that move the stock', () => {
+describe('the operations of the stock', () => {
   beforeEach(() => {
     useSessionStore().accessToken = 'access-1'
     useNow().value = Date.parse('2026-10-01T10:00:00+02:00')
@@ -29,237 +20,123 @@ describe('the pages that move the stock', () => {
     clearNuxtData()
     clearNuxtState('now')
     vi.restoreAllMocks()
-    navigateToMock.mockReset()
     useSessionStore().clear()
     await useRouter().push('/')
   })
 
   enableAutoUnmount(afterEach)
 
-  describe('« Entrée ou sortie »', () => {
-    it('records a purchase of two items, then goes back to the stock', async () => {
+  describe('their list', () => {
+    it('lists the operations by page, each leading to its page', async () => {
       /**
-       * Given the stock of the mockup
-       * When a member records the shopping of the bar: 288 cans for 158,40 €,
-       * and 6 litres of juice whose cost waits, for the brocante
-       * Then the entry is sent whole, its quantities and costs as the API
-       * reads them
+       * Given the shopping of the bar, waiting for a cost, and a stocktake
+       * When a member opens the list
+       * Then both come, the shopping said to wait for a cost, and « Toutes » is
+       * the chip pressed
        */
-      mockStock()
-      mockApi('/api/board/stock/operations', { handler: () => apiResponse(201, stockOperation()) })
+      mockApi('/api/board/stock/operations', {
+        method: 'GET',
+        handler: () => apiResponse(200, page([stockOperation({ unpriced: true }), stockOperation({ id: 13, reason: 'stocktake', label: '' })])),
+      })
       const sent = recordRequests()
 
-      const view = await mountSuspended(OperationPage, { route: '/bureau/stock/entree-sortie' })
-      await vi.waitFor(() => expect(view.findAll('select').at(-1)!.findAll('option')).toHaveLength(5))
-      await vi.waitFor(() => expect(field(view, 'Événement').findAll('option')).toHaveLength(2))
-      await field(view, 'Événement').setValue('12')
-      await field(view, 'Libellé').setValue('Courses buvette')
-      await field(view, 'Article de la ligne 1').setValue('1')
-      await field(view, 'Quantité de la ligne 1').setValue('288')
-      await field(view, 'Montant payé de la ligne 1').setValue('158,40')
-      await button(view, 'Ajouter un article')!.trigger('click')
-      await field(view, 'Article de la ligne 2').setValue('3')
-      await field(view, 'Quantité de la ligne 2').setValue('6,5')
+      const view = await mountSuspended(OperationsPage, { route: '/bureau/stock/operations' })
+
+      const rows = () => view.findAll('ul.divide-y li a')
+      await vi.waitFor(() => expect(rows()).toHaveLength(2))
+      expect(view.get('h1').text()).toBe('Opérations du stock')
+      expect(rows().map(row => row.attributes('href'))).toEqual(['/bureau/stock/operations/12', '/bureau/stock/operations/13'])
+      expect(rows().map(row => row.text().includes('Sans prix'))).toEqual([true, false])
+      expect(view.get('nav[aria-label="Filtrer les opérations"] a[aria-current]').text()).toContain('Toutes')
+      expect(sent.find(request => request.url.includes('/operations'))?.url).toContain('unpriced=false')
+    })
+
+    it('keeps the purchases waiting for a cost, and says when none waits', async () => {
+      mockApi('/api/board/stock/operations', { method: 'GET', handler: () => apiResponse(200, page([])) })
+      const sent = recordRequests()
+
+      const view = await mountSuspended(OperationsPage, { route: '/bureau/stock/operations?filtre=sans-prix' })
+
+      await vi.waitFor(() => expect(view.text()).toContain('Aucun achat n’attend son prix.'))
+      expect(sent.find(request => request.url.includes('/operations'))?.url).toContain('unpriced=true')
+    })
+  })
+
+  describe('the page of an operation', () => {
+    function mockOperation(detail = stockOperationDetail()) {
+      mockApi('/api/board/stock/operations/{operation_id}', { method: 'GET', handler: () => apiResponse(200, detail) }, { operation_id: 12 })
+    }
+
+    it('tells the lines valued, the cost to complete in amber', async () => {
+      /**
+       * Given the shopping of the bar: 288 cans for 158,40 €, the water waiting
+       * for its cost
+       * When a member opens its page
+       * Then each line tells its quantity, what it cost, its unit cost and its
+       * value; the water is to complete, and the total is what was paid
+       */
+      mockOperation()
+
+      const view = await mountSuspended(OperationPage, { route: '/bureau/stock/operations/12' })
+
+      await vi.waitFor(() => expect(view.find('h1').exists()).toBe(true))
+      expect(view.get('h1').text()).toBe('Courses buvette')
+      expect(readable(view.text())).toContain('Achat · 12 sept. · Julie R. · Brocante')
+      expect(view.findAll('ul.divide-y li').map(row => readable(row.text()))).toEqual([
+        'Canettes de soda 33 cl+288 · 158,40 € · 0,55 €+288158,40 €0,55 €+158,40 €',
+        'Bouteilles d’eau 50 cl+120 · À compléter · —+120À compléter——',
+      ])
+      expect(readable(view.text())).toContain('Total payé : 158,40 €')
+      expect(button(view, 'Compléter les prix')).toBeDefined()
+    })
+
+    it('completes the costs of the lines, then shows them valued', async () => {
+      /**
+       * Given the shopping of the bar, the water waiting for its cost
+       * When a member completes it, 48,00 €, keeping the cans' cost
+       * Then every line's cost is sent, and the page shows what the API valued
+       */
+      mockOperation()
+      const written = stockOperationDetail({ unpriced: false, cost: '206.40' })
+      mockApi('/api/board/stock/operations/{operation_id}/costs', { method: 'PUT', handler: () => apiResponse(200, written) }, { operation_id: 12 })
+      mockApi('/api/board/overview', { handler: () => apiResponse(200, {}) })
+      const sent = recordRequests()
+
+      const view = await mountSuspended(OperationPage, { route: '/bureau/stock/operations/12' })
+      await vi.waitFor(() => expect(button(view, 'Compléter les prix')).toBeDefined())
+      await button(view, 'Compléter les prix')!.trigger('click')
+      expect((field(view, 'Montant payé : Canettes de soda 33 cl').element as HTMLInputElement).value).toBe('158,40')
+      await field(view, 'Montant payé : Bouteilles d’eau 50 cl').setValue('48')
       await view.get('form').trigger('submit')
 
-      await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith('/bureau/stock'))
-      expect(sent.find(request => request.method === 'POST')?.body).toEqual({
-        direction: 'in',
-        reason: 'purchase',
-        label: 'Courses buvette',
-        event: 12,
-        lines: [{ item: 1, quantity: '288', cost: '158.40' }, { item: 3, quantity: '6.5', cost: null }],
-      })
+      await vi.waitFor(() => expect(button(view, 'Corriger les prix')).toBeDefined())
+      expect(sent.find(request => request.method === 'PUT')?.body).toEqual({ lines: [{ item: 1, cost: '158.40' }, { item: 2, cost: '48' }] })
+      expect(readable(view.text())).toContain('Total payé : 206,40 €')
     })
 
     it('shows a refused cost under its line', async () => {
-      mockStock()
-      mockApi('/api/board/stock/operations', { handler: () => apiResponse(422, { detail: [
-        { type: 'validation_error', loc: ['body', 'lines', 0, 'cost'], msg: 'Assurez-vous que cette valeur est supérieure ou égale à 0.' },
-      ] }) })
+      mockOperation()
+      mockApi('/api/board/stock/operations/{operation_id}/costs', { method: 'PUT', handler: () => apiResponse(422, { detail: [
+        { type: 'validation_error', loc: ['body', 'lines', 1, 'cost'], msg: 'Assurez-vous que cette valeur est supérieure ou égale à 0.' },
+      ] }) }, { operation_id: 12 })
 
-      const view = await mountSuspended(OperationPage, { route: '/bureau/stock/entree-sortie' })
+      const view = await mountSuspended(OperationPage, { route: '/bureau/stock/operations/12' })
+      await vi.waitFor(() => expect(button(view, 'Compléter les prix')).toBeDefined())
+      await button(view, 'Compléter les prix')!.trigger('click')
       await view.get('form').trigger('submit')
 
-      await vi.waitFor(() => expect(field(view, 'Montant payé de la ligne 1').attributes('aria-invalid')).toBe('true'))
-      expect(view.find('[role="alert"]').exists()).toBe(false)
+      await vi.waitFor(() => expect(field(view, 'Montant payé : Bouteilles d’eau 50 cl').attributes('aria-invalid')).toBe('true'))
     })
 
-    it('offers the reasons of the way chosen, and tells what each item holds', async () => {
-      /**
-       * Given the page of an entry
-       * When the member turns it into an exit, and takes out juice
-       * Then the reason becomes a consumption, a purchase is no longer offered,
-       * and the line tells the 18 litres in stock
-       */
-      mockStock()
-      mockApi('/api/board/stock/operations', { handler: () => apiResponse(201, stockOperation()) })
-      const sent = recordRequests()
+    it('offers no costs to a consumption', async () => {
+      mockOperation(stockOperationDetail({ reason: 'consumption', label: '', unpriced: false, priceable: false, cost: '0.00' }))
 
-      const view = await mountSuspended(OperationPage, { route: '/bureau/stock/entree-sortie' })
-      expect(field(view, 'Motif').findAll('option').map(option => option.text())).toEqual(['Achat', 'Ajustement'])
-      await view.findAll('input[type="radio"]')[1]!.setValue(true)
+      const view = await mountSuspended(OperationPage, { route: '/bureau/stock/operations/12' })
 
-      expect(field(view, 'Motif').findAll('option').map(option => option.text())).toEqual(['Consommation', 'Ajustement'])
-      await vi.waitFor(() => expect(field(view, 'Article de la ligne 1').findAll('option')).toHaveLength(5))
-      await field(view, 'Article de la ligne 1').setValue('3')
-      expect(readable(view.text())).toContain('En stock : 18')
-      await field(view, 'Quantité de la ligne 1').setValue('6')
-      await view.get('form').trigger('submit')
-
-      // happy-dom keeps the option it selected before the list changed: the
-      // request tells the reason the page holds.
-      await vi.waitFor(() => expect(sent.find(request => request.method === 'POST')?.body).toMatchObject({ direction: 'out', reason: 'consumption' }))
-      // Only a purchase tells what its lines cost.
-      expect(view.html()).not.toContain('Montant payé')
-      expect((sent.find(request => request.method === 'POST')?.body as { lines: unknown[] }).lines).toEqual([{ item: 3, quantity: '6' }])
-    })
-
-    it('keeps an adjustment when the way changes', async () => {
-      mockStock()
-
-      const view = await mountSuspended(OperationPage, { route: '/bureau/stock/entree-sortie' })
-      await field(view, 'Motif').setValue('adjustment')
-      await view.findAll('input[type="radio"]')[1]!.setValue(true)
-
-      expect((field(view, 'Motif').element as HTMLSelectElement).value).toBe('adjustment')
-    })
-
-    it('shows the API\'s refusals under their lines, and removes a line', async () => {
-      /**
-       * Given an exit that takes more juice than is left
-       * When it is refused
-       * Then the refusal shows under the quantity of its line
-       * And a line removed leaves the form
-       */
-      mockStock()
-      mockApi('/api/board/stock/operations', { handler: () => apiResponse(422, { detail: [
-        { type: 'validation_error', loc: ['body', 'lines', 0, 'quantity'], msg: 'Il n’en reste que 18 en stock.' },
-        { type: 'validation_error', loc: ['body'], msg: 'Ajoutez au moins un article.' },
-      ] }) })
-
-      const view = await mountSuspended(OperationPage, { route: '/bureau/stock/entree-sortie' })
-      await view.get('form').trigger('submit')
-
-      await vi.waitFor(() => expect(view.text()).toContain('Il n’en reste que 18 en stock.'))
-      expect(field(view, 'Quantité de la ligne 1').attributes('aria-invalid')).toBe('true')
-      expect(view.get('[role="alert"]').text()).toBe('Ajoutez au moins un article.')
-      await view.get('button[aria-label="Retirer la ligne 1"]').trigger('click')
-      expect(view.find('button[aria-label="Retirer la ligne 1"]').exists()).toBe(false)
-      expect(navigateToMock).not.toHaveBeenCalled()
-    })
-  })
-
-  it('forgets the refusals of a line once a line is removed, since they follow its position', async () => {
-    /**
-     * Given an exit of two lines, the first refused
-     * When the member removes the first line
-     * Then its refusal does not land under the line that takes its place
-     */
-    mockStock()
-    mockApi('/api/board/stock/operations', { handler: () => apiResponse(422, { detail: [
-      { type: 'validation_error', loc: ['body', 'lines', 0, 'quantity'], msg: 'Il n’en reste que 18 en stock.' },
-    ] }) })
-
-    const view = await mountSuspended(OperationPage, { route: '/bureau/stock/entree-sortie' })
-    await button(view, 'Ajouter un article')!.trigger('click')
-    await view.get('form').trigger('submit')
-    await vi.waitFor(() => expect(field(view, 'Quantité de la ligne 1').attributes('aria-invalid')).toBe('true'))
-    await view.get('button[aria-label="Retirer la ligne 1"]').trigger('click')
-
-    expect(field(view, 'Quantité de la ligne 1').attributes('aria-invalid')).toBeUndefined()
-    expect(view.text()).not.toContain('Il n’en reste que 18 en stock.')
-  })
-
-  it('names the way of an exit before a refusal of it, which has no field of its own', async () => {
-    mockStock()
-    mockApi('/api/board/stock/operations', { handler: () => apiResponse(422, { detail: [
-      { type: 'enum', loc: ['body', 'payload', 'direction'], msg: 'Sélectionnez un choix valide.' },
-    ] }) })
-
-    const view = await mountSuspended(OperationPage, { route: '/bureau/stock/entree-sortie' })
-    await view.get('form').trigger('submit')
-
-    await vi.waitFor(() => expect(view.get('[role="alert"]').text()).toBe('Sens : Sélectionnez un choix valide.'))
-  })
-
-  describe('« Faire l’inventaire »', () => {
-    it('counts the items by category, and sends those counted alone', async () => {
-      /**
-       * Given the stock of the mockup
-       * When a member counts 144 cans and 1,5 kg of sweets after the brocante,
-       * and leaves the other items empty
-       * Then the stocktake sends the two counts alone, then goes back to the stock
-       */
-      mockStock()
-      mockApi('/api/board/stock/stocktakes', { handler: () => apiResponse(201, stockOperation({ reason: 'stocktake' })) })
-      const sent = recordRequests()
-
-      const view = await mountSuspended(StocktakePage, { route: '/bureau/stock/inventaire' })
-      await vi.waitFor(() => expect(view.findAll('h2').map(title => title.text())).toEqual(['Boissons', 'Alimentaire']))
-      expect(readable(view.text())).toContain('En stock : 1,5 kg')
-      await field(view, 'Libellé').setValue('Après la brocante')
-      await field(view, 'Compté : Canettes de soda 33 cl').setValue('144')
-      await field(view, 'Compté : Bonbons assortis').setValue('1,5')
-      await view.get('form').trigger('submit')
-
-      await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith('/bureau/stock'))
-      expect(sent.find(request => request.method === 'POST')?.body).toEqual({
-        label: 'Après la brocante',
-        event: null,
-        counts: [{ item: 1, counted: '144' }, { item: 6, counted: '1.5' }],
-      })
-    })
-
-    it('shows a refusal of the item counted under it too', async () => {
-      /**
-       * Given the sweets counted, deleted meanwhile
-       * When the stocktake is refused for that item
-       * Then the refusal shows under the sweets, not before a field name
-       */
-      mockStock()
-      mockApi('/api/board/stock/stocktakes', { handler: () => apiResponse(422, { detail: [
-        { type: 'validation_error', loc: ['body', 'counts', 0, 'item'], msg: 'Choisissez un article existant.' },
-      ] }) })
-
-      const view = await mountSuspended(StocktakePage, { route: '/bureau/stock/inventaire' })
-      await vi.waitFor(() => expect(view.findAll('h2')).toHaveLength(2))
-      await field(view, 'Compté : Bonbons assortis').setValue('2')
-      await view.get('form').trigger('submit')
-
-      await vi.waitFor(() => expect(field(view, 'Compté : Bonbons assortis').attributes('aria-invalid')).toBe('true'))
-      expect(view.text()).toContain('Choisissez un article existant.')
-      expect(view.find('[role="alert"]').exists()).toBe(false)
-    })
-
-    it('shows a refusal of the whole stocktake above it, and takes the focus to it', async () => {
-      mockStock()
-      mockApi('/api/board/stock/stocktakes', { handler: () => apiResponse(422, { detail: [
-        { type: 'validation_error', loc: ['body'], msg: 'Comptez au moins un article.' },
-      ] }) })
-
-      const view = await mountSuspended(StocktakePage, { route: '/bureau/stock/inventaire', attachTo: document.body })
-      await vi.waitFor(() => expect(view.findAll('h2')).toHaveLength(2))
-      await view.get('form').trigger('submit')
-
-      await vi.waitFor(() => expect(view.find('form [role="alert"]').exists()).toBe(true))
-      expect(view.get('form [role="alert"]').text()).toBe('Comptez au moins un article.')
-      expect(document.activeElement).toBe(view.get('form [role="alert"]').element)
-    })
-
-    it('shows a refused count under its item', async () => {
-      mockStock()
-      mockApi('/api/board/stock/stocktakes', { handler: () => apiResponse(422, { detail: [
-        { type: 'validation_error', loc: ['body', 'counts', 0, 'counted'], msg: 'Assurez-vous que cette valeur est supérieure ou égale à 0.' },
-      ] }) })
-
-      const view = await mountSuspended(StocktakePage, { route: '/bureau/stock/inventaire' })
-      await vi.waitFor(() => expect(view.findAll('h2')).toHaveLength(2))
-      await field(view, 'Compté : Bonbons assortis').setValue('-1')
-      await view.get('form').trigger('submit')
-
-      await vi.waitFor(() => expect(field(view, 'Compté : Bonbons assortis').attributes('aria-invalid')).toBe('true'))
-      expect(field(view, 'Compté : Canettes de soda 33 cl').attributes('aria-invalid')).toBeUndefined()
+      await vi.waitFor(() => expect(view.get('h1').text()).toBe('Consommation'))
+      expect(button(view, 'Compléter les prix')).toBeUndefined()
+      expect(button(view, 'Corriger les prix')).toBeUndefined()
+      expect(view.text()).not.toContain('Total payé')
     })
   })
 })

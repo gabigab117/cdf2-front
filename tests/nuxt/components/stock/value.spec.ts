@@ -38,5 +38,6 @@ describe('« Valeur du stock »', () => {
 
     expect(card.text()).toContain('2 achats sans prix, au prix moyen d’ici là.')
     expect(card.text()).not.toContain('hors de cette valeur')
+    expect(card.get('a[href="/bureau/stock/operations?filtre=sans-prix"]').text()).toBe('Compléter les prix')
   })
 })
