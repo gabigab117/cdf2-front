@@ -292,3 +292,9 @@
 @utility h-below-top-bar {
   height: calc(100dvh - --spacing(17));
 }
+
+/* The most a panel opened under the board's top bar (top-19) takes of the
+   window, a margin left under it: a longer one, as « À traiter », scrolls. */
+@utility max-h-below-top-bar {
+  max-height: calc(100dvh - --spacing(23));
+}

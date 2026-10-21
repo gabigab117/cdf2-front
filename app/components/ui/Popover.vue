@@ -18,8 +18,8 @@ const classes = {
   base: 'm-0 border border-argent-200 bg-white p-2 text-sable-950 shadow-float',
   placement: {
     'site': 'inset-x-3 top-3 bottom-auto w-auto rounded-panel backdrop:bg-sable-950/40',
-    'board': 'top-19 right-4 bottom-auto left-auto w-60 rounded-card md:right-8',
-    'board-wide': 'top-19 right-4 bottom-auto left-auto w-90 rounded-card md:right-8',
+    'board': 'top-19 right-4 bottom-auto left-auto max-h-below-top-bar w-60 overflow-y-auto rounded-card md:right-8',
+    'board-wide': 'top-19 right-4 bottom-auto left-auto max-h-below-top-bar w-90 overflow-y-auto rounded-card md:right-8',
   },
 }
 
