@@ -56,6 +56,16 @@ describe('the albums of the site, « Souvenirs »', () => {
     expect(memories.find('ul').exists()).toBe(false)
   })
 
+  it('can be tried again when the API fails at a change of page, which keeps the page mounted', async () => {
+    mockApi(ALBUMS, { handler: () => apiResponse(200, page([publicAlbumItem()], 30)) })
+    await mountMemories()
+    mockApi(ALBUMS, { handler: () => apiResponse(503, {}) })
+
+    await useRouter().push('/souvenirs?page=2')
+
+    await vi.waitFor(() => expect(useError().value).toMatchObject({ status: 503, data: { path: '/souvenirs?page=2' } }))
+  })
+
   it('can be tried again when the API is out of reach', async () => {
     mockApi(ALBUMS, { handler: () => apiResponse(503, {}) })
 

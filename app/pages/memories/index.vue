@@ -3,12 +3,15 @@ definePageMeta({ path: '/souvenirs', public: true })
 
 const route = useRoute()
 const page = computed(() => queryPage(route.query.page))
-const { data: albums } = await usePublicAlbums(page)
+const { data: albums, error } = await usePublicAlbums(page)
 
-// The API out of reach is a page to try again later.
-if (!albums.value) {
-  throw createError({ status: 503, statusText: 'Service Unavailable', fatal: true, data: { path: MEMORIES_PATH } })
-}
+// The API out of reach is a page to try again later: at the first reading, and
+// at a change of page, which keeps this page mounted and empties its data.
+const unavailable = () => ({ status: 503, statusText: 'Service Unavailable', fatal: true, data: { path: route.fullPath } })
+if (!albums.value) throw createError(unavailable())
+watch(error, (failure) => {
+  if (failure) showError(unavailable())
+})
 
 const items = computed(() => albums.value?.items ?? [])
 const pageCount = computed(() => Math.ceil((albums.value?.count ?? 0) / MEMORIES_PAGE_SIZE))
