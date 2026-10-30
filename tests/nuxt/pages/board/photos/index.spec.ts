@@ -3,6 +3,7 @@ import { enableAutoUnmount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import PhotosPage from '~/pages/board/photos/index.vue'
 import { stubObjectUrls } from '../../../helpers/files'
+import { button } from '../../../helpers/form'
 import { apiResponse, clearApiMocks, mockApi, recordRequests } from '../../../helpers/api'
 import { page } from '../../../helpers/events'
 import { albumItem, boardAlbum, mockPhotoFiles } from '../../../helpers/photos'
@@ -95,6 +96,34 @@ describe('the Photos page', () => {
     await photosPage.get('section form').trigger('submit')
 
     await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith({ path: '/bureau/photos', query: { album: 9 } }))
+  })
+
+  it('reads the list again before it leaves an album deleted, so that it shows no longer', async () => {
+    /**
+     * Given the latest album, the one a page without an album in its address shows
+     * When a member deletes it
+     * Then the list is read again before the page goes back to it, without the album
+     */
+    let listReads = 0
+    let readsWhenLeaving = 0
+    clearApiMocks()
+    mockApi('/api/board/albums', { method: 'GET', handler: () => apiResponse(200, page(listReads++ ? [albumItem({ id: 7 })] : [albumItem(), albumItem({ id: 7 })])) })
+    mockApi(ALBUM, { method: 'GET', handler: () => apiResponse(200, boardAlbum()) }, { album_id: 5 })
+    mockApi(ALBUM, { method: 'DELETE', handler: () => new Response(null, { status: 204 }) }, { album_id: 5 })
+    mockApi('/api/board/events', { handler: () => apiResponse(200, page([])) })
+    mockPhotoFiles([41, 42, 43])
+    navigateToMock.mockImplementation(() => {
+      readsWhenLeaving = listReads
+    })
+    const photosPage = await mountPage('/bureau/photos?album=5')
+    await vi.waitFor(() => expect(photosPage.find('h1').exists()).toBe(true))
+
+    await button(photosPage, 'Modifier')?.trigger('click')
+    await button(photosPage, 'Supprimer l’album')?.trigger('click')
+    await button(photosPage, 'Supprimer définitivement')?.trigger('click')
+
+    await vi.waitFor(() => expect(navigateToMock).toHaveBeenCalledWith({ path: '/bureau/photos', query: { album: undefined } }))
+    expect(readsWhenLeaving).toBe(2)
   })
 
   it('names the page when there is no album yet', async () => {

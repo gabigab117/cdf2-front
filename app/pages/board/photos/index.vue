@@ -34,9 +34,11 @@ async function created(album: AlbumOut): Promise<void> {
   void refresh()
 }
 
+// The list first: the album deleted, often the latest, would otherwise show
+// again, from the list still holding it, until the list came back.
 async function deleted(): Promise<void> {
+  await refresh()
   await navigateTo(albumLocation(null))
-  void refresh()
 }
 </script>
 
