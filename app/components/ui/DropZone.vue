@@ -2,10 +2,15 @@
 import { Upload } from '@lucide/vue'
 
 // A zone a file is dropped onto, or chosen from with its button: the file goes
-// to the parent, which decides what becomes of it.
-const { accept } = defineProps<{
+// to the parent, which decides what becomes of it. With `multiple`, each file
+// of a drop or a choice goes, one after the other.
+const { accept, multiple = false, action = 'choisissez un fichier' } = defineProps<{
   /** The types the file picker offers (its `accept` attribute). */
   accept: string
+  /** Takes several files at once, as an album's photos. */
+  multiple?: boolean
+  /** The text of its button. */
+  action?: string
 }>()
 
 const emit = defineEmits<{ choose: [file: File] }>()
@@ -19,14 +24,13 @@ function choose(): void {
 }
 
 function chosen(event: Event): void {
-  const file = chosenFile(event)
-  if (file) emit('choose', file)
+  for (const file of chosenFiles(event)) emit('choose', file)
 }
 
 function dropped(event: DragEvent): void {
   over.value = false
-  const file = event.dataTransfer?.files[0]
-  if (file) emit('choose', file)
+  const files = [...(event.dataTransfer?.files ?? [])]
+  for (const file of multiple ? files : files.slice(0, 1)) emit('choose', file)
 }
 
 defineExpose({ choose })
@@ -58,8 +62,9 @@ const classes = {
         class="font-medium text-azur-600 underline underline-offset-2 hover:text-azur-700"
         @click="choose"
       >
-        choisissez un fichier
+        {{ action }}
       </button>.
+      <slot name="hint" />
     </p>
     <input
       ref="input"
@@ -68,6 +73,7 @@ const classes = {
       tabindex="-1"
       aria-hidden="true"
       :accept
+      :multiple
       @change="chosen"
     >
   </div>

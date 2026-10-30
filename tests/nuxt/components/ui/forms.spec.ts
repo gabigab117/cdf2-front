@@ -5,7 +5,7 @@ import UiSearchInput from '~/components/ui/SearchInput.vue'
 import UiSelect from '~/components/ui/Select.vue'
 import UiSwitch from '~/components/ui/Switch.vue'
 import UiTextarea from '~/components/ui/Textarea.vue'
-import { chooseFile } from '../../helpers/files'
+import { chooseFile, chooseFiles } from '../../helpers/files'
 
 describe('UiSelect', () => {
   const options = [
@@ -145,6 +145,37 @@ describe('UiDropZone', () => {
     expect(click).toHaveBeenCalledOnce()
     expect(picker.attributes('accept')).toBe('application/pdf')
     expect(zone.emitted('choose')).toEqual([[pdf]])
+  })
+
+  it('gives each of several files, dropped or chosen, when it takes several', async () => {
+    /**
+     * Given a zone that takes several photos, its button named and a hint after it
+     * When three photos are dropped, then two chosen
+     * Then each is given in turn, and the picker offers to choose several
+     */
+    const photos = ['IMG_0001.jpg', 'IMG_0002.jpg', 'IMG_0003.jpg'].map(name => new File(['photo'], name, { type: 'image/jpeg' }))
+    const zone = await mountSuspended(UiDropZone, {
+      props: { accept: 'image/jpeg', multiple: true, action: 'parcourez vos fichiers' },
+      slots: { default: () => 'Glissez des photos ici ou ', hint: () => 'JPEG, PNG, HEIC.' },
+    })
+    const picker = zone.get('input[type="file"]')
+
+    await zone.trigger('drop', { dataTransfer: { files: photos } })
+    await chooseFiles(picker, photos.slice(0, 2))
+
+    expect(zone.emitted('choose')).toEqual([[photos[0]], [photos[1]], [photos[2]], [photos[0]], [photos[1]]])
+    expect(picker.attributes('multiple')).toBeDefined()
+    expect(zone.text()).toBe('Glissez des photos ici ou parcourez vos fichiers. JPEG, PNG, HEIC.')
+  })
+
+  it('gives the first file of a drop alone when it takes one', async () => {
+    const zone = await mountSuspended(UiDropZone, { props: { accept: 'application/pdf' } })
+
+    await zone.trigger('drop', { dataTransfer: { files: [pdf, pdf] } })
+
+    expect(zone.emitted('choose')).toEqual([[pdf]])
+    expect(zone.get('input[type="file"]').attributes('multiple')).toBeUndefined()
+    expect(zone.get('button').text()).toBe('choisissez un fichier')
   })
 
   it('gives nothing when no file comes', async () => {

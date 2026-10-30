@@ -166,6 +166,10 @@
      its two bars below, across both. */
   --grid-template-columns-event-result: minmax(0, 1fr) 96px;
 
+  /* The grid of an album's photos: square tiles of 160 px at least, as many as
+     the row holds. */
+  --grid-template-columns-photos: repeat(auto-fill, minmax(min(160px, 100%), 1fr));
+
   /* Lines of the loan form: equipment, what is free, its quantity. */
   --grid-template-columns-loan-line: minmax(0, 1fr) 140px 132px;
 

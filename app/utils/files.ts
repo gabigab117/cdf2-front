@@ -1,6 +1,9 @@
 /** The files the board may upload, as the file picker offers them (D9). */
 export const DOCUMENT_TYPES = 'application/pdf,image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif'
 
+/** The photos the file picker of an album offers: its images, HEIC of an iPhone included. */
+export const PHOTO_TYPES = 'image/jpeg,image/png,image/webp,image/heic,image/heif,.heic,.heif'
+
 /** The title a file gives to start with: its name, without its extension. */
 export function fileTitle(name: string): string {
   return name.replace(/\.[^.]+$/, '')
@@ -80,12 +83,17 @@ function mediaType(file: Blob): string {
 }
 
 /**
- * The file a member chose in a file input, which is emptied: the same file
- * chosen again is a new choice.
+ * The files a member chose in a file input, which is emptied: the same files
+ * chosen again are a new choice. One, unless the input takes several.
  */
-export function chosenFile(event: Event): File | null {
+export function chosenFiles(event: Event): File[] {
   const input = event.target as HTMLInputElement
-  const file = input.files?.[0] ?? null
+  const files = [...(input.files ?? [])]
   input.value = ''
-  return file
+  return files
+}
+
+/** The file a member chose in a file input, which is emptied, as chosenFiles(). */
+export function chosenFile(event: Event): File | null {
+  return chosenFiles(event)[0] ?? null
 }

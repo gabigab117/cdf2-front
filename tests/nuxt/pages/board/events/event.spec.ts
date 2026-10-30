@@ -73,6 +73,7 @@ describe('the board\'s page of an event', () => {
       ['Réservations 42/80', 'false'],
       ['Matériel 0', 'false'],
       ['Documents 4', 'false'],
+      ['Photos', 'false'],
       ['Infos publiques', 'false'],
     ])
     expect(eventPage.get('[role="tabpanel"] textarea').attributes('placeholder')).toBe('Écrire une note pour le bureau…')

@@ -36,6 +36,7 @@ const tabs = computed(() => {
     { value: 'reservations' as const, label: 'Réservations', count: figures && seatsCount(figures) },
     { value: 'equipment' as const, label: 'Matériel', count: figures && String(figures.equipment_count) },
     { value: 'documents' as const, label: 'Documents', count: figures && String(figures.documents_count) },
+    { value: 'photos' as const, label: 'Photos' },
     { value: 'public' as const, label: 'Infos publiques' },
   ]
 })
@@ -148,6 +149,10 @@ function show(saved: components['schemas']['EventOut']): void {
         v-else-if="tab === 'documents'"
         :event
         :page="query.page"
+      />
+      <PhotosEventTab
+        v-else-if="tab === 'photos'"
+        :event
       />
       <EventsPublicInfoForm
         v-else

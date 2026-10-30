@@ -95,6 +95,19 @@ describe('protected files', () => {
   })
 })
 
+describe('chosenFiles', () => {
+  it('reads every file chosen in an input, and empties it', () => {
+    const files = ['IMG_0001.jpg', 'IMG_0002.jpg'].map(name => new File(['photo'], name, { type: 'image/jpeg' }))
+    const input = document.createElement('input')
+    input.type = 'file'
+    Object.defineProperty(input, 'files', { value: files, configurable: true })
+    const emptied = vi.spyOn(input, 'value', 'set')
+
+    expect(chosenFiles({ target: input } as unknown as Event)).toEqual(files)
+    expect(emptied).toHaveBeenCalledWith('')
+  })
+})
+
 describe('chosenFile', () => {
   it('reads the file chosen in an input, or none', () => {
     const file = new File(['%PDF-1.4'], 'facture.pdf', { type: 'application/pdf' })
