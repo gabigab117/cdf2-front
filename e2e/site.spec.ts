@@ -47,6 +47,50 @@ test('an event of the agenda opens on its page', async ({ page }) => {
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /^https:\/\/site\.example\/evenements\/halloween-des-enfants-\d{4}$/)
 })
 
+test('« Souvenirs » leads from the home page to an album and its photos', async ({ page }) => {
+  await page.goto('/')
+
+  // The albums of the demonstration the site shows: published, with a visible photo.
+  const memories = page.locator('#souvenirs')
+  await expect(memories.getByRole('link')).toHaveCount(4)
+  await expect(memories.getByRole('link', { name: /Feu de la Saint-Jean|Coulisses du bureau/ })).toHaveCount(0)
+  await memories.getByRole('link', { name: 'Tous les albums' }).click()
+
+  await expect(page).toHaveURL('/souvenirs')
+  await page.getByRole('link', { name: /^Brocante/ }).click()
+
+  await expect(page).toHaveURL(/\/souvenirs\/\d+-brocante-\d{4}$/)
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/^Brocante/)
+  // Twelve photos, two awaiting a check of their image rights and one hidden.
+  const photos = page.getByRole('link', { name: /^Agrandir la photo/ })
+  await expect(photos).toHaveCount(9)
+  // Without JavaScript, a photo opens in large in the browser.
+  await expect(photos.first()).toHaveAttribute('href', /^\/api\/public\/photos\/\d+\/display$/)
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /^https:\/\/site\.example\/souvenirs\/\d+-brocante-\d{4}$/)
+})
+
+test('an album\'s address whose title is out of date leads to its current one', async ({ page, request }) => {
+  const { items } = await (await request.get('/api/public/albums?page_size=1')).json() as { items: Array<{ slug: string }> }
+  const slug = items[0]?.slug ?? ''
+
+  const response = await page.goto(`/souvenirs/${slug.split('-')[0]}-ancien-titre`)
+
+  expect(response?.request().redirectedFrom()).not.toBeNull()
+  await expect(page).toHaveURL(`/souvenirs/${slug}`)
+})
+
+test('the egg hunt to come shows its cover and last year\'s album', async ({ page }) => {
+  await page.goto('/')
+
+  await page.locator('#agenda').getByRole('link', { name: /Chasse aux œufs/ }).click()
+
+  await expect(page.locator('header img')).toHaveAttribute('src', /^\/api\/public\/photos\/\d+\/display$/)
+  const lastYear = page.getByRole('region', { name: 'L’an dernier' })
+  await expect(lastYear.getByRole('link', { name: 'Album Chasse aux œufs · 10 photos' })).toBeVisible()
+  await expect(lastYear.locator('img')).toHaveCount(6)
+  await expect(lastYear.getByText('+4')).toBeVisible()
+})
+
 test('an address the agenda does not know is not found, with a way home', async ({ page }) => {
   const response = await page.goto('/evenements/inconnu-2026')
 

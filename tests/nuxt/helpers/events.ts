@@ -75,6 +75,7 @@ export function publicEventItem(changes: Partial<PublicEventItemOut> = {}): Publ
     venue_name: 'Salle des fêtes',
     price_label: 'Gratuit',
     price_detail: 'Goûter offert par le comité',
+    cover: null,
     ...changes,
   }
 }
@@ -104,6 +105,7 @@ export function publicEvent(changes: Partial<PublicEventOut> = {}): PublicEventO
       { time: '17:00:00', title: 'Goûter', description: '' },
     ],
     practical_infos: [{ icon: 'people', title: 'Enfants accompagnés', text: 'Un adulte par groupe.' }],
+    previous_edition_album: null,
     next_events: [loto],
     ...changes,
   }

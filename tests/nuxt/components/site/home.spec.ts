@@ -68,6 +68,13 @@ describe('SiteHero', () => {
     ])
   })
 
+  it('promises the photos of past editions, on a phone as on a computer', async () => {
+    const hero = await mountSuspended(SiteHero, { props: { spotlight: null } })
+
+    expect(hero.get('h1 + p .md\\:hidden').text()).toBe('Agenda, infos pratiques et photos des éditions passées.')
+    expect(hero.get('h1 + p .md\\:inline').text()).toContain('Agenda des manifestations, infos pratiques et photos des éditions passées :')
+  })
+
   it('shows no card when the agenda is empty', async () => {
     const hero = await mountSuspended(SiteHero, { props: { spotlight: null } })
 
@@ -89,6 +96,25 @@ describe('SiteSpotlightCard', () => {
     expect(text).toContain('Salle des fêtes · Gratuit, Goûter offert par le comité')
     expect(text).toContain('15 h 00 – 18 h 30')
     expect(text).toContain('Gratuit · Goûter offert par le comité')
+  })
+
+  it('shows the event\'s cover on top, its pills lying on the photo (D17)', async () => {
+    const card = await mountSuspended(SiteSpotlightCard, { props: { event: publicEventItem({ cover: 41 }) } })
+
+    expect(card.get('img').attributes()).toMatchObject({ src: '/api/public/photos/41/display', alt: '' })
+    const pills = card.get('p')
+    expect(pills.classes()).toContain('absolute')
+    expect(pills.findAll('span').map(pill => pill.classes())).toEqual([
+      expect.arrayContaining(['bg-white', 'text-sable-950']),
+      expect.arrayContaining(['bg-azur-600']),
+    ])
+  })
+
+  it('has no photo while the event has no cover the site may show', async () => {
+    const card = await mountSuspended(SiteSpotlightCard, { props: { event: publicEventItem() } })
+
+    expect(card.find('img').exists()).toBe(false)
+    expect(card.get('p').classes()).not.toContain('absolute')
   })
 
   it('says the next event is today', async () => {

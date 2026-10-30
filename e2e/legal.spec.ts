@@ -25,11 +25,12 @@ test('the legal notice loads anew from a page of the site, and names its directo
 test('the director is named on the legal notice alone', async ({ request }) => {
   const html = async (path: string) => (await request.get(path, { headers: { Accept: 'text/html' } })).text()
   const { items } = await (await request.get('/api/public/events?page_size=1')).json() as { items: Array<{ slug: string }> }
+  const albums = await (await request.get('/api/public/albums?page_size=1')).json() as { items: Array<{ slug: string }> }
 
   expect(await html('/mentions-legales')).toContain(PUBLICATION_DIRECTOR)
   // The public pages, a page not found, and the shells of the client-rendered
   // pages, which carry the configuration written for the browser.
-  for (const path of ['/', `/evenements/${items[0]?.slug}`, '/donnees-personnelles', '/evenements/inconnu-2026', '/connexion', '/bureau']) {
+  for (const path of ['/', `/evenements/${items[0]?.slug}`, '/donnees-personnelles', '/souvenirs', `/souvenirs/${albums.items[0]?.slug}`, '/evenements/inconnu-2026', '/connexion', '/bureau']) {
     expect(await html(path), path).not.toContain(PUBLICATION_DIRECTOR)
   }
 })

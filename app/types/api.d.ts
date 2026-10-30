@@ -1927,6 +1927,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/albums": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the site's albums
+         * @description The albums with a visible photo, the latest first, by page (D17).
+         */
+        get: operations["photos_api_list_public_albums"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/albums/{album_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get an album of the site
+         * @description An album with a visible photo, and those photos: any other is not found.
+         */
+        get: operations["photos_api_get_public_album"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/public/events": {
         parameters: {
             query?: never;
@@ -1956,7 +1996,8 @@ export interface paths {
         };
         /**
          * Get a published event
-         * @description A published event's page, past ones included, with the events that follow it.
+         * @description A published event's page, past ones included, with its previous edition's
+         *     album and the events that follow it.
          */
         get: operations["events_api_public_event"];
         put?: never;
@@ -3902,6 +3943,13 @@ export interface components {
             /** Items */
             items: components["schemas"]["NoteOut"][];
         };
+        /** PagedPublicAlbumItemOut */
+        PagedPublicAlbumItemOut: {
+            /** Count */
+            count: number;
+            /** Items */
+            items: components["schemas"]["PublicAlbumItemOut"][];
+        };
         /** PagedPublicEventItemOut */
         PagedPublicEventItemOut: {
             /** Count */
@@ -4135,6 +4183,47 @@ export interface components {
             /** Title */
             title: string;
         };
+        /**
+         * PublicAlbumItemOut
+         * @description An album of the site: one with a visible photo, which only a published
+         *     album has.
+         */
+        PublicAlbumItemOut: {
+            /** Cover */
+            cover: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Photos Count */
+            photos_count: number;
+            /** Slug */
+            slug: string;
+            /** Title */
+            title: string;
+        };
+        /**
+         * PublicAlbumOut
+         * @description An album of the site with its visible photos, in the order they were taken.
+         */
+        PublicAlbumOut: {
+            /** Cover */
+            cover: number;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Photos */
+            photos: number[];
+            /** Photos Count */
+            photos_count: number;
+            /** Slug */
+            slug: string;
+            /** Title */
+            title: string;
+        };
         /** PublicEventFilters */
         PublicEventFilters: {
             category?: components["schemas"]["EventCategory"] | null;
@@ -4145,6 +4234,8 @@ export interface components {
          */
         PublicEventItemOut: {
             category: components["schemas"]["EventCategory"];
+            /** Cover */
+            cover: number | null;
             /** Ends At */
             ends_at: string | null;
             /** Price Detail */
@@ -4171,6 +4262,8 @@ export interface components {
          */
         PublicEventOut: {
             category: components["schemas"]["EventCategory"];
+            /** Cover */
+            cover: number | null;
             /** Ends At */
             ends_at: string | null;
             /** Latitude */
@@ -4181,6 +4274,7 @@ export interface components {
             next_events: components["schemas"]["PublicEventItemOut"][];
             /** Practical Infos */
             practical_infos: components["schemas"]["PublicPracticalInfoOut"][];
+            previous_edition_album: components["schemas"]["PublicAlbumOut"] | null;
             /** Price Detail */
             price_detail: string;
             /** Price Label */
@@ -12141,6 +12235,78 @@ export interface operations {
                 };
                 content: {
                     "text/calendar": string;
+                };
+            };
+        };
+    };
+    photos_api_list_public_albums: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PagedPublicAlbumItemOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    photos_api_get_public_album: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                album_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PublicAlbumOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
                 };
             };
         };

@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import EventPage from '~/pages/events/[slug].vue'
 import { apiResponse, clearApiMocks, mockApi } from '../../helpers/api'
 import { publicEvent } from '../../helpers/events'
+import { publicAlbum } from '../../helpers/photos'
 
 const EVENT = '/api/public/events/{slug}'
 const SLUG = 'halloween-des-enfants-2026'
@@ -40,6 +41,18 @@ describe('public page of an event', () => {
     expect(eventPage.text()).not.toContain('S’inscrire')
   })
 
+  it('shows its cover, and last year\'s album after « Bon à savoir », as the mockup does', async () => {
+    mockApi(EVENT, {
+      handler: () => apiResponse(200, publicEvent({ cover: 41, previous_edition_album: publicAlbum() })),
+    }, { slug: SLUG })
+
+    const eventPage = await mountEvent()
+
+    expect(eventPage.get('header img').attributes('src')).toBe('/api/public/photos/41/display')
+    expect(eventPage.findAll('h2').map(title => title.text())).toEqual(['Au programme', 'Bon à savoir', 'L’an dernier', 'Ensuite au programme'])
+    expect(eventPage.get('a[href="/souvenirs/5-brocante-2026"]').text()).toContain('Album Brocante 2026 · 2 photos')
+  })
+
   it('leaves out the blocks the event does not fill', async () => {
     mockApi(EVENT, {
       handler: () => apiResponse(200, publicEvent({ programme: [], practical_infos: [], next_events: [], summary: '' })),
@@ -49,6 +62,7 @@ describe('public page of an event', () => {
 
     expect(eventPage.findAll('h2')).toHaveLength(0)
     expect(eventPage.text()).not.toContain('Défilé')
+    expect(eventPage.find('img').exists()).toBe(false)
   })
 
   // The error a page throws becomes the error the application shows (error.vue).

@@ -6,6 +6,8 @@ type AlbumItemOut = components['schemas']['AlbumItemOut']
 type AlbumOut = components['schemas']['AlbumOut']
 type EventCoverOut = components['schemas']['EventCoverOut']
 type PhotoOut = components['schemas']['PhotoOut']
+type PublicAlbumItemOut = components['schemas']['PublicAlbumItemOut']
+type PublicAlbumOut = components['schemas']['PublicAlbumOut']
 
 /** A fictitious photo of the brocante, added by Julie, neither hidden nor awaiting a check. */
 export function photo(changes: Partial<PhotoOut> = {}): PhotoOut {
@@ -78,4 +80,21 @@ export function mockPhotoFiles(ids: number[], rendition: 'thumbnail' | 'display'
   for (const id of ids) {
     mockApi('/api/board/photos/{photo_id}/{rendition}', { handler: photoFile }, { photo_id: id, rendition })
   }
+}
+
+/** The brocante's album as the site lists it: its visible photos alone, and no one's name. */
+export function publicAlbumItem(changes: Partial<PublicAlbumItemOut> = {}): PublicAlbumItemOut {
+  return {
+    slug: '5-brocante-2026',
+    title: 'Brocante 2026',
+    date: '2026-09-13',
+    cover: 41,
+    photos_count: 2,
+    ...changes,
+  }
+}
+
+/** The same album with its photos, as its page on the site shows it. */
+export function publicAlbum(changes: Partial<PublicAlbumOut> = {}): PublicAlbumOut {
+  return { ...publicAlbumItem(), photos: [41, 42], ...changes }
 }

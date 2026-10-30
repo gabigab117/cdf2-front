@@ -4,19 +4,21 @@ definePageMeta({ public: true })
 const route = useRoute()
 const query = computed(() => parseAgendaQuery(route.query))
 
-// The three readings of the API leave together.
-const [{ data: overview }, { data: events, error }, { data: spotlight }] = await Promise.all([
+// The readings of the API leave together.
+const [{ data: overview }, { data: events, error }, { data: spotlight }, { data: memories, error: memoriesError }] = await Promise.all([
   useAgendaOverview(),
   useAgendaEvents(query),
   useSpotlight(),
+  useMemories(),
 ])
 
-// The page answers even when the API does not: only the agenda says so.
+// The page answers even when the API does not: the agenda and « Souvenirs » say so.
 const failed = computed(() => error.value !== undefined)
+const memoriesFailed = computed(() => memoriesError.value !== undefined)
 
 useSitePage({
   title: 'Accueil',
-  description: `Les fêtes du village, organisées par ses bénévoles : l’agenda des manifestations du ${SITE_NAME} et leurs infos pratiques.`,
+  description: `Les fêtes du village, organisées par ses bénévoles : l’agenda des manifestations du ${SITE_NAME}, leurs infos pratiques et les photos des éditions passées.`,
 })
 </script>
 
@@ -28,6 +30,10 @@ useSitePage({
       :events
       :failed
       :query
+    />
+    <SiteMemories
+      :albums="memories"
+      :failed="memoriesFailed"
     />
     <SiteVolunteerCall />
     <SiteContact />

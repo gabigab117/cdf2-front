@@ -14,6 +14,7 @@ const RETENTION_PERIODS: ReadonlyArray<{ data: string, period: string }> = [
   { data: 'Documents du bureau', period: 'Gardés pour la gestion de l’association, factures et attestations sur l’honneur comprises ; un membre du bureau peut en supprimer un' },
   { data: 'Lignes de la trésorerie', period: 'Gardées pour la comptabilité de l’association ; un membre du bureau peut en corriger ou en supprimer une' },
   { data: 'Mouvements du stock', period: 'Gardés pour la gestion de l’association' },
+  { data: 'Photos des albums', period: 'Gardées tant que leur album existe ; une photo dont le retrait est demandé est supprimée tout de suite' },
   { data: 'Noms des bénévoles affectés aux postes', period: 'Effacés 2 ans après l’événement' },
   { data: 'Noms et remarques des réservations', period: 'Effacés 3 mois après l’événement, les totaux conservés' },
   { data: 'Téléphone d’un emprunteur', period: 'Effacé 3 mois après le retour du matériel, ou après la date de retour prévue d’un prêt annulé' },
@@ -75,6 +76,21 @@ useSitePage({
       <p>Le comité prête son matériel à des associations, à des particuliers et à la commune. Pour chaque prêt, le bureau note le nom de l’emprunteur, son téléphone, l’objet du prêt et, au besoin, une remarque. Seul le bureau les lit : aucun n’est publié sur le site.</p>
       <p>La convention de prêt, imprimée depuis l’espace du bureau, reprend ce nom, ce téléphone et cet objet ; les remarques n’y figurent pas. Une fois signée, elle est déposée parmi les documents du bureau, et gardée comme eux.</p>
       <p>Le téléphone est effacé trois mois après le retour du matériel. Le nom d’un particulier, et les remarques de son prêt, sont effacés un an après. Pour un prêt annulé, ces délais courent depuis sa date de retour prévue.</p>
+    </SiteLegalSection>
+    <SiteLegalSection title="Photos">
+      <p>Le comité publie sur ce site les albums de ses fêtes : des photos d’ambiance et de groupe. Une personne cadrée seule n’y paraît qu’avec son accord, et un enfant qu’avec celui de ses parents. À l’entrée d’une fête, une affiche prévient que des photos y sont prises.</p>
+      <p>Aucune photo ne donne de nom : ni celui des personnes photographiées, ni celui du membre qui l’a ajoutée. Une photo perd ses métadonnées, la position où elle a été prise comprise, et les moteurs de recherche n’indexent pas les images.</p>
+      <p v-if="contact.email">
+        Pour retirer une photo où vous figurez, vous ou votre enfant, écrivez à
+        <SiteTextLink
+          :to="`mailto:${contact.email}`"
+          :label="contact.email"
+        /> : elle est supprimée tout de suite.
+      </p>
+      <p v-else>
+        Pour retirer une photo où vous figurez, vous ou votre enfant, écrivez au comité : elle est supprimée tout de suite.
+      </p>
+      <p>Une photo est gardée tant que son album existe. Un membre du bureau peut la masquer du site, ou la supprimer.</p>
     </SiteLegalSection>
     <SiteLegalSection title="Durées de conservation">
       <table class="w-full text-left">

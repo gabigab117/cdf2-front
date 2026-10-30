@@ -12,8 +12,7 @@ const now = useNow()
 const currentSeason = computed(() => `Saison ${season(now.value)}`)
 </script>
 
-<!-- The top of the home page. The photos of past editions come with the albums
-(phase 8): until then, its text does not mention them. -->
+<!-- The top of the home page, and the next event of the agenda. -->
 <template>
   <section class="relative overflow-hidden">
     <div class="mx-auto grid max-w-7xl items-center gap-9 px-4 pt-8 pb-10 md:grid-cols-2 md:gap-12 md:px-6 md:pt-20 md:pb-28">
@@ -28,8 +27,8 @@ const currentSeason = computed(() => `Saison ${season(now.value)}`)
           Les fêtes du village, organisées par <span class="text-azur-600">ses bénévoles.</span>
         </h1>
         <p class="max-w-130 text-base text-pretty text-sable-600 md:text-intro">
-          <span class="md:hidden">L’agenda et les infos pratiques des manifestations.</span>
-          <span class="hidden md:inline">Agenda des manifestations et infos pratiques : tout ce que le Comité des Fêtes prépare à Ons-en-Bray, au même endroit.</span>
+          <span class="md:hidden">Agenda, infos pratiques et photos des éditions passées.</span>
+          <span class="hidden md:inline">Agenda des manifestations, infos pratiques et photos des éditions passées : tout ce que le Comité des Fêtes prépare à Ons-en-Bray, au même endroit.</span>
         </p>
         <p class="hidden flex-wrap gap-3 md:flex">
           <UiButton

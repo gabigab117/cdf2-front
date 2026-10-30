@@ -62,3 +62,25 @@ describe('the form of an album', () => {
     expect(albumFields(boardAlbum({ event: null }))).toEqual({ title: 'Brocante 2026', date: '2026-09-13', event: null })
   })
 })
+
+describe('the albums of the site', () => {
+  it('reads a photo it may show by a plain address, which a link opens without JavaScript', () => {
+    expect(publicPhotoUrl(41, 'thumbnail')).toBe('/api/public/photos/41/thumbnail')
+    expect(publicPhotoUrl(41, 'display')).toBe('/api/public/photos/41/display')
+  })
+
+  it('leads to an album by its address', () => {
+    expect(publicAlbumPath('5-brocante-2026')).toBe('/souvenirs/5-brocante-2026')
+  })
+
+  it.each([
+    ['its number and its title', '5-brocante-2026', 5],
+    ['its number alone', '5', 5],
+    ['a title changed since', '5-brocante', 5],
+    ['no number', 'brocante-2026', null],
+    ['a number glued to a word', '5brocante', null],
+    ['a number larger than the API reads', '1234567890-brocante', null],
+  ])('finds the album of an address with %s', (_case, address, expected) => {
+    expect(albumIdOf(address)).toBe(expected)
+  })
+})

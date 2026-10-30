@@ -7,6 +7,9 @@ export const LEGAL_NOTICE_PATH = '/mentions-legales'
 /** The agenda, on the home page. */
 export const AGENDA_PATH = '/#agenda'
 
+/** The albums of the site, « Souvenirs », all of them by page. */
+export const MEMORIES_PATH = '/souvenirs'
+
 /** What the site does with personal data, and for how long. */
 export const PRIVACY_PATH = '/donnees-personnelles'
 

@@ -5,17 +5,19 @@ const { stacked = false } = defineProps<{
 }>()
 
 // The sections of the home page. The pages of the events belong to the agenda,
-// whose link stays lit there. The router would mark each link as the current
-// page on the home page, whatever its anchor: the links decide alone.
-const LINKS = [
-  { label: 'Agenda', to: AGENDA_PATH },
+// those of the albums to « Souvenirs »: their link stays lit there. The router
+// would mark each link as the current page on the home page, whatever its
+// anchor: the links decide alone.
+const LINKS: ReadonlyArray<{ label: string, to: string, pages?: string }> = [
+  { label: 'Agenda', to: AGENDA_PATH, pages: '/evenements/' },
+  { label: 'Souvenirs', to: '/#souvenirs', pages: MEMORIES_PATH },
   { label: 'Le comité', to: '/#comite' },
   { label: 'Contact', to: '/#contact' },
-] as const
+]
 
 const route = useRoute()
 const links = computed(() =>
-  LINKS.map(link => ({ ...link, current: link.to === AGENDA_PATH && route.path.startsWith('/evenements/') })),
+  LINKS.map(link => ({ ...link, current: link.pages !== undefined && route.path.startsWith(link.pages) })),
 )
 
 const classes = {

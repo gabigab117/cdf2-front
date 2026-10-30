@@ -170,6 +170,13 @@
      the row holds. */
   --grid-template-columns-photos: repeat(auto-fill, minmax(min(160px, 100%), 1fr));
 
+  /* The site's albums, « Souvenirs »: cards of 270 px at least, as many as the
+     row holds. */
+  --grid-template-columns-albums: repeat(auto-fit, minmax(min(270px, 100%), 1fr));
+
+  /* « L'an dernier » on an event's page: photos of 170 px at least. */
+  --grid-template-columns-previous-edition: repeat(auto-fit, minmax(min(170px, 100%), 1fr));
+
   /* Lines of the loan form: equipment, what is free, its quantity. */
   --grid-template-columns-loan-line: minmax(0, 1fr) 140px 132px;
 
@@ -265,6 +272,16 @@
 /* Chevron pattern taken from the coat of arms */
 @utility chevron {
   clip-path: polygon(0 70%, 50% 0, 100% 70%, 100% 100%, 50% 30%, 0 100%);
+}
+
+/* The chevron that rises from the foot of an event's cover. */
+@utility chevron-band {
+  clip-path: polygon(0 100%, 0 78%, 50% 8%, 100% 78%, 100% 100%, 50% 30%);
+}
+
+/* The height of an event's cover: 260 px on a phone, up to 480 px. */
+@utility h-cover {
+  height: clamp(260px, 34vw, 480px);
 }
 
 /* The rule of each week across the track of a planning: its step, a share of

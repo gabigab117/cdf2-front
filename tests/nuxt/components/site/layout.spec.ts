@@ -17,17 +17,22 @@ describe('SiteNav', () => {
 
     expect(nav.findAll('a').map(link => [link.text(), link.attributes('href')])).toEqual([
       ['Agenda', '/#agenda'],
+      ['Souvenirs', '/#souvenirs'],
       ['Le comité', '/#comite'],
       ['Contact', '/#contact'],
     ])
     expect(nav.findAll('[aria-current]')).toHaveLength(0)
   })
 
-  it('lights the agenda on the page of an event, which belongs to it', async () => {
-    const nav = await mountSuspended(SiteNav, { route: '/evenements/halloween-des-enfants-2026' })
+  it.each([
+    ['/evenements/halloween-des-enfants-2026', 'Agenda'],
+    ['/souvenirs', 'Souvenirs'],
+    ['/souvenirs/12-brocante-2026', 'Souvenirs'],
+  ])('lights the section a page belongs to: %s', async (route, section) => {
+    const nav = await mountSuspended(SiteNav, { route })
 
     const current = nav.findAll('[aria-current]')
-    expect(current.map(link => link.text())).toEqual(['Agenda'])
+    expect(current.map(link => link.text())).toEqual([section])
     expect(current[0]?.attributes('aria-current')).toBe('true')
     expect(current[0]?.classes()).toContain('bg-argent-100')
   })
@@ -42,7 +47,7 @@ describe('SiteHeader', () => {
     const close = header.get('button[aria-label="Fermer le menu"]')
     expect(open.attributes('popovertarget')).toBe(menu.attributes('id'))
     expect(close.attributes()).toMatchObject({ popovertarget: menu.attributes('id'), popovertargetaction: 'hide' })
-    expect(menu.findAll('a').map(link => link.text())).toEqual(['Agenda', 'Le comité', 'Contact'])
+    expect(menu.findAll('a').map(link => link.text())).toEqual(['Agenda', 'Souvenirs', 'Le comité', 'Contact'])
   })
 
   it('has no link to the board\'s space', async () => {

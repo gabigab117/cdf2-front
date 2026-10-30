@@ -4,6 +4,7 @@ import type { components } from '~/types/api'
 type AlbumIn = components['schemas']['AlbumIn']
 type AlbumOut = components['schemas']['AlbumOut']
 type PhotoOut = components['schemas']['PhotoOut']
+type PhotoRendition = components['schemas']['PhotoRendition']
 
 /** The Photos page, where the board keeps its albums. */
 export const PHOTOS_PATH = '/bureau/photos'
@@ -58,4 +59,32 @@ export function newAlbumFields(event?: { id: number, title: string, starts_at: s
 /** The fields of an album to correct, as the API gave it. */
 export function albumFields(album: AlbumOut): AlbumIn {
   return { title: album.title, date: album.date, event: album.event?.id ?? null }
+}
+
+/** How many albums the home page shows, under « Souvenirs ». */
+export const MEMORIES_ON_HOME = 4
+
+/** How many albums a page of « Souvenirs » shows: two, three or four to a row. */
+export const MEMORIES_PAGE_SIZE = 24
+
+/**
+ * A size of a photo the site shows (D17): a plain address, which an `<img>`
+ * reads and a link opens without JavaScript.
+ */
+export function publicPhotoUrl(photo: number, rendition: PhotoRendition): string {
+  return `/api/public/photos/${photo}/${rendition}`
+}
+
+/** The page of an album of the site, by its address: `12-brocante-2026`. */
+export function publicAlbumPath(slug: string): string {
+  return `${MEMORIES_PATH}/${slug}`
+}
+
+/**
+ * The number of an album, at the head of its address, or none. Nine digits at
+ * most: the API reads no larger number.
+ */
+export function albumIdOf(address: string): number | null {
+  const match = /^(\d{1,9})(?:-|$)/.exec(address)
+  return match ? Number(match[1]) : null
 }

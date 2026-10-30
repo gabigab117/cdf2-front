@@ -52,9 +52,9 @@ useSitePage({
               {{ event.price_label }}
             </UiStatusPill>
           </p>
-          <h1 class="font-display text-event font-heavy">
+          <SitePageTitle>
             {{ event.title }}
-          </h1>
+          </SitePageTitle>
           <p
             v-if="event.summary"
             class="max-w-160 text-intro text-pretty text-sable-600"
@@ -64,6 +64,10 @@ useSitePage({
         </div>
         <SiteDateBlock :event />
       </div>
+      <SiteEventCover
+        v-if="event.cover"
+        :cover="event.cover"
+      />
     </header>
     <div class="mx-auto flex w-full max-w-7xl flex-wrap items-start gap-14 px-4 pt-12 pb-6 md:px-6 md:pt-16">
       <div class="flex min-w-0 grow basis-140 flex-col gap-14">
@@ -74,6 +78,10 @@ useSitePage({
         <SitePracticalInfos
           v-if="event.practical_infos.length"
           :infos="event.practical_infos"
+        />
+        <SitePreviousEditionAlbum
+          v-if="event.previous_edition_album"
+          :album="event.previous_edition_album"
         />
       </div>
       <SiteEventFacts

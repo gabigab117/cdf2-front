@@ -14,15 +14,35 @@ const price = computed(() => [event.price_label, event.price_detail].filter(Bool
 const priceLine = computed(() => price.value.join(' · '))
 // On a phone, the venue and the price share a line: « Salle des fêtes · Gratuit, Goûter… ».
 const venueAndPrice = computed(() => [event.venue_name, price.value.join(', ')].filter(Boolean).join(' · '))
+
+// With a cover, the pills lie on the photo, white.
+const classes = {
+  pillsOnPhoto: 'absolute inset-x-5 top-5 md:inset-x-6 md:top-6',
+}
+const pills = computed(() => (event.cover ? classes.pillsOnPhoto : undefined))
+const pillTone = computed(() => (event.cover ? 'light' : 'neutral'))
 </script>
 
-<!-- « Prochain rendez-vous ». Its photo comes with the albums (phase 8). -->
+<!-- « Prochain rendez-vous », its cover on top while the site may show it (D17):
+its pills then lie on the photo. -->
 <template>
-  <article class="w-full max-w-117.5 rounded-panel bg-white p-2 shadow-spotlight md:rounded-hero md:p-2.5">
+  <article class="relative w-full max-w-117.5 rounded-panel bg-white p-2 shadow-spotlight md:rounded-hero md:p-2.5">
+    <div
+      v-if="event.cover"
+      class="h-47.5 overflow-hidden rounded-banner bg-sable-900 md:h-67.5 md:rounded-tile"
+    >
+      <SitePhoto
+        :photo="event.cover"
+        rendition="display"
+      />
+    </div>
     <div class="flex flex-col gap-2.5 px-3 pt-4.5 pb-2.5 md:gap-3.5 md:px-4 md:pt-5.5 md:pb-3.5">
-      <p class="flex items-center justify-between gap-3">
+      <p
+        class="flex items-center justify-between gap-3"
+        :class="pills"
+      >
         <UiStatusPill
-          tone="neutral"
+          :tone="pillTone"
           size="lg"
         >
           Prochain rendez-vous

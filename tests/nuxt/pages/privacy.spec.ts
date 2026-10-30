@@ -26,7 +26,7 @@ describe('privacy page', () => {
 
     expect(page.get('h1').text()).toBe('Données personnelles')
     expect(page.findAll('h2').map(title => title.text())).toEqual([
-      'Visiteurs du site', 'Membres du bureau', 'Documents du bureau', 'Trésorerie', 'Stock', 'Bénévoles et réservations', 'Prêts de matériel', 'Durées de conservation', 'Vos droits',
+      'Visiteurs du site', 'Membres du bureau', 'Documents du bureau', 'Trésorerie', 'Stock', 'Bénévoles et réservations', 'Prêts de matériel', 'Photos', 'Durées de conservation', 'Vos droits',
     ])
     expect(page.text()).toContain('Le site ne dépose aucun cookie, ne mesure pas son audience et ne vous demande rien.')
     expect(page.text()).toContain('Les notes du bureau portent le nom de leur auteur, les tâches celui de la personne qui les a créées et de celle à qui elles sont assignées. Seul le bureau les lit.')
@@ -43,6 +43,7 @@ describe('privacy page', () => {
       ['Documents du bureau', 'Gardés pour la gestion de l’association, factures et attestations sur l’honneur comprises ; un membre du bureau peut en supprimer un'],
       ['Lignes de la trésorerie', 'Gardées pour la comptabilité de l’association ; un membre du bureau peut en corriger ou en supprimer une'],
       ['Mouvements du stock', 'Gardés pour la gestion de l’association'],
+      ['Photos des albums', 'Gardées tant que leur album existe ; une photo dont le retrait est demandé est supprimée tout de suite'],
       ['Noms des bénévoles affectés aux postes', 'Effacés 2 ans après l’événement'],
       ['Noms et remarques des réservations', 'Effacés 3 mois après l’événement, les totaux conservés'],
       ['Téléphone d’un emprunteur', 'Effacé 3 mois après le retour du matériel, ou après la date de retour prévue d’un prêt annulé'],
@@ -54,8 +55,19 @@ describe('privacy page', () => {
       ['Journal de l’application', '7 jours'],
     ])
     expect(page.get('a[href="/mentions-legales"]').text()).toBe('mentions légales')
-    expect(page.get('a[href="mailto:contact@example.test"]').text()).toBe('contact@example.test')
+    expect(page.findAll('a[href="mailto:contact@example.test"]').map(link => link.text())).toEqual(['contact@example.test', 'contact@example.test'])
     expect(page.get('a[href="https://www.cnil.fr"]').text()).toBe('CNIL')
+  })
+
+  it('tells what the albums of the site publish, and how a photo is taken down (D17)', async () => {
+    const page = await mountPrivacy()
+
+    const photos = page.findAll('section').find(section => section.get('h2').text() === 'Photos')
+    expect(photos?.text()).toContain('des photos d’ambiance et de groupe. Une personne cadrée seule n’y paraît qu’avec son accord, et un enfant qu’avec celui de ses parents.')
+    expect(photos?.text()).toContain('Aucune photo ne donne de nom : ni celui des personnes photographiées, ni celui du membre qui l’a ajoutée.')
+    expect(photos?.text()).toContain('les moteurs de recherche n’indexent pas les images.')
+    expect(photos?.text()).toContain('vous ou votre enfant, écrivez à contact@example.test : elle est supprimée tout de suite.')
+    expect(photos?.text()).toContain('Une photo est gardée tant que son album existe.')
   })
 
   it('writes to the committee when the configuration gives no address', async () => {
@@ -65,6 +77,7 @@ describe('privacy page', () => {
 
     expect(page.find('a[href^="mailto:"]').exists()).toBe(false)
     expect(page.text()).toContain('ou vous opposer à leur traitement, en écrivant au comité.')
+    expect(page.text()).toContain('vous ou votre enfant, écrivez au comité : elle est supprimée tout de suite.')
   })
 
   it('leaves no space between a link and the punctuation after it', async () => {
