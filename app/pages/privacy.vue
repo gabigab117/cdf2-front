@@ -8,7 +8,7 @@ const { contact } = useRuntimeConfig().public
 const RETENTION_PERIODS: ReadonlyArray<{ data: string, period: string }> = [
   {
     data: 'Compte d’un membre du bureau',
-    period: 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés, ses notes, ses tâches, les documents qu’elle a déposés ou validés, les lignes de trésorerie qu’elle a saisies ou avancées et les mouvements du stock qu’elle a enregistrés. Il est supprimé si elle le demande : ses notes, ses tâches, ses documents, ses lignes de trésorerie et ses mouvements du stock restent, sans son nom, sauf dans le texte d’une attestation sur l’honneur qu’elle a faite.',
+    period: 'Tant que la personne est au bureau. À son départ, le compte est désactivé, et son nom reste sur les événements qu’elle a menés, ses notes, ses tâches, les documents qu’elle a déposés ou validés, les lignes de trésorerie qu’elle a saisies ou avancées, les mouvements du stock qu’elle a enregistrés et les photos qu’elle a ajoutées. Il est supprimé si elle le demande : ses notes, ses tâches, ses documents, ses lignes de trésorerie, ses mouvements du stock et ses photos restent, sans son nom, sauf dans le texte d’une attestation sur l’honneur qu’elle a faite.',
   },
   { data: 'Notes et tâches du bureau', period: 'Supprimées avec leur événement, ou à la main : une note par son auteur' },
   { data: 'Documents du bureau', period: 'Gardés pour la gestion de l’association, factures et attestations sur l’honneur comprises ; un membre du bureau peut en supprimer un' },

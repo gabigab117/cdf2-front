@@ -170,6 +170,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/albums": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create an album
+         * @description Record an album, private until a member publishes it (D17).
+         */
+        post: operations["photos_api_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/albums/{album_id}/photos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add a photo to an album
+         * @description Record a photo, sent alone: an album of many photos is sent one at a time.
+         *
+         *     Its type is read from its content; it is kept in WebP, without its
+         *     metadata, in three sizes.
+         */
+        post: operations["photos_api_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/assignments/{assignment_id}": {
         parameters: {
             query?: never;
@@ -971,6 +1014,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/board/photos/{photo_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a photo
+         * @description Delete a photo and its files: also how a removal asked for is done (D17).
+         */
+        delete: operations["photos_api_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/board/photos/{photo_id}/{rendition}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read a photo
+         * @description A size of any photo, published or not.
+         */
+        get: operations["photos_api_read_file"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/board/reservations/{reservation_id}": {
         parameters: {
             query?: never;
@@ -1751,6 +1834,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/public/photos/{photo_id}/{rendition}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read a visible photo
+         * @description A size of a photo the site shows (D17): any other is not found.
+         */
+        get: operations["photos_api_public_file"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1810,6 +1913,56 @@ export interface components {
             categories: components["schemas"]["EventCategory"][];
             /** Updated At */
             updated_at: string | null;
+        };
+        /**
+         * AlbumEventOut
+         * @description The event an album belongs to.
+         */
+        AlbumEventOut: {
+            /** Id */
+            id: number;
+            /** Title */
+            title: string;
+        };
+        /**
+         * AlbumIn
+         * @description An album as a member creates it: private until it is published (D17).
+         *
+         *     Its values are checked by the model, whose messages are in French.
+         */
+        AlbumIn: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Event */
+            event: number | null;
+            /** Title */
+            title: string;
+        };
+        /**
+         * AlbumOut
+         * @description An album of the board.
+         */
+        AlbumOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            event: components["schemas"]["AlbumEventOut"] | null;
+            /** Id */
+            id: number;
+            /** Published */
+            published: boolean;
+            /** Title */
+            title: string;
         };
         /** AssignmentIn */
         AssignmentIn: {
@@ -3660,6 +3813,38 @@ export interface components {
             items: components["schemas"]["UnpricedPurchaseOut"][];
         };
         /**
+         * PhotoOut
+         * @description A photo of an album, as the board sees it.
+         */
+        PhotoOut: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Height */
+            height: number;
+            /** Hidden */
+            hidden: boolean;
+            /** Id */
+            id: number;
+            /** Image Rights To Review */
+            image_rights_to_review: boolean;
+            /** Original Name */
+            original_name: string;
+            /** Taken At */
+            taken_at: string | null;
+            uploaded_by: components["schemas"]["BoardMemberOut"] | null;
+            /** Width */
+            width: number;
+        };
+        /**
+         * PhotoRendition
+         * @description A size of a photo smaller than its image, named after its field.
+         * @enum {string}
+         */
+        PhotoRendition: "thumbnail" | "display";
+        /**
          * PracticalInfoIcon
          * @enum {string}
          */
@@ -4980,6 +5165,143 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["InvitationOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    photos_api_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AlbumIn"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlbumOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    photos_api_upload: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                album_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * File
+                     * Format: binary
+                     */
+                    file: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PhotoOut"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
                 };
             };
             /** @description Unauthorized */
@@ -8023,6 +8345,122 @@ export interface operations {
             };
         };
     };
+    photos_api_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                photo_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
+    photos_api_read_file: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                photo_id: number;
+                /** @description A size of a photo smaller than its image, named after its field. */
+                rendition: "thumbnail" | "display";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The photo, in the size asked for */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/webp": string;
+                };
+            };
+            /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
+                };
+            };
+        };
+    };
     reservations_api_update: {
         parameters: {
             query?: never;
@@ -10823,6 +11261,48 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    photos_api_public_file: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                photo_id: number;
+                /** @description A size of a photo smaller than its image, named after its field. */
+                rendition: "thumbnail" | "display";
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The photo, in the size asked for */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/webp": string;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Unprocessable Content */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValidationErrorOut"];
                 };
             };
         };
