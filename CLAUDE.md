@@ -114,7 +114,9 @@ Le site a des pages publiques indexables et un espace connecté. Chacun reçoit 
   - Aucun credential dans un rendu serveur : ni access token, ni cookie relayé, seulement des endpoints publics du back (`/api/public/`, schémas dédiés sans donnée personnelle).
   - Le HTML rendu est le même pour tous les visiteurs.
   - Chaque page publique déclare ses métadonnées (`useSeoMeta`).
-  - **Aucune donnée personnelle sur une page publique.** Seule exception : les mentions légales, qui nomment le directeur de publication (obligation légale).
+  - **Aucune donnée personnelle sur une page publique.** Deux exceptions :
+    - les mentions légales, qui nomment le directeur de publication (obligation légale) ;
+    - les photos des albums publiés : une photo d'ambiance ou de groupe s'y publie ; une personne cadrée seule, seulement avec son accord ou celui de ses parents ; jamais un nom, ni celui du membre qui l'a ajoutée.
 - Ce qui dépend de la session (lien vers l'espace, nom du membre…) ne s'affiche que côté client, et seulement si une session existe déjà en mémoire. Jamais dans le rendu serveur.
 - **Espace connecté : CSR** (`ssr: false` sur `/bureau/**`). Le serveur n'y rend qu'une coquille ; la session n'existe que dans le navigateur.
 - **Production** : `nuxt build` produit un serveur Nitro (Node, piloté par systemd) derrière nginx, qui envoie `/api/` à Django et le reste à Nitro.
