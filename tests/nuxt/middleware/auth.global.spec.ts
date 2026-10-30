@@ -46,13 +46,15 @@ describe('auth middleware', () => {
     /**
      * Given an address that matches no page, even under /bureau
      * When it is opened
-     * Then the 404 page answers it, rather than the sign-in page
+     * Then the server is asked for it, and answers with the 404 page, rather than the sign-in page
      */
     const refresh = mockRefresh(sessionEnded)
+    // Nuxt loads an address that matches no page as a whole document
+    // (experimental.serverPathFallback); the document shows the 404 page.
+    const load = vi.spyOn(window.location, 'assign').mockImplementation(() => undefined)
 
-    await visit('/bureau/inconnue')
-
-    expect(useError().value).toMatchObject({ status: 404 })
+    expect(await visit('/bureau/inconnue')).toBe('/')
+    expect(load).toHaveBeenCalledWith(expect.objectContaining({ pathname: '/bureau/inconnue' }))
     expect(refresh).not.toHaveBeenCalled()
   })
 
